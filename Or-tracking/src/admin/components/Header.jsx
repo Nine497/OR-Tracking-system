@@ -15,6 +15,7 @@ function Header() {
       content: "You will be redirected to the login page.",
       okText: "Logout",
       cancelText: "Cancel",
+      centered: true,
       onOk: () => {
         logout();
         notification.success({
@@ -22,12 +23,6 @@ function Header() {
           description: "You have been logged out.",
         });
         navigate("/login");
-      },
-      onCancel: () => {
-        notification.info({
-          message: "Logout Cancelled",
-          description: "You are still logged in.",
-        });
       },
     });
   };

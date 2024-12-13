@@ -2,22 +2,44 @@
 
 const Staff = require("../models/staffModel");
 const bcrypt = require("bcrypt");
+const db = require('../config/database');
 
 // Get all staff
 exports.getAllStaff = async (req, res) => {
   try {
-    const staff = await Staff.getAll();
+    const { search, limit = 6, page = 1 } = req.query;
+    const offset = (page - 1) * limit;
+
+    let staff;
+
+    if (search) {
+      staff = await Staff.getAll()
+        .where(db.raw('CAST("staff_id" AS text) LIKE ?', [`%${search}%`])) 
+        .orWhere("username", "like", `%${search}%`)
+        .orWhere("firstname", "like", `%${search}%`)
+        .orWhere("lastname", "like", `%${search}%`)
+        .limit(Number(limit))
+        .offset(offset);
+    } else {
+      staff = await Staff.getAll().limit(Number(limit)).offset(offset);
+    }
+
     res.status(200).json(staff);
   } catch (err) {
     res.status(500).json({ message: "Server error", error: err.message });
   }
 };
 
+
+
+
 // Create new staff
 exports.createStaff = async (req, res) => {
-  const { username, password, firstname, lastname, isActive } = req.body;
+  let { username, password, firstname, lastname, isActive } = req.body;
 
   try {
+    username = username.replace(/[A-Za-z]/g, (match) => match.toLowerCase());
+
     const hashedPassword = await bcrypt.hash(password, 10);
 
     const newStaff = await Staff.create({
@@ -34,6 +56,7 @@ exports.createStaff = async (req, res) => {
     res.status(500).json({ message: "Server error", error: err.message });
   }
 };
+
 
 // Get permissions by staff_id
 exports.getPermissionsByStaffId = async (req, res) => {

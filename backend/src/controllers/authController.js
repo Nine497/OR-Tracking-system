@@ -3,11 +3,12 @@ const jwt = require("jsonwebtoken");
 const Staff = require("../models/staffModel");
 require("dotenv").config();
 
-// ฟังก์ชันสำหรับ login
 exports.login = async (req, res) => {
-  const { username, password } = req.body;
+  let { username, password } = req.body;
 
   try {
+    username = username.replace(/[A-Za-z]/g, (match) => match.toLowerCase());
+
     const staff = await Staff.findOne({ username });
     if (!staff) {
       return res.status(404).json({ message: "Staff not found" });
@@ -46,3 +47,4 @@ exports.login = async (req, res) => {
     res.status(500).json({ message: "Server error", error: err.message });
   }
 };
+

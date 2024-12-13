@@ -46,7 +46,13 @@ const Sidebar = () => {
     const fetchPermissions = async () => {
       if (user && user.id) {
         try {
-          const response = await axiosInstance.get(`/staff/permissions/${user.id}`);
+          const token = localStorage.getItem("jwtToken");
+
+          const response = await axiosInstance.get(`/staff/permissions/${user.id}`, {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          });
           const permissions = response.data.map((item) => item.permission_id);
           setUserPermissions(permissions);
           console.log("Permissions received:", permissions);
@@ -55,6 +61,7 @@ const Sidebar = () => {
         }
       }
     };
+
 
     if (user && user.id) {
       fetchPermissions();

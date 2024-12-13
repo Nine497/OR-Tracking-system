@@ -35,11 +35,6 @@ const PrivateRoute = () => {
     return <div>Loading...</div>;
   }
 
-  if (!user) {
-    notification.warning({ message: "Please login to access this page." });
-    return <Navigate to="/login" />;
-  }
-
   return <Outlet />;
 };
 

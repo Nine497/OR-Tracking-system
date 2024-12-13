@@ -17,19 +17,9 @@ const Login = () => {
       const { data } = await axiosInstance.post("auth/login", { username, password });
       if (data.token) {
         login(data.token);
-
-        const permissionsResponse = await axiosInstance.get(`staff/permissions/${data.user.staff_id}`);
-        const userWithPermissions = {
-          ...data.user,
-          permissions: permissionsResponse.data.map((p) => p.permission_id),
-        };
-
-        // บันทึกข้อมูลผู้ใช้ที่มีสิทธิ์เพิ่มเติม (ถ้าจำเป็น)
-        notification.success({ message: "Login successful" });
-        navigate("/admin/room_schedule");
-      } else {
-        notification.error({ message: "Invalid response from server." });
-      }
+      };
+      notification.success({ message: "Login successful" });
+      navigate("/admin/room_schedule");
     } catch (error) {
       console.error("Login error:", error);
       notification.error({ message: error.response?.data?.message || "Login failed." });
