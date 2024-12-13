@@ -1,33 +1,38 @@
-// Login.js
 import React from "react";
 import { Form, Input, Button, Card, notification } from "antd";
 import { LockOutlined, UserOutlined } from "@ant-design/icons";
-import LoginImg from "../assets/Login.jpg";
-import { useAuth } from "../components/AuthContext";
+import { useAuth } from "../context/AuthContext";
 import { useNavigate } from "react-router-dom";
+import axiosInstance from "../api/axiosInstance";
+import LoginImg from "../assets/Login.jpg";
 
 const Login = () => {
-  const [form] = Form.useForm();
-  const { login, loading } = useAuth();
+  const { login } = useAuth();
   const navigate = useNavigate();
 
   const handleSubmit = async (values) => {
     try {
-      const result = await login(values);
-      if (result.success) {
-        notification.success({
-          message: "Login successful",
-          description: "Welcome back!",
-        });
+      const { username, password } = values;
+
+      const { data } = await axiosInstance.post("auth/login", { username, password });
+      if (data.token) {
+        login(data.token);
+
+        const permissionsResponse = await axiosInstance.get(`staff/permissions/${data.user.staff_id}`);
+        const userWithPermissions = {
+          ...data.user,
+          permissions: permissionsResponse.data.map((p) => p.permission_id),
+        };
+
+        // บันทึกข้อมูลผู้ใช้ที่มีสิทธิ์เพิ่มเติม (ถ้าจำเป็น)
+        notification.success({ message: "Login successful" });
         navigate("/admin/room_schedule");
       } else {
-        throw new Error(result.error || "Invalid credentials.");
+        notification.error({ message: "Invalid response from server." });
       }
     } catch (error) {
-      notification.error({
-        message: "Login failed",
-        description: error.message,
-      });
+      console.error("Login error:", error);
+      notification.error({ message: error.response?.data?.message || "Login failed." });
     }
   };
 
@@ -43,22 +48,17 @@ const Login = () => {
       <div className="flex-[3] flex justify-center items-center bg-white">
         <Card className="w-full max-w-md rounded-xl">
           <div className="text-center mb-8">
-            <h1 className="text-4xl font-bold text-blue-600 mb-2">
-              OR-Tracking
-            </h1>
+            <h1 className="text-4xl font-bold text-blue-600 mb-2">OR-Tracking</h1>
             <h2 className="text-2xl font-semibold">Log in</h2>
           </div>
           <Form
-            form={form}
             onFinish={handleSubmit}
             layout="vertical"
             className="space-y-4"
           >
             <Form.Item
               name="username"
-              rules={[
-                { required: true, message: "Please enter your username" },
-              ]}
+              rules={[{ required: true, message: "Please enter your username" }]}
             >
               <Input
                 prefix={<UserOutlined />}
@@ -68,9 +68,7 @@ const Login = () => {
             </Form.Item>
             <Form.Item
               name="password"
-              rules={[
-                { required: true, message: "Please enter your password" },
-              ]}
+              rules={[{ required: true, message: "Please enter your password" }]}
             >
               <Input.Password
                 prefix={<LockOutlined />}
@@ -84,7 +82,6 @@ const Login = () => {
                 htmlType="submit"
                 block
                 size="large"
-                loading={loading}
               >
                 Log in
               </Button>

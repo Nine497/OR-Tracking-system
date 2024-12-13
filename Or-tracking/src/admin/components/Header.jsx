@@ -2,11 +2,11 @@ import React from "react";
 import { Dropdown, Button, Modal, notification } from "antd";
 import { Icon } from "@iconify/react";
 import { useNavigate } from "react-router-dom";
-import { useAuth } from "./AuthContext";
+import { useAuth } from "../context/AuthContext";
 import BreadcrumbComponent from "../components/Breadcrumb";
 
 function Header() {
-  const { authUser, logout } = useAuth();
+  const { user, logout } = useAuth();
   const navigate = useNavigate();
 
   const handleLogout = () => {
@@ -59,8 +59,8 @@ function Header() {
     },
   ];
 
-  const firstLetter = authUser
-    ? authUser.username.charAt(0).toUpperCase()
+  const firstLetter = user
+    ? user.username.charAt(0).toUpperCase()
     : "A";
 
   return (

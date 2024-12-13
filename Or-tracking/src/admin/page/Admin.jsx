@@ -2,21 +2,21 @@ import React, { useEffect, useState } from "react";
 import { Outlet } from "react-router-dom";
 import Header from "../components/Header";
 import Sidebar from "../components/Sidebar";
-import { useAuth } from "../components/AuthContext";
+import { useAuth } from "../context/AuthContext";
 import { Spin } from "antd";
 function Admin() {
-  const { authUser } = useAuth();
+  const { user } = useAuth();
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (authUser) {
+    if (user) {
       setLoading(false);
     }
-  }, [authUser]);
+  }, [user]);
 
   if (loading) {
     return (
-      <div className="flex justify-center items-center h-screen">
+      <div className="flex justify-center items-center h-screen w-screen">
         <Spin size="large" />
       </div>
     );
@@ -24,7 +24,7 @@ function Admin() {
 
   return (
     <div className="flex h-screen w-screen overflow-hidden">
-      <Sidebar authUser={authUser} />
+      <Sidebar user={user} />
       <div className="flex flex-col flex-1 overflow-hidden">
         <header className="sticky top-0 z-10">
           <Header />

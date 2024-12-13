@@ -19,11 +19,10 @@ function PermissionModal({ visible, user, onClose }) {
     return (
       <Checkbox
         value={value}
-        className={`flex items-center p-3 border rounded-lg hover:bg-blue-50 transition-colors text-base ${
-          isFullWidth
+        className={`flex items-center p-3 border rounded-lg hover:bg-blue-50 transition-colors text-base ${isFullWidth
             ? "bg-blue-50 hover:bg-blue-100 font-semibold text-blue-800 col-span-2"
             : ""
-        }`}
+          }`}
       >
         <span className="text-base font-normal">{label}</span>
       </Checkbox>

@@ -104,27 +104,3 @@ exports.updateActiveStaff = async (req, res) => {
     res.status(500).json({ message: "Server error", error: err.message });
   }
 };
-
-exports.checkPermission = async (req, res) => {
-  const { staffId } = req.params;
-  const { permission } = req.query;
-
-  if (!permission) {
-    return res
-      .status(400)
-      .json({ error: "Permission is required in the query string" });
-  }
-
-  try {
-    const staffPermissions = await Staff.getPermissionsByStaffId(staffId);
-
-    const hasPermission = staffPermissions
-      .map((p) => p.permission_id)
-      .includes(parseInt(permission));
-
-    res.json({ hasPermission });
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ error: "Permission check failed" });
-  }
-};
