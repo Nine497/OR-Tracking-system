@@ -217,7 +217,7 @@ function CaseTable() {
           <span className="font-medium ml-2 text-lg">Reload Data</span>
         </CustomButton>
       </div>
-      <div className="w-full h-full mt-4">
+      <div className="w-full h-full mt-4 overflow-x-auto">
         <Table
           dataSource={dataSource.map((item) => ({ ...item, key: item.caseId }))}
           columns={columns}

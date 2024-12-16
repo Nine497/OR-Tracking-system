@@ -1,15 +1,19 @@
 import React, { useState, useEffect } from "react";
-import axios from "axios";
 import { Input, Table, notification, Tooltip, Switch } from "antd";
 import CustomButton from "../CustomButton";
 import { Icon } from "@iconify/react";
 import axiosInstance from "../../api/axiosInstance";
+import { Spin } from "antd";
+import PermissionModal from "./PermissionModal";
 
 function UsersTable() {
   const [filteredData, setFilteredData] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [loading, setLoading] = useState(false);
   const [pagination, setPagination] = useState({ pageSize: 6, current: 1 });
+  const [reloadTrigger, setReloadTrigger] = useState(false);
+  const [modalVisible, setModalVisible] = useState(false);
+  const [selectedUser, setSelectedUser] = useState(null);
 
   const handleSearch = async (value) => {
     setSearchTerm(value);
@@ -25,14 +29,28 @@ function UsersTable() {
         params: {
           search: value,
           limit: pagination.pageSize,
-          page: pagination.current,
+          page: 1,
         },
       });
 
-      setFilteredData(response.data);
+      const dataWithKeys = Array.isArray(response.data?.data)
+        ? response.data.data.map((item) => ({
+            ...item,
+            key: item.staff_id,
+          }))
+        : [];
+
+      setFilteredData(dataWithKeys);
+      setPagination({
+        ...pagination,
+        total: response.data.totalRecords,
+      });
     } catch (error) {
       console.error("Error searching users:", error);
-      notification.error({ message: "Error searching users", description: error.message });
+      notification.error({
+        message: "Error searching users",
+        description: error.message,
+      });
     } finally {
       setLoading(false);
     }
@@ -49,25 +67,55 @@ function UsersTable() {
             Authorization: `Bearer ${token}`,
           },
           params: {
+            search: searchTerm,
             limit: pagination.pageSize,
             page: pagination.current,
           },
         });
 
-        setFilteredData(response.data);
+        const dataWithKeys = Array.isArray(response.data?.data)
+          ? response.data.data.map((item) => ({
+              ...item,
+              key: item.staff_id,
+            }))
+          : [];
+
+        setFilteredData(dataWithKeys);
+        setPagination({
+          ...pagination,
+          total: response.data.totalRecords,
+        });
       } catch (error) {
         console.error("Error fetching users:", error);
-        notification.error({ message: "Error fetching users", description: error.message });
+        notification.error({
+          message: "Error fetching users",
+          description: error.message,
+        });
       } finally {
-        setLoading(false);
+        setTimeout(() => {
+          setLoading(false);
+        }, 200);
       }
     };
 
     fetchData();
-  }, [pagination.current]);
+  }, [pagination.current, searchTerm, reloadTrigger]);
+
+  useEffect(() => {
+    console.log("filteredData : ", filteredData);
+  }, [filteredData]);
 
   const handlePaginationChange = (page, pageSize) => {
     setPagination({ current: page, pageSize });
+  };
+
+  const handlePermission = (record) => {
+    setSelectedUser(record);
+    setModalVisible(true);
+  };
+
+  const handleModalClose = () => {
+    setModalVisible(false);
   };
 
   const columns = [
@@ -87,7 +135,11 @@ function UsersTable() {
       title: <span className="text-base font-bold">Full Name</span>,
       dataIndex: "fullName",
       key: "fullName",
-      render: (text, record) => <span className="text-base font-normal">{record.firstname} {record.lastname}</span>,
+      render: (text, record) => (
+        <span className="text-base font-normal">
+          {record.firstname} {record.lastname}
+        </span>
+      ),
     },
     {
       title: <span className="text-base font-bold">Created At</span>,
@@ -108,7 +160,9 @@ function UsersTable() {
             <div>
               <CustomButton
                 variant="primary"
-                icon={<Icon icon="solar:user-outline" className="mr-2 w-4 h-4" />}
+                icon={
+                  <Icon icon="solar:user-outline" className="mr-2 w-4 h-4" />
+                }
                 onClick={() => handlePermission(record)}
               >
                 <span className="font-medium text-base">Permission</span>
@@ -142,24 +196,37 @@ function UsersTable() {
         <CustomButton
           variant="white"
           icon={<Icon icon="mdi:reload" className="mr-2 w-4 h-4" />}
-          onClick={() => setSearchTerm("")}
+          onClick={() => {
+            setSearchTerm("");
+            setPagination({ ...pagination, current: 1 });
+            setReloadTrigger((prev) => !prev);
+          }}
         >
           <span className="font-medium ml-2 text-lg">Reload Data</span>
         </CustomButton>
       </div>
 
-      <div className="w-full h-full mt-4">
-        <Table
-          dataSource={filteredData}
-          columns={columns}
-          pagination={{
-            pageSize: pagination.pageSize,
-            current: pagination.current,
-            onChange: handlePaginationChange,
-          }}
-          loading={loading}
-        />
+      <div className="w-full h-full mt-4 overflow-x-auto">
+        <Spin spinning={loading} size="large">
+          <Table
+            dataSource={filteredData}
+            columns={columns}
+            loading={loading}
+            pagination={{
+              pageSize: pagination.pageSize,
+              current: pagination.current,
+              total: pagination.total,
+              onChange: handlePaginationChange,
+              showTotal: (total) => `Total ${total} items`,
+            }}
+          />
+        </Spin>
       </div>
+      <PermissionModal
+        visible={modalVisible}
+        staff={selectedUser}
+        onClose={handleModalClose}
+      />
     </div>
   );
 }

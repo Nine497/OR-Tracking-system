@@ -55,7 +55,7 @@ function RoomCard({ room }) {
               >
                 <div className="flex items-center justify-between mb-2">
                   <span className="text-xs font-semibold px-2 py-1 bg-indigo-200 text-indigo-800 rounded-full group-hover:bg-indigo-300 transition-colors">
-                    Case {c.case_id}
+                    {c.case_id}
                   </span>
                   <div className="flex items-center space-x-2">
                     <ClockCircleOutlined className="text-indigo-600 group-hover:text-indigo-700 transition-colors" />

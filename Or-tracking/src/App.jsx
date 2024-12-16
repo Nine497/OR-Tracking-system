@@ -15,7 +15,8 @@ import Case_manage from "./admin/page/Case_manage";
 import ErrorPage from "./shared/Errorpage";
 import Room_schedule from "./admin/page/RoomSchedule";
 import AddCase from "./admin/components/Case_manage/AddCase";
-import { notification } from "antd";
+import PermissionDenied from "./admin/page/permissionDenied";
+import PermissionRoute from "./admin/hooks/PermissionRoute";
 
 function App() {
   return (
@@ -29,13 +30,26 @@ function App() {
             <Route path="" element={<Admin />}>
               <Route path="room_schedule" element={<Room_schedule />} />
               <Route path="calendar" element={<Calendar />} />
-              <Route path="users_manage" element={<Users_manage />} />
-              <Route path="case_manage" element={<Case_manage />}>
+
+              <Route
+                path="users_manage"
+                element={<PermissionRoute requiredPermission={5002} />}
+              >
+                <Route path="" element={<Users_manage />} />
+              </Route>
+              <Route
+                path="case_manage"
+                element={<PermissionRoute requiredPermission={5003} />}
+              >
+                <Route path="" element={<Case_manage />} />
                 <Route path="add_case" element={<AddCase />} />
               </Route>
+
+              <Route path="permissionDenied" element={<PermissionDenied />} />
             </Route>
           </Route>
 
+          {/* หน้า Error */}
           <Route path="*" element={<ErrorPage />} />
         </Routes>
       </Router>

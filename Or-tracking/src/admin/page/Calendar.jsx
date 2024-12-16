@@ -22,8 +22,8 @@ export default function Calendar() {
 
   return (
     <>
-      <div className="w-full p-6 bg-white rounded-lg min-h-[500px]">
-        <h2 className="text-xl font-bold text-gray-800">Case Schedule</h2>
+      <div className="w-full p-4 bg-white rounded-lg min-h-[500px]">
+        <h2 className="text-3xl font-bold text-gray-800">Case Schedule</h2>
         <Tabs defaultActiveKey="1" items={items} />
       </div>
     </>

@@ -15,7 +15,7 @@ function Users_Table_Header() {
   };
 
   return (
-    <div className="flex flex-row p-7 justify-between">
+    <div className="flex flex-row p-4 justify-between">
       <div className="text-3xl font-semibold">Users management</div>
 
       <CustomButton

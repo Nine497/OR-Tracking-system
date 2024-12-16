@@ -1,33 +1,64 @@
-import React from "react";
-import { Modal, Form, Checkbox, Button } from "antd";
+import React, { useState, useEffect } from "react";
+import { Modal, Form, Checkbox, Button, notification } from "antd";
+import axiosInstance from "../../api/axiosInstance";
 
-function PermissionModal({ visible, user, onClose }) {
+function PermissionModal({ visible, staff, onClose }) {
+  const [permissions, setPermissions] = useState([]);
+  const [staffPermissions, setStaffPermissions] = useState([]);
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    const fetchPermissions = async () => {
+      if (!visible) return;
+      setLoading(true);
+      try {
+        const token = localStorage.getItem("jwtToken");
+
+        const response = await axiosInstance.get("staff/permissions", {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+        setPermissions(response.data.permissions);
+
+        console.log(staff);
+
+        if (staff) {
+          const staffResponse = await axiosInstance.get(
+            `staff/permissions/${staff.staff_id}`,
+            {
+              headers: {
+                Authorization: `Bearer ${token}`,
+              },
+            }
+          );
+          console.log("staffResponse : ", staffResponse);
+          setStaffPermissions(staffResponse?.data);
+        }
+      } catch (error) {
+        console.error("Error fetching permissions:", error);
+        notification.error({
+          message: "Error fetching permissions",
+          description: error.message,
+        });
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    if (visible) {
+      fetchPermissions();
+    }
+  }, [visible, staff]);
+
   const handleFinish = (values) => {
-    console.log("Updated permissions for:", user.userName, values);
+    console.log("Updated permissions for:", staff.userName, values);
     onClose();
   };
 
-  const permissions = [
-    { value: "read", label: "Assign Permissions" },
-    { value: "write", label: "User Management" },
-    { value: "edit", label: "Case Management" },
-    { value: "delete", label: "Link Management" },
-    { value: "full", label: "Full Access", isFullWidth: true },
-  ];
-
-  const CustomCheckbox = ({ value, label, isFullWidth = false }) => {
-    return (
-      <Checkbox
-        value={value}
-        className={`flex items-center p-3 border rounded-lg hover:bg-blue-50 transition-colors text-base ${isFullWidth
-            ? "bg-blue-50 hover:bg-blue-100 font-semibold text-blue-800 col-span-2"
-            : ""
-          }`}
-      >
-        <span className="text-base font-normal">{label}</span>
-      </Checkbox>
-    );
-  };
+  useEffect(() => {
+    console.log("staffPermissions : ", staffPermissions);
+  }, [staffPermissions]);
 
   return (
     <Modal
@@ -37,7 +68,7 @@ function PermissionModal({ visible, user, onClose }) {
             Manage Permissions
           </span>
           <span className="mt-1 text-lg font-medium text-blue-600">
-            #{user?.userNumber} - {user?.fullName}
+            #{staff?.staff_id} - {staff?.firstname} {staff?.lastname}
           </span>
         </div>
       }
@@ -46,13 +77,8 @@ function PermissionModal({ visible, user, onClose }) {
       footer={null}
       centered
       className="rounded-lg"
-      styles={{
-        body: {
-          padding: "32px",
-          fontSize: "16px",
-        },
-      }}
       width={800}
+      confirmLoading={loading}
     >
       <Form onFinish={handleFinish} layout="vertical" className="space-y-6">
         <Form.Item
@@ -63,16 +89,16 @@ function PermissionModal({ visible, user, onClose }) {
             </span>
           }
         >
-          <Checkbox.Group className="grid grid-cols-2 gap-6">
+          <div className="grid grid-cols-2 gap-6">
             {permissions.map((item) => (
               <CustomCheckbox
-                key={item.value}
-                value={item.value}
-                label={item.label}
-                isFullWidth={item.isFullWidth}
+                key={item.permission_id}
+                value={item.permission_id}
+                staff={staffPermissions}
+                label={item.permission_name}
               />
             ))}
-          </Checkbox.Group>
+          </div>
         </Form.Item>
         <div className="flex justify-center space-x-4 border-t pt-6 mt-6">
           <Button onClick={onClose} className="px-6 py-2 text-lg">
@@ -90,5 +116,25 @@ function PermissionModal({ visible, user, onClose }) {
     </Modal>
   );
 }
+
+const CustomCheckbox = ({ value, label, staff }) => {
+  const [isChecked, setIsChecked] = useState(false);
+  useEffect(() => {
+    setIsChecked(
+      staff.filter((item, i) => item.permission_id === value).length > 0
+    );
+  }, [staff]);
+
+  return (
+    <Checkbox
+      checked={isChecked}
+      value={value}
+      onChange={() => setIsChecked(!isChecked)}
+      className="flex items-center p-3 border rounded-lg hover:bg-blue-50 transition-colors text-base"
+    >
+      <span className="text-base font-normal">{label}</span>
+    </Checkbox>
+  );
+};
 
 export default PermissionModal;

@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { Calendar, Skeleton } from "antd";
 import { formatTime } from "../../lib/TimeFormat";
-
+import "./CalendarSchedule.css";
 function CalendarSchedule() {
   const [events, setEvents] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -40,7 +40,7 @@ function CalendarSchedule() {
     setTimeout(() => {
       setEvents(surgeryEvents);
       setLoading(false);
-    }, 2000);
+    }, 1000);
   }, []);
 
   const dateCellRender = (value) => {
@@ -54,26 +54,36 @@ function CalendarSchedule() {
     );
 
     return (
-      <ul className="space-y-2">
-        {filteredEvents.map((event, index) => {
-          return (
-            <div
-              key={index}
-              className="flex flex-col items-center bg-gradient-to-br from-emerald-50 to-emerald-100 border border-emerald-200 rounded-xl py-1 mt-2 shadow-md w-full"
-            >
-              <span className="text-sm font-bold text-emerald-800 mb-1">
+      <ul className="event-list space-y-3">
+        {filteredEvents.map((event, index) => (
+          <li
+            key={index}
+            className="flex flex-col sm:flex-row sm:items-center sm:justify-between 
+              bg-gradient-to-br from-emerald-50 to-emerald-100 
+              border border-emerald-200 
+              rounded-xl 
+              p-4 
+              shadow-md"
+          >
+            {/* Case ID */}
+            <div className="text-center sm:text-left mb-2 sm:mb-0">
+              <span className="text-base font-bold text-emerald-800">
                 {event.case_id}
               </span>
-              <div className="text-sm text-emerald-700 flex items-center space-x-1">
-                <span className="font-semibold">{event.room_name}</span>
-                <span className="text-emerald-400">•</span>
-                <span className="font-medium text-emerald-600">
-                  {formatTime(event.estimate_start_time)}
-                </span>
-              </div>
             </div>
-          );
-        })}
+
+            {/* Room and Time Information */}
+            <div className="flex flex-wrap items-center justify-center sm:justify-end gap-2">
+              <span className="text-sm font-semibold text-emerald-700">
+                {event.room_name}
+              </span>
+              <span className="text-emerald-400">•</span>
+              <span className="text-sm font-medium text-emerald-600">
+                {formatTime(event.estimate_start_time)}
+              </span>
+            </div>
+          </li>
+        ))}
       </ul>
     );
   };

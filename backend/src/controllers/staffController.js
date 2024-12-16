@@ -2,42 +2,63 @@
 
 const Staff = require("../models/staffModel");
 const bcrypt = require("bcrypt");
-const db = require('../config/database');
+const db = require("../config/database");
 
-// Get all staff
+// Search & getAllStaff Staff table
 exports.getAllStaff = async (req, res) => {
   try {
     const { search, limit = 6, page = 1 } = req.query;
     const offset = (page - 1) * limit;
 
+    let totalRecords;
     let staff;
 
     if (search) {
-      staff = await Staff.getAll()
-        .where(db.raw('CAST("staff_id" AS text) LIKE ?', [`%${search}%`])) 
-        .orWhere("username", "like", `%${search}%`)
-        .orWhere("firstname", "like", `%${search}%`)
-        .orWhere("lastname", "like", `%${search}%`)
+      const lowerSearch = `%${search.toLowerCase()}%`;
+
+      const totalQuery = await db("staff")
+        .count("* as total")
+        .whereRaw('LOWER(CAST("staff_id" AS text)) LIKE ?', [lowerSearch])
+        .orWhereRaw('LOWER("username") LIKE ?', [lowerSearch])
+        .orWhereRaw('LOWER("firstname") LIKE ?', [lowerSearch])
+        .orWhereRaw('LOWER("lastname") LIKE ?', [lowerSearch]);
+      totalRecords = totalQuery[0].total;
+
+      staff = await db("staff")
+        .select("*")
+        .whereRaw('LOWER(CAST("staff_id" AS text)) LIKE ?', [lowerSearch])
+        .orWhereRaw('LOWER("username") LIKE ?', [lowerSearch])
+        .orWhereRaw('LOWER("firstname") LIKE ?', [lowerSearch])
+        .orWhereRaw('LOWER("lastname") LIKE ?', [lowerSearch])
         .limit(Number(limit))
         .offset(offset);
     } else {
-      staff = await Staff.getAll().limit(Number(limit)).offset(offset);
+      const totalQuery = await db("staff").count("* as total");
+      totalRecords = totalQuery[0].total;
+
+      staff = await db("staff").select("*").limit(Number(limit)).offset(offset);
     }
 
-    res.status(200).json(staff);
+    res.status(200).json({
+      data: staff,
+      totalRecords,
+    });
   } catch (err) {
     res.status(500).json({ message: "Server error", error: err.message });
   }
 };
 
-
-
-
 // Create new staff
 exports.createStaff = async (req, res) => {
-  let { username, password, firstname, lastname, isActive } = req.body;
+  let { username, password, firstname, lastname, isActive = true } = req.body;
 
   try {
+    if (!username || !password || !firstname || !lastname) {
+      return res.status(400).json({
+        message: "All fields are required",
+      });
+    }
+
     username = username.replace(/[A-Za-z]/g, (match) => match.toLowerCase());
 
     const hashedPassword = await bcrypt.hash(password, 10);
@@ -56,7 +77,6 @@ exports.createStaff = async (req, res) => {
     res.status(500).json({ message: "Server error", error: err.message });
   }
 };
-
 
 // Get permissions by staff_id
 exports.getPermissionsByStaffId = async (req, res) => {
@@ -125,5 +145,36 @@ exports.updateActiveStaff = async (req, res) => {
     });
   } catch (err) {
     res.status(500).json({ message: "Server error", error: err.message });
+  }
+};
+
+exports.getAllPermissions = async (req, res) => {
+  try {
+    const permissions = await Permission.getAll();
+    res.json({ permissions });
+  } catch (error) {
+    console.error("Error fetching permissions:", error);
+    res.status(500).json({ message: "Error fetching permissions" });
+  }
+};
+
+exports.getAllPermissions = async (req, res) => {
+  try {
+    const permissions = await Staff.getAllPermissions();
+    res.json({ permissions });
+  } catch (error) {
+    console.error("Error fetching permissions:", error);
+    res.status(500).json({ message: "Error fetching permissions" });
+  }
+};
+
+exports.updatePermissions = async (req, res) => {
+  const { staff_id, permission_ids } = req.body;
+  try {
+    await Staff.updatePermissions(staff_id, permission_ids);
+    res.json({ message: "Permissions updated successfully" });
+  } catch (error) {
+    console.error("Error updating permissions:", error);
+    res.status(500).json({ message: "Error updating permissions" });
   }
 };

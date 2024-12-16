@@ -83,7 +83,7 @@ function RoomSchedule() {
   ];
 
   return (
-    <div className="w-full p-8 bg-gradient-to-b from-gray-50 to-white rounded-xl">
+    <div className="w-full p-2 rounded-xl">
       <div className="flex items-center justify-between mb-8">
         <div className="flex items-center space-x-3">
           <CalendarOutlined className="text-2xl text-blue-600" />

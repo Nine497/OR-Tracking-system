@@ -1,9 +1,18 @@
+// Sidebar.jsx
 import React, { useEffect, useState } from "react";
-import { Menu } from "antd";
-import { useLocation, NavLink, useNavigate } from "react-router-dom";
-import { HomeOutlined, CalendarOutlined, UsergroupAddOutlined, FileTextOutlined } from "@ant-design/icons";
+import { Layout, Menu, Button } from "antd";
+import { useLocation, NavLink } from "react-router-dom";
+import {
+  HomeOutlined,
+  CalendarOutlined,
+  UsergroupAddOutlined,
+  FileTextOutlined,
+  MenuFoldOutlined,
+  MenuUnfoldOutlined,
+  RightOutlined,
+  LeftOutlined,
+} from "@ant-design/icons";
 import Logo from "../assets/Logo.png";
-import { useAuth } from "../context/AuthContext";
 import axiosInstance from "../api/axiosInstance";
 
 const items = [
@@ -35,84 +44,134 @@ const items = [
   },
 ];
 
-const Sidebar = () => {
-  const { user } = useAuth();
+const Sidebar = ({ collapsed, setCollapsed, isMobile, user }) => {
   const location = useLocation();
-  const navigate = useNavigate();
   const [userPermissions, setUserPermissions] = useState([]);
-  const selectedKey = items.find((item) => location.pathname.startsWith(item.to))?.key;
+  const selectedKey = items.find((item) =>
+    location.pathname.startsWith(item.to)
+  )?.key;
 
   useEffect(() => {
     const fetchPermissions = async () => {
-      if (user && user.id) {
+      if (user?.id) {
         try {
           const token = localStorage.getItem("jwtToken");
-
-          const response = await axiosInstance.get(`/staff/permissions/${user.id}`, {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          });
+          const response = await axiosInstance.get(
+            `staff/permissions/${user.id}`,
+            {
+              headers: { Authorization: `Bearer ${token}` },
+            }
+          );
           const permissions = response.data.map((item) => item.permission_id);
           setUserPermissions(permissions);
-          console.log("Permissions received:", permissions);
         } catch (error) {
           console.error("Error fetching permissions:", error);
         }
       }
     };
 
-
-    if (user && user.id) {
-      fetchPermissions();
-    }
-  }, [user]);
-
-  useEffect(() => {
-    const currentItem = items.find((item) => location.pathname.startsWith(item.to));
-    if (currentItem && currentItem.permissionRequired && !userPermissions.includes(currentItem.permissionRequired)) {
-      navigate("/admin/room_schedule");
-    }
-  }, [userPermissions, location, navigate]);
+    fetchPermissions();
+    const fetchPermissionsInterval = setInterval(fetchPermissions, 300000);
+    return () => clearInterval(fetchPermissionsInterval);
+  }, [user?.id]);
 
   const menuItems = items
     .map((item) => {
       const hasPermission =
-        !item.permissionRequired || (Array.isArray(userPermissions) && userPermissions.includes(item.permissionRequired));
+        !item.permissionRequired ||
+        (Array.isArray(userPermissions) &&
+          userPermissions.includes(item.permissionRequired));
 
       if (item.permissionRequired && !hasPermission) return null;
 
       return {
         key: item.key,
         icon: item.icon,
-        label: (
-          <div className={`py-2 px-4 rounded-md`}>
-            <NavLink to={item.to}>{item.label}</NavLink>
-          </div>
-        ),
+        label: <NavLink to={item.to}>{item.label}</NavLink>,
       };
     })
     .filter(Boolean);
 
   return (
-    <div className="flex flex-col h-screen bg-white shadow-md w-64">
-      <div className="flex items-center justify-center py-6 border-b border-gray-200">
-        <img src={Logo} alt="Logo" className="w-40 h-auto object-contain" />
+    <Layout.Sider
+      theme="light"
+      collapsed={collapsed}
+      onCollapse={setCollapsed}
+      collapsible
+      collapsedWidth={isMobile ? 0 : 80}
+      width={240}
+      className="fixed left-0 top-0 bottom-0 h-screen z-20 shadow-lg border-r border-gray-100"
+      trigger={
+        !isMobile && (
+          <CustomTrigger collapsed={collapsed} setCollapsed={setCollapsed} />
+        )
+      }
+    >
+      {isMobile && (
+        <Button
+          type="text"
+          icon={collapsed ? <MenuUnfoldOutlined /> : <MenuFoldOutlined />}
+          onClick={() => setCollapsed(!collapsed)}
+          className="absolute -right-12 top-4 shadow-md bg-white"
+          style={{
+            width: "32px",
+            height: "32px",
+            borderRadius: "4px",
+          }}
+        />
+      )}
+
+      <div className="flex items-center justify-center p-4 h-16 border-b border-gray-100">
+        <img
+          src={Logo}
+          alt="Logo"
+          className={`transition-all duration-300 ${
+            collapsed ? "w-12" : "w-32"
+          } h-auto object-contain`}
+        />
       </div>
+
       <Menu
         mode="inline"
         theme="light"
         selectedKeys={[selectedKey]}
-        className="flex-grow p-1"
         items={menuItems}
-        style={{ backgroundColor: "transparent", border: "none" }}
+        className="border-none custom-sidebar-menu bg-transparent"
       />
-      <div className="p-4 border-t border-gray-200 text-center">
+
+      <div
+        className={`
+            absolute bottom-7 w-full p-4 border-t border-gray-100 text-center
+            transition-all duration-300 bg-white
+            ${collapsed ? "opacity-0" : "opacity-100"}
+          `}
+      >
         <p className="text-sm text-gray-600 font-bold">OR-Tracking System</p>
-        <p className="text-sm text-gray-600 font-normal">Version 0.0.1</p>
+        <p className="text-sm text-gray-600">Version 0.0.1</p>
       </div>
-    </div>
+    </Layout.Sider>
   );
 };
+
+const CustomTrigger = ({ collapsed, setCollapsed }) => (
+  <div
+    onClick={() => setCollapsed(!collapsed)}
+    className="absolute -right-6 top-20  bg-white rounded-r-lg border-y border-r border-gray-200 cursor-pointerhover:bg-gray-50 
+      transition-colors 
+      duration-200 
+      flex 
+      items-center 
+      justify-center 
+      w-6 
+      h-12 
+      shadow-md"
+  >
+    {collapsed ? (
+      <RightOutlined className="text-xs text-gray-600" />
+    ) : (
+      <LeftOutlined className="text-xs text-gray-600" />
+    )}
+  </div>
+);
 
 export default Sidebar;

@@ -19,6 +19,10 @@ exports.login = async (req, res) => {
       return res.status(401).json({ message: "Invalid password" });
     }
 
+    if (!staff.isActive) {
+      return res.status(403).json({ message: "Your account is inactive" });
+    }
+
     const token = jwt.sign(
       {
         id: staff.staff_id,
@@ -47,4 +51,3 @@ exports.login = async (req, res) => {
     res.status(500).json({ message: "Server error", error: err.message });
   }
 };
-

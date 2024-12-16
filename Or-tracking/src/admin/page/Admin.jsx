@@ -1,42 +1,54 @@
+// Admin.jsx
 import React, { useEffect, useState } from "react";
-import { Outlet } from "react-router-dom";
+import { Layout } from "antd";
+import { Outlet, Navigate } from "react-router-dom";
 import Header from "../components/Header";
 import Sidebar from "../components/Sidebar";
 import { useAuth } from "../context/AuthContext";
 import { Spin } from "antd";
+import axiosInstance from "../api/axiosInstance";
+
+const { Content } = Layout;
+
 function Admin() {
   const { user } = useAuth();
-  const [loading, setLoading] = useState(true);
+  const [collapsed, setCollapsed] = useState(false);
+  const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
 
   useEffect(() => {
-    if (user) {
-      setLoading(false);
-    }
-  }, [user]);
+    const handleResize = () => {
+      const mobile = window.innerWidth <= 768;
+      setIsMobile(mobile);
+      setCollapsed(mobile);
+    };
 
-  if (loading) {
-    return (
-      <div className="flex justify-center items-center h-screen w-screen">
-        <Spin size="large" />
-      </div>
-    );
-  }
+    window.addEventListener("resize", handleResize);
+    handleResize();
+
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
 
   return (
-    <div className="flex h-screen w-screen overflow-hidden">
-      <Sidebar user={user} />
-      <div className="flex flex-col flex-1 overflow-hidden">
-        <header className="sticky top-0 z-10">
-          <Header />
-        </header>
-
-        <main className="flex-1 px-10 py-5 overflow-auto bg-gray-200">
-          <div className="bg-white w-full rounded-lg flex flex-col min-h-[700px]">
+    <Layout className="min-h-screen">
+      <Sidebar
+        collapsed={collapsed}
+        setCollapsed={setCollapsed}
+        isMobile={isMobile}
+        user={user}
+      />
+      <Layout
+        className={`transition-all duration-300 ${
+          !isMobile ? (collapsed ? "ml-20" : "ml-60") : "ml-0"
+        }`}
+      >
+        <Header />
+        <Content className="p-6 bg-gray-200">
+          <div className="bg-white rounded-lg min-h-[800px] p-6">
             <Outlet />
           </div>
-        </main>
-      </div>
-    </div>
+        </Content>
+      </Layout>
+    </Layout>
   );
 }
 

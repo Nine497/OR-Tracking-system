@@ -14,41 +14,47 @@ const Login = () => {
     try {
       const { username, password } = values;
 
-      const { data } = await axiosInstance.post("auth/login", { username, password });
+      const { data } = await axiosInstance.post("auth/login", {
+        username,
+        password,
+      });
       if (data.token) {
         login(data.token);
-      };
+      }
       notification.success({ message: "Login successful" });
       navigate("/admin/room_schedule");
     } catch (error) {
       console.error("Login error:", error);
-      notification.error({ message: error.response?.data?.message || "Login failed." });
+      notification.error({
+        message: error.response?.data?.message || "Login failed.",
+      });
     }
   };
 
   return (
     <div className="flex h-screen">
-      <div className="flex-[7]">
+      <div className="sm:flex-[7] hidden sm:block">
         <img
           src={LoginImg}
           alt="Login Illustration"
           className="w-full h-full object-cover filter brightness-75"
         />
       </div>
+
       <div className="flex-[3] flex justify-center items-center bg-white">
-        <Card className="w-full max-w-md rounded-xl">
+        <Card className="w-full max-w-md md:max-w-lg rounded-xl border-none">
           <div className="text-center mb-8">
-            <h1 className="text-4xl font-bold text-blue-600 mb-2">OR-Tracking</h1>
+            <h1 className="text-4xl font-bold text-blue-600 mb-2">
+              OR-Tracking
+            </h1>
             <h2 className="text-2xl font-semibold">Log in</h2>
           </div>
-          <Form
-            onFinish={handleSubmit}
-            layout="vertical"
-            className="space-y-4"
-          >
+          <Form onFinish={handleSubmit} layout="vertical" className="space-y-4">
             <Form.Item
               name="username"
-              rules={[{ required: true, message: "Please enter your username" }]}
+              rules={[
+                { required: true, message: "Please enter your username" },
+              ]}
             >
               <Input
                 prefix={<UserOutlined />}
@@ -58,7 +64,9 @@ const Login = () => {
             </Form.Item>
             <Form.Item
               name="password"
-              rules={[{ required: true, message: "Please enter your password" }]}
+              rules={[
+                { required: true, message: "Please enter your password" },
+              ]}
             >
               <Input.Password
                 prefix={<LockOutlined />}
@@ -67,12 +75,7 @@ const Login = () => {
               />
             </Form.Item>
             <Form.Item>
-              <Button
-                type="primary"
-                htmlType="submit"
-                block
-                size="large"
-              >
+              <Button type="primary" htmlType="submit" block size="large">
                 Log in
               </Button>
             </Form.Item>

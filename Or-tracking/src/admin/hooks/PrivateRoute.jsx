@@ -1,11 +1,12 @@
 import React, { useEffect } from "react";
-import { Navigate, Outlet } from "react-router-dom";
+import { useNavigate, Outlet } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { notification } from "antd";
 import { jwtDecode } from "jwt-decode";
 
 const PrivateRoute = () => {
-  const { user, setUser, loading } = useAuth();
+  const { setUser, loading } = useAuth();
+  const navigate = useNavigate();
 
   useEffect(() => {
     const checkToken = () => {
@@ -19,11 +20,18 @@ const PrivateRoute = () => {
             setUser(decoded);
           } else {
             localStorage.removeItem("jwtToken");
-            notification.warning({ message: "Session expired. Please login again." });
+            notification.warning({
+              message: "Session expired. Please login again.",
+            });
+            navigate("/");
           }
         } catch (error) {
           console.error("Invalid token:", error);
           localStorage.removeItem("jwtToken");
+          notification.warning({
+            message: "Invalid token. Please login again.",
+          });
+          navigate("/");
         }
       }
     };

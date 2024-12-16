@@ -38,8 +38,34 @@ const Staff = {
 
   getPermissionsByStaffId: (staffId) => {
     return db("staff_permission")
-      .select("permission_id")
-      .where("staff_id", staffId);
+      .join(
+        "permissions",
+        "staff_permission.permission_id",
+        "permissions.permission_id"
+      )
+      .select("permissions.permission_id", "permissions.permission_name")
+      .where("staff_permission.staff_id", staffId);
+  },
+
+  getAllPermissions: () => {
+    return db("permissions").select("permission_id", "permission_name");
+  },
+
+  updatePermissions: (staffId, permissionIds) => {
+    return db.transaction(async (trx) => {
+      try {
+        await trx("staff_permission").where("staff_id", staffId).del();
+
+        const permissions = permissionIds.map((permissionId) => ({
+          staff_id: staffId,
+          permission_id: permissionId,
+        }));
+
+        await trx("staff_permission").insert(permissions);
+      } catch (error) {
+        throw error;
+      }
+    });
   },
 };
 
