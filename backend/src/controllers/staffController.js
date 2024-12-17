@@ -14,7 +14,7 @@ exports.getAllStaff = async (req, res) => {
     let staff;
 
     if (search) {
-      const lowerSearch = `%${search.toLowerCase()}%`;
+      const lowerSearch = `%${search.trim().toLowerCase()}%`;
 
       const totalQuery = await db("staff")
         .count("* as total")
@@ -30,13 +30,18 @@ exports.getAllStaff = async (req, res) => {
         .orWhereRaw('LOWER("username") LIKE ?', [lowerSearch])
         .orWhereRaw('LOWER("firstname") LIKE ?', [lowerSearch])
         .orWhereRaw('LOWER("lastname") LIKE ?', [lowerSearch])
+        .orderBy("staff_id", "asc")
         .limit(Number(limit))
         .offset(offset);
     } else {
       const totalQuery = await db("staff").count("* as total");
       totalRecords = totalQuery[0].total;
 
-      staff = await db("staff").select("*").limit(Number(limit)).offset(offset);
+      staff = await db("staff")
+        .select("*")
+        .orderBy("staff_id", "asc")
+        .limit(Number(limit))
+        .offset(offset);
     }
 
     res.status(200).json({

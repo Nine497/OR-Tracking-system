@@ -1,92 +1,79 @@
-import React from "react";
-import { Table, Input, Tooltip } from "antd";
+import React, { useState, useEffect } from "react";
+import { Table, Input, Tooltip, Spin, notification, Select } from "antd";
 import { Icon } from "@iconify/react";
 import CustomButton from "../CustomButton";
-import { useState, useEffect } from "react";
+import axiosInstance from "../../api/axiosInstance";
 import UpdateModal from "./UpdateModal";
-
-const dataSource = [
-  {
-    caseId: "C001",
-    surgeryDate: "2024-12-10",
-    status: "Before treatment",
-    roomName: "Room A",
-    doctorName: "John Smith",
-    patientId: 101,
-    hnCode: "HN1234",
-    patientName: "Jane Doe",
-    expirationTime: "2024-12-15T12:00:00Z",
-    createdAt: "2024-12-01T08:00:00Z",
-    createdBy: "admin",
-    surgeryCaseLinksId: "L001",
-    jwtToken: "abc123",
-  },
-  {
-    caseId: "C002",
-    surgeryDate: "2024-12-09",
-    status: "Transferred to the operating room",
-    roomName: "Room B",
-    doctorName: "Alice Wonderland",
-    patientId: 102,
-    hnCode: "HN5678",
-    patientName: "Robert Brown",
-    expirationTime: "2023-12-15T12:00:00Z",
-    createdAt: "2022-12-01T08:00:00Z",
-    createdBy: "admin",
-    surgeryCaseLinksId: "L001",
-    jwtToken: "abc123",
-  },
-  {
-    caseId: "C003",
-    surgeryDate: "2024-12-08",
-    status: "Undergoing the procedure",
-    roomName: "Room C",
-    doctorName: "Charlie White",
-    patientId: 103,
-    hnCode: "HN91011",
-    patientName: "Emily Green",
-    expirationTime: "2024-12-18T12:00:00Z",
-    createdAt: "2024-12-05T09:00:00Z",
-    createdBy: "admin2",
-    surgeryCaseLinksId: "L002",
-    jwtToken: "def456",
-  },
-  {
-    caseId: "C004",
-    surgeryDate: "2024-12-07",
-    status: "Procedure completed",
-    roomName: "Room D",
-    doctorName: "Eve Black",
-    patientId: 104,
-    hnCode: "HN1213",
-    patientName: "Michael Johnson",
-    expirationTime: null,
-    createdAt: null,
-    createdBy: null,
-    surgeryCaseLinksId: null,
-    jwtToken: null,
-  },
-  {
-    caseId: "C005",
-    surgeryDate: "2024-12-06",
-    status: "Patient returned to the recovery room",
-    roomName: "Room E",
-    doctorName: "Daniel Gray",
-    patientId: 105,
-    hnCode: "HN1415",
-    patientName: "Sophia Brown",
-    expirationTime: null,
-    createdAt: null,
-    createdBy: null,
-    surgeryCaseLinksId: null,
-    jwtToken: null,
-  },
-];
 
 function CaseTable() {
   const [selectedRecord, setSelectedRecord] = useState(null);
   const [isStatusModalVisible, setIsStatusModalVisible] = useState(false);
   const [isLinkModalVisible, setIsLinkModalVisible] = useState(false);
+  const [filteredData, setFilteredData] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [pagination, setPagination] = useState({ pageSize: 6, current: 1 });
+  const [doctorSelectedOption, setDoctorSelectedOption] = useState(null);
+  const [doctorsData, setDoctorsData] = useState([]);
+
+  const handleSelectChange = (value) => {
+    setDoctorSelectedOption(value);
+    setPagination((prev) => ({ ...prev, current: 1 }));
+    handleSearch(searchTerm, value);
+  };
+
+  const handleSearch = async (value, doctor = doctorSelectedOption) => {
+    setSearchTerm(value);
+    setLoading(true);
+    console.log("SEARCH :", value);
+    console.log("Doctor :", doctor);
+
+    try {
+      const token = localStorage.getItem("jwtToken");
+      const response = await axiosInstance.get("/surgery_case/", {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+        params: {
+          search: value,
+          doctor_id: doctor,
+          limit: pagination.pageSize,
+          page: pagination.current,
+        },
+      });
+
+      const dataWithKeys = Array.isArray(response.data?.data)
+        ? response.data.data.map((item) => ({
+            ...item,
+            key: item.surgery_case_id,
+          }))
+        : [];
+
+      setFilteredData(dataWithKeys);
+      setPagination((prev) => ({
+        ...prev,
+        total: response.data.totalRecords,
+      }));
+    } catch (error) {
+      console.error("Error searching cases:", error);
+      notification.error({
+        message: "Error searching cases",
+        description: error.message,
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleInputChange = (e) => {
+    const value = e.target.value;
+    setPagination({ ...pagination, current: 1 });
+    handleSearch(value, doctorSelectedOption);
+  };
+
+  const handlePaginationChange = (page, pageSize) => {
+    setPagination({ current: page, pageSize });
+  };
 
   const openStatusModal = (record) => {
     setSelectedRecord(record);
@@ -108,46 +95,168 @@ function CaseTable() {
     setIsLinkModalVisible(false);
   };
 
+  useEffect(() => {
+    const fetchData = async () => {
+      setLoading(true);
+
+      try {
+        const token = localStorage.getItem("jwtToken");
+        const response = await axiosInstance.get("/surgery_case/", {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+          params: {
+            search: searchTerm,
+            limit: pagination.pageSize,
+            page: pagination.current,
+          },
+        });
+        if (response) {
+          console.log(response);
+        }
+        const dataWithKeys = Array.isArray(response.data?.data)
+          ? response.data.data.map((item) => ({
+              ...item,
+              key: item.surgery_case_id,
+            }))
+          : [];
+
+        setFilteredData(dataWithKeys);
+        setPagination({
+          ...pagination,
+          total: response.data.totalRecords,
+        });
+      } catch (error) {
+        console.error("Error fetching cases:", error);
+        notification.error({
+          message: "Error fetching cases",
+          description: error.message,
+        });
+      } finally {
+        setTimeout(() => {
+          setLoading(false);
+        }, 200);
+      }
+    };
+
+    fetchData();
+  }, [pagination.current, searchTerm]);
+
+  useEffect(() => {
+    setLoading(true);
+    const fetchDoctorsData = async () => {
+      try {
+        const token = localStorage.getItem("jwtToken");
+        const response = await axiosInstance.get("doctor/", {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+        if (response) {
+          console.log("Respond : ", response);
+        }
+
+        if (response.data && Array.isArray(response.data.data)) {
+          setDoctorsData(response.data.data);
+        } else {
+          console.error("Invalid data format received for doctors.");
+        }
+      } catch (error) {
+        console.error("Error fetching cases:", error);
+        notification.error({
+          message: "Error fetching cases",
+          description: error.message,
+        });
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    const fetchTypeData = async () => {
+      try {
+        const token = localStorage.getItem("jwtToken");
+        const response = await axiosInstance.get("doctor/", {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+        if (response) {
+          console.log("Respond : ", response);
+        }
+
+        if (response.data && Array.isArray(response.data.data)) {
+          setDoctorsData(response.data.data);
+        } else {
+          console.error("Invalid data format received for doctors.");
+        }
+      } catch (error) {
+        console.error("Error fetching cases:", error);
+        notification.error({
+          message: "Error fetching cases",
+          description: error.message,
+        });
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchDoctorsData();
+  }, []);
+
   const columns = [
     {
       title: <span className="text-base font-bold">#</span>,
-      dataIndex: "caseId",
-      key: "caseId",
+      dataIndex: "surgery_case_id",
+      key: "surgery_case_id",
+      render: (text) => <span className="text-base font-normal">{text}</span>,
+    },
+    {
+      title: <span className="text-base font-bold">HN</span>,
+      dataIndex: "hn_code",
+      key: "hn_code",
       render: (text) => <span className="text-base font-normal">{text}</span>,
     },
     {
       title: <span className="text-base font-bold">Patient Name</span>,
       dataIndex: "patientName",
       key: "patientName",
-      render: (text) => <span className="text-base font-normal">{text}</span>,
+      render: (text, record) => (
+        <span className="text-base font-normal">
+          {record.patient_firstname} {record.patient_lastname}
+        </span>
+      ),
     },
     {
       title: <span className="text-base font-bold">Doctor</span>,
       dataIndex: "doctorName",
       key: "doctorName",
-      render: (text) => <span className="text-base font-normal">{text}</span>,
-    },
-    {
-      title: <span className="text-base font-bold">Room</span>,
-      dataIndex: "roomName",
-      key: "roomName",
-      render: (text) => <span className="text-base font-normal">{text}</span>,
-    },
-    {
-      title: <span className="text-base font-bold">Surgery Date</span>,
-      dataIndex: "surgeryDate",
-      key: "surgeryDate",
-      render: (text) => (
+      render: (text, record) => (
         <span className="text-base font-normal">
-          {new Date(text).toLocaleString()}
+          {record.doctor_firstname} {record.doctor_lastname}
         </span>
       ),
     },
     {
-      title: <span className="text-base font-bold">Link</span>,
-      key: "linkconfig",
+      title: <span className="text-base font-bold">Room</span>,
+      dataIndex: "room_name",
+      key: "room_name",
+      render: (text) => <span className="text-base font-normal">{text}</span>,
+    },
+    {
+      title: <span className="text-base font-bold">Surgery Date</span>,
+      dataIndex: "surgery_date",
+      key: "surgery_date",
+      render: (text) => (
+        <span className="text-base font-normal">
+          {new Date(text).toLocaleDateString()}{" "}
+        </span>
+      ),
+    },
+    {
+      title: <span className="text-base font-bold">Action</span>,
+      key: "status",
       render: (_, record) => (
-        <div className="flex items-center justify-center">
+        <div className="flex items-center justify-between">
           <Tooltip title="Copy Link">
             <div>
               <CustomButton
@@ -159,14 +268,6 @@ function CaseTable() {
               </CustomButton>
             </div>
           </Tooltip>
-        </div>
-      ),
-    },
-    {
-      title: <span className="text-base font-bold">Status</span>,
-      key: "status",
-      render: (_, record) => (
-        <div className="flex items-center justify-center">
           <Tooltip title="Update Link Status">
             <div>
               <CustomButton
@@ -178,14 +279,6 @@ function CaseTable() {
               </CustomButton>
             </div>
           </Tooltip>
-        </div>
-      ),
-    },
-    {
-      title: <span className="text-base font-bold">Action</span>,
-      key: "action",
-      render: (_, record) => (
-        <div className="flex items-center justify-center">
           <Tooltip title="Edit Record">
             <div>
               <CustomButton
@@ -206,26 +299,53 @@ function CaseTable() {
     <div className="flex flex-col p-7 w-full h-full gap-6">
       <div className="bg-gray-100 w-full h-fit rounded-lg flex flex-row justify-between items-center px-10">
         <Input
-          placeholder="Search by user number, user name, full name..."
+          placeholder="Search by case number, patient name..."
           className="w-1/4 h-10 text-base m-3"
           prefix={<Icon icon="mingcute:search-line" />}
+          onChange={handleInputChange}
+          value={searchTerm}
         />
+        <Select
+          className="w-1/4 h-10 m-3"
+          placeholder="Filter By Doctor"
+          value={doctorSelectedOption}
+          onChange={handleSelectChange}
+        >
+          {doctorsData.map((doctor) => (
+            <Option key={doctor.doctor_id} value={doctor.doctor_id}>
+              {`${doctor.firstname} ${doctor.lastname}`}
+            </Option>
+          ))}
+        </Select>
         <CustomButton
           variant="white"
           icon={<Icon icon="mdi:reload" className="mr-2 w-4 h-4" />}
+          onClick={() => {
+            setSearchTerm("");
+            setPagination({ ...pagination, current: 1 });
+          }}
         >
           <span className="font-medium ml-2 text-lg">Reload Data</span>
         </CustomButton>
       </div>
       <div className="w-full h-full mt-4 overflow-x-auto">
-        <Table
-          dataSource={dataSource.map((item) => ({ ...item, key: item.caseId }))}
-          columns={columns}
-          pagination={{ pageSize: 6 }}
-        />
+        <Spin spinning={loading} size="large">
+          <Table
+            dataSource={filteredData}
+            columns={columns}
+            loading={loading}
+            pagination={{
+              pageSize: pagination.pageSize,
+              current: pagination.current,
+              total: pagination.total,
+              onChange: handlePaginationChange,
+              showTotal: (total) => `Total ${total} items`,
+            }}
+          />
+        </Spin>
       </div>
       <UpdateModal
-        key={selectedRecord?.caseId + "status"}
+        key={selectedRecord?.surgery_case_id + "status"}
         visible={isStatusModalVisible}
         record={selectedRecord}
         onClose={closeStatusModal}
@@ -233,7 +353,7 @@ function CaseTable() {
       />
 
       <UpdateModal
-        key={selectedRecord?.caseId + "link"}
+        key={selectedRecord?.surgery_case_id + "link"}
         visible={isLinkModalVisible}
         record={selectedRecord}
         onClose={closeLinkModal}

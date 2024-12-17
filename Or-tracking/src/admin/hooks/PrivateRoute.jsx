@@ -33,11 +33,13 @@ const PrivateRoute = () => {
           });
           navigate("/");
         }
+      } else {
+        navigate("/");
       }
     };
 
     checkToken();
-  }, [setUser]);
+  }, [setUser, navigate]);
 
   if (loading) {
     return <div>Loading...</div>;

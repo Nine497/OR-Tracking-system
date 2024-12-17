@@ -54,26 +54,22 @@ function CalendarSchedule() {
     );
 
     return (
-      <ul className="event-list space-y-3">
+      <ul className="event-list space-y-3 w-full">
         {filteredEvents.map((event, index) => (
           <li
             key={index}
-            className="flex flex-col sm:flex-row sm:items-center sm:justify-between 
-              bg-gradient-to-br from-emerald-50 to-emerald-100 
-              border border-emerald-200 
-              rounded-xl 
-              p-4 
-              shadow-md"
+            className="flex justify-between
+  bg-gray-200
+        rounded-xl py-2
+        shadow-md flex-col"
           >
-            {/* Case ID */}
-            <div className="text-center sm:text-left mb-2 sm:mb-0">
+            <div className="flex-shrink-0 px-3">
               <span className="text-base font-bold text-emerald-800">
                 {event.case_id}
               </span>
             </div>
 
-            {/* Room and Time Information */}
-            <div className="flex flex-wrap items-center justify-center sm:justify-end gap-2">
+            <div className="flex items-center gap-2 px-3">
               <span className="text-sm font-semibold text-emerald-700">
                 {event.room_name}
               </span>

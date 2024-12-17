@@ -31,7 +31,7 @@ export default function PermissionDenied() {
           </Button>
           <Button
             size="large"
-            onClick={() => window.history.back()}
+            onClick={() => navigate("/admin/room_schedule")}
             className="font-normal text-lg"
           >
             Go Back

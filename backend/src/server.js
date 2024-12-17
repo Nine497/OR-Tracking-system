@@ -2,23 +2,15 @@ const express = require("express");
 const cors = require("cors");
 const helmet = require("helmet");
 const morgan = require("morgan");
-const knex = require("knex");
 require("dotenv").config();
-
-// ตั้งค่าการเชื่อมต่อฐานข้อมูลด้วย Knex.js
-const db = knex({
-  client: "pg",
-  connection: {
-    host: process.env.DB_HOST,
-    user: process.env.DB_USER,
-    password: process.env.DB_PASSWORD,
-    database: process.env.DB_NAME,
-  },
-});
+const db = require("./config/database.js");
 
 // Import routes
 const authRoutes = require("./routes/authRoutes");
 const staffRoutes = require("./routes/staffRoutes");
+const caseRoutes = require("./routes/caseRoutes");
+const doctorRoutes = require("./routes/doctorRoutes");
+const linkCaseRoutes = require("./routes/linkCaseRoutes");
 
 const app = express();
 
@@ -31,7 +23,9 @@ app.use(morgan("combined"));
 // Routes
 app.use("/api/auth", authRoutes); // Route สำหรับ login
 app.use("/api/staff", staffRoutes); // Route สำหรับ staff
-
+app.use("/api/surgery_case", caseRoutes); // Route สำหรับ Case
+app.use("/api/doctor", doctorRoutes); // Route สำหรับ Doctor
+app.use("/api/link_cases", linkCaseRoutes); // Route สำหรับ link
 const startServer = async () => {
   try {
     await db.raw("SELECT 1+1 AS result");

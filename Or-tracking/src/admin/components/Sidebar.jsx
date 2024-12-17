@@ -86,7 +86,7 @@ const Sidebar = ({ collapsed, setCollapsed, isMobile, user }) => {
 
       return {
         key: item.key,
-        icon: item.icon,
+        icon: <span>{item.icon}</span>,
         label: <NavLink to={item.to}>{item.label}</NavLink>,
       };
     })
@@ -136,7 +136,7 @@ const Sidebar = ({ collapsed, setCollapsed, isMobile, user }) => {
         theme="light"
         selectedKeys={[selectedKey]}
         items={menuItems}
-        className="border-none custom-sidebar-menu bg-transparent"
+        className="border-none custom-sidebar-menu bg-transparent [&_.ant-menu-item]:text-base [&_.ant-menu-item_.anticon]:text-xl [&_.ant-menu-item]:py-6"
       />
 
       <div
