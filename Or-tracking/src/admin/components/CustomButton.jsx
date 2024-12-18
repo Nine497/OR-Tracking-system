@@ -2,7 +2,6 @@ import React from "react";
 import PropTypes from "prop-types";
 import clsx from "clsx";
 
-// แทนที่ defaultProps ด้วย default parameters ในการรับ props
 const CustomButton = ({
   children,
   variant = "default",
@@ -28,9 +27,9 @@ const CustomButton = ({
       overlay: "group-hover:opacity-20 group-hover:scale-150 bg-white/20",
     },
     danger: {
-      base: "bg-red-500 text-white",
+      base: "bg-red-500 text-white text-base",
       hover: "hover:bg-red-600 hover:shadow-lg",
-      shadow: "hover:-translate-y-0.5 hover:scale-[1.015]",
+      shadow: "hover:hover:scale-[1.015]",
       overlay: "group-hover:opacity-20 group-hover:scale-150 bg-white/20",
     },
     white: {

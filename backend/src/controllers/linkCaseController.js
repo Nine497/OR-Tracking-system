@@ -35,18 +35,10 @@ const linkCaseController = {
       return res.status(400).json({ message: "Missing required fields" });
     }
 
-    const created_at = new Date();
+    const created_at = new Date().toLocaleString("en-US", {
+      timeZone: "Asia/Bangkok",
+    });
     const isactive = true;
-
-    const expirationTimeWithoutTimezone = new Date(expiration_time)
-      .toISOString()
-      .slice(0, 19)
-      .replace("T", " ");
-
-    const createdAtWithoutTimezone = new Date(created_at)
-      .toISOString()
-      .slice(0, 19)
-      .replace("T", " ");
 
     const payload = {
       surgery_case_id: surgery_case_id,
@@ -63,13 +55,14 @@ const linkCaseController = {
 
     const linkCaseData = {
       surgery_case_id,
-      created_at: createdAtWithoutTimezone,
+      created_at: created_at,
       created_by,
       isactive,
       jwt_token: urlSafeToken,
-      expiration_time: expirationTimeWithoutTimezone,
+      expiration_time: new Date(expiration_time).toLocaleString("en-US", {
+        timeZone: "Asia/Bangkok",
+      }),
     };
-
     console.log("CREATE DATA : ", linkCaseData);
     try {
       const newLink = await linkCase.createLink(linkCaseData);
@@ -88,6 +81,37 @@ const linkCaseController = {
       res.status(200).json(result);
     } catch (error) {
       res.status(500).json({ message: "Error updating link case", error });
+    }
+  },
+
+  // อัปเดต isactive ตาม surgery_case_links_id
+  updateLinkCaseStatus: async (req, res) => {
+    try {
+      const { surgery_case_links_id, isactive } = req.body;
+
+      if (!surgery_case_links_id || isactive === undefined) {
+        return res.status(400).json({ message: "Missing required fields" });
+      }
+
+      const result = await linkCase.updateLinkStatus(
+        surgery_case_links_id,
+        isactive
+      );
+
+      if (result) {
+        res.status(200).json({
+          message: "Link case status updated successfully",
+          data: result,
+        });
+      } else {
+        res.status(404).json({
+          message: "Link case not found or failed to update status",
+        });
+      }
+    } catch (error) {
+      res
+        .status(500)
+        .json({ message: "Error updating link case status", error });
     }
   },
 

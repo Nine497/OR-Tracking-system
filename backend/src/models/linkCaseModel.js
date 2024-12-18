@@ -32,11 +32,28 @@ const linkCase = {
       .returning("*");
   },
 
+  updateLinkStatus: (surgery_case_links_id, isactive) => {
+    return db("surgery_case_links")
+      .where("surgery_case_links_id", surgery_case_links_id)
+      .update({ isactive })
+      .returning("*")
+      .then((result) => {
+        if (result && result.length > 0) {
+          return result[0];
+        } else {
+          throw new Error("Failed to update link status");
+        }
+      })
+      .catch((error) => {
+        throw new Error(`Error updating link status: ${error.message}`);
+      });
+  },
+
   getLatestActiveLinkCaseBySurgeryCaseId: (surgery_case_id) => {
     return db("surgery_case_links")
       .where("surgery_case_id", surgery_case_id)
       .andWhere("isactive", true)
-      .orderBy("created_at", "desc")
+      .orderBy("surgery_case_id", "desc")
       .first();
   },
 };

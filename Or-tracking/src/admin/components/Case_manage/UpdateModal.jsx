@@ -6,7 +6,6 @@ import LinkForm from "./LinkForm";
 function UpdateModal({ visible, record, onClose, type }) {
   const [formStatus] = Form.useForm();
   const [formLink] = Form.useForm();
-  const [isLinkExpired, setIsLinkExpired] = useState(false);
   const [link, setLink] = useState(null);
 
   const handleCopyLink = (link) => {
@@ -54,7 +53,6 @@ function UpdateModal({ visible, record, onClose, type }) {
     onClose();
   };
 
-
   if (!record) {
     return null;
   }
@@ -75,13 +73,13 @@ function UpdateModal({ visible, record, onClose, type }) {
       onCancel={onClose}
       footer={null}
       centered
+      width="35%"
       className="rounded-lg"
       styles={{
         body: {
           borderRadius: "8px",
         },
       }}
-      width={800}
     >
       {type === "status" ? (
         <StatusForm
@@ -94,8 +92,6 @@ function UpdateModal({ visible, record, onClose, type }) {
         <LinkForm
           formLink={formLink}
           onClose={onClose}
-          link={link}
-          isLinkExpired={isLinkExpired}
           handleCopyLink={handleCopyLink}
           record={record}
         />
