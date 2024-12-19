@@ -1,0 +1,29 @@
+{
+  "errors": {
+    "NO_TOKEN_PROVIDED": "Token diperlukan",
+    "LINK_NOT_FOUND": "Tautan tidak ditemukan",
+    "LINK_INACTIVE": "Tautan tidak aktif",
+    "LINK_EXPIRED": "Tautan kadaluwarsa",
+    "TOKEN_EXPIRED": "Token kadaluwarsa",
+    "INVALID_TOKEN": "Token tidak valid",
+    "TOKEN_NOT_ACTIVE": "Token tidak aktif",
+    "VALIDATION_FAILED": "Validasi token gagal"
+  },
+  "patient": {
+    "CASE_ID": "ID Kasus",
+    "PATIENT_ID": "ID Pasien"
+  },
+  "login": {
+    "TITLE": "Masuk",
+    "HN": "Nomor KTP",
+    "HN_REQUIRED": "Harap masukkan nomor KTP",
+    "HN_INVALID": "Nomor KTP tidak valid",
+    "DOB": "Tanggal Lahir",
+    "DOB_REQUIRED": "Harap masukkan tanggal lahir",
+    "DOB_PLACEHOLDER": "Pilih tanggal lahir",
+    "SUBMIT": "Kirim",
+    "POLICY_TITLE": "Kebijakan Privasi",
+    "POLICY_TEXT": "Dengan menggunakan aplikasi ini, Anda menyetujui ketentuan yang tercantum dalam kebijakan privasi kami",
+    "ACCEPT_POLICY": "Setuju"
+  }
+}

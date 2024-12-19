@@ -296,7 +296,7 @@ const LinkForm = ({ formLink, onClose, handleCopyLink, record }) => {
             />
           ) : linkData?.expiration_time ? (
             <ActiveLinkComponent
-              link={`${BASE_URL}ptr-login?token=${linkData.jwt_token}`}
+              link={`${BASE_URL}ptr?token=${linkData.jwt_token}`}
               expirationTime={moment(linkData.expiration_time).format(
                 "YYYY-MM-DD HH:mm"
               )}

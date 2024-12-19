@@ -28,7 +28,7 @@ const linkCaseController = {
     }
   },
 
-  // สร้างข้อมูลใหม่
+  // Token Creation
   createLinkCase: async (req, res) => {
     const { surgery_case_id, expiration_time, created_by } = req.body;
     if (!surgery_case_id || !expiration_time) {
@@ -40,34 +40,36 @@ const linkCaseController = {
     });
     const isactive = true;
 
-    const payload = {
-      surgery_case_id: surgery_case_id,
-    };
-
-    const secretKey = process.env.JWT_SECRET_KEY;
-
-    const token = jwt.sign(payload, secretKey, { algorithm: "HS256" });
-
-    const urlSafeToken = token
-      .replace(/\+/g, "-")
-      .replace(/\//g, "_")
-      .replace(/=+$/, "");
-
-    const linkCaseData = {
-      surgery_case_id,
-      created_at: created_at,
-      created_by,
-      isactive,
-      jwt_token: urlSafeToken,
-      expiration_time: new Date(expiration_time).toLocaleString("en-US", {
-        timeZone: "Asia/Bangkok",
-      }),
-    };
-    console.log("CREATE DATA : ", linkCaseData);
     try {
+      const payload = {
+        surgery_case_id: surgery_case_id,
+        exp: Math.floor(new Date(expiration_time).getTime() / 1000),
+      };
+
+      const token = jwt.sign(payload, process.env.JWT_SECRET_KEY, {
+        algorithm: "HS256",
+      });
+
+      const urlSafeToken = token
+        .replace(/\+/g, "-")
+        .replace(/\//g, "_")
+        .replace(/=+$/, "");
+
+      const linkCaseData = {
+        surgery_case_id,
+        created_at: created_at,
+        created_by,
+        isactive,
+        jwt_token: urlSafeToken,
+        expiration_time: new Date(expiration_time).toLocaleString("en-US", {
+          timeZone: "Asia/Bangkok",
+        }),
+      };
+
       const newLink = await linkCase.createLink(linkCaseData);
       res.status(201).json(newLink);
     } catch (error) {
+      console.error("Error creating token:", error);
       res.status(500).json({ message: error.message });
     }
   },

@@ -1,13 +1,13 @@
 import React, { useEffect, useState } from "react";
-import { Navigate, Outlet, useNavigate } from "react-router-dom";
+import { Navigate, Outlet } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import axiosInstance from "../api/axiosInstance";
+import { Spin } from "antd";
 
 const PermissionRoute = ({ requiredPermission }) => {
   const { user } = useAuth();
   const [loading, setLoading] = useState(true);
   const [userPermissions, setUserPermissions] = useState([]);
-  const navigate = useNavigate();
 
   useEffect(() => {
     const fetchPermissions = async () => {
@@ -41,7 +41,11 @@ const PermissionRoute = ({ requiredPermission }) => {
   };
 
   if (loading) {
-    return <div>Loading...</div>;
+    return (
+      <div className="flex justify-center items-center h-screen">
+        <Spin spinning={loading} size="large" />
+      </div>
+    );
   }
 
   if (requiredPermission && !hasPermission(requiredPermission)) {

@@ -1,5 +1,3 @@
-// staffController.js
-
 const Staff = require("../models/staffModel");
 const bcrypt = require("bcrypt");
 const db = require("../config/database");

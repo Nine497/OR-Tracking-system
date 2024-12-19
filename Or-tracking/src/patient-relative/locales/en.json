@@ -1,0 +1,29 @@
+{
+    "errors": {
+        "NO_TOKEN_PROVIDED": "Token is required",
+        "LINK_NOT_FOUND": "Link not found",
+        "LINK_INACTIVE": "Link is inactive",
+        "LINK_EXPIRED": "Link expired",
+        "TOKEN_EXPIRED": "Token expired",
+        "INVALID_TOKEN": "Invalid token",
+        "TOKEN_NOT_ACTIVE": "Token not active",
+        "VALIDATION_FAILED": "Token validation failed"
+    },
+    "patient": {
+        "CASE_ID": "Case ID",
+        "PATIENT_ID": "Patient ID"
+    },
+    "login": {
+        "TITLE": "Login",
+        "HN": "Citizen ID",
+        "HN_REQUIRED": "Please enter your Citizen ID",
+        "HN_INVALID": "Invalid Citizen ID",
+        "DOB": "Date of Birth",
+        "DOB_REQUIRED": "Please enter your Date of Birth",
+        "DOB_PLACEHOLDER": "Select Date of Birth",
+        "SUBMIT": "Submit",
+        "POLICY_TITLE": "Privacy Policy",
+        "POLICY_TEXT": "By using this application, you agree to the terms and conditions outlined in our Privacy Policy.",
+        "ACCEPT_POLICY": "I Accept"
+    }
+}

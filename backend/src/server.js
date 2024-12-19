@@ -11,7 +11,7 @@ const staffRoutes = require("./routes/staffRoutes");
 const caseRoutes = require("./routes/caseRoutes");
 const doctorRoutes = require("./routes/doctorRoutes");
 const linkCaseRoutes = require("./routes/linkCaseRoutes");
-
+const patientRoutes = require("./routes/patientRoutes");
 const app = express();
 
 // Middleware
@@ -21,12 +21,13 @@ app.use(express.json());
 app.use(morgan("combined"));
 
 // Routes
-app.get('/dd',(req,res) => res.json("KUYYY"))
+app.get("/dd", (req, res) => res.json("KUYYY"));
 app.use("/api/auth", authRoutes); // Route สำหรับ login
 app.use("/api/staff", staffRoutes); // Route สำหรับ staff
 app.use("/api/surgery_case", caseRoutes); // Route สำหรับ Case
 app.use("/api/doctor", doctorRoutes); // Route สำหรับ Doctor
 app.use("/api/link_cases", linkCaseRoutes); // Route สำหรับ link
+app.use("/api/patient", patientRoutes); // Route สำหรับ patient
 
 const startServer = async () => {
   try {

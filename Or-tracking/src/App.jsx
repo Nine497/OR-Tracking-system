@@ -17,7 +17,8 @@ import Room_schedule from "./admin/page/RoomSchedule";
 import AddCase from "./admin/components/Case_manage/AddCase";
 import PermissionDenied from "./admin/page/permissionDenied";
 import PermissionRoute from "./admin/hooks/PermissionRoute";
-import PatientRelativeLogin from "./patient-relative/pt_login";
+import PatientMain from "./patient-relative/page/PatientMain";
+import "./patient-relative/page/i18n";
 
 function App() {
   return (
@@ -50,9 +51,10 @@ function App() {
             </Route>
           </Route>
 
-          <Route path="/ptr-login" element={<PatientRelativeLogin />} />
+          <Route path="/ptr" element={<PatientMain />}>
+            <Route path="view" element={<Room_schedule />} />
+          </Route>
 
-          {/* หน้า Error */}
           <Route path="*" element={<ErrorPage />} />
         </Routes>
       </Router>

@@ -3,6 +3,7 @@ import { useNavigate, Outlet } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { notification } from "antd";
 import { jwtDecode } from "jwt-decode";
+import { Spin } from "antd";
 
 const PrivateRoute = () => {
   const { setUser, loading } = useAuth();
@@ -42,7 +43,11 @@ const PrivateRoute = () => {
   }, [setUser, navigate]);
 
   if (loading) {
-    return <div>Loading...</div>;
+    return (
+      <div className="flex justify-center items-center h-screen">
+        <Spin spinning={loading} size="large" />
+      </div>
+    );
   }
 
   return <Outlet />;
