@@ -7,46 +7,50 @@ import LanguageSelector from "../components/LanguageSelector";
 import axiosInstance from "../../admin/api/axiosInstance";
 import { useTranslation } from "react-i18next";
 import Policy from "../components/Policy";
+import { usePatient } from "../context/PatientContext";
 
 const PatientMain = () => {
-  const { t, i18n } = useTranslation();
+  const { t } = useTranslation();
   const location = useLocation();
   const [loading, setLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState("");
   const [responseData, setResponseData] = useState(null);
   const [acceptedPolicy, setAcceptedPolicy] = useState(false);
   const queryParams = new URLSearchParams(location.search);
-
-  const changeLanguage = (lang) => {
-    i18n.changeLanguage(lang);
-  };
+  const { setSurgeryCase, setPatientLink, patient_link } = usePatient();
 
   useEffect(() => {
     const validateToken = async () => {
-      const token = queryParams.get("token");
-
-      if (!token) {
+      const link = queryParams.get("link");
+      if (!link) {
         setErrorMessage(t("errors.NO_TOKEN_PROVIDED"));
         setLoading(false);
         return;
       }
 
       try {
-        const response = await axiosInstance.post("patient/validate-token", {
-          token,
+        setPatientLink(link);
+        const response = await axiosInstance.post("patient/validate_link", {
+          link,
         });
         if (response.data.valid) {
+          setSurgeryCase(response.data.surgery_case_id);
           setResponseData(response.data);
+          console.log(response.data);
+        } else {
+          setErrorMessage(t("errors.INVALID_TOKEN"));
         }
       } catch (error) {
-        setErrorMessage(error.response?.data?.error);
+        setErrorMessage(
+          error.response?.data?.error || t("errors.SERVER_ERROR")
+        );
       } finally {
         setLoading(false);
       }
     };
 
     validateToken();
-  }, [location]);
+  }, []);
 
   const handleAcceptPolicy = () => {
     setAcceptedPolicy(true);
@@ -60,41 +64,25 @@ const PatientMain = () => {
     );
   }
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="container mx-auto px-4 py-8 flex flex-col items-center justify-center min-h-screen">
+    <div className="min-h-screen bg-gray-50 flex flex-col items-center justify-center">
+      <div className="w-full max-w-lg bg-white">
+        <LanguageSelector />
         <div className="w-full max-w-screen bg-white rounded-lg shadow-md">
-          {errorMessage ? (
-            <div className="text-center p-6 bg-white rounded-lg shadow-md">
-              <span className="inline-block text-5xl sm:text-6xl md:text-7xl text-red-500 mb-4">
-                <Icon icon={warningCircle} />
-              </span>
-              <h2 className="text-xl sm:text-2xl text-red-500 font-semibold mb-4">
-                {t(`errors.${errorMessage}`)}
-              </h2>
-              <p className="text-base sm:text-lg text-gray-700">
-                {t("Please contact staff for more details.")}
-              </p>
-            </div>
-          ) : !acceptedPolicy ? (
+          {!acceptedPolicy ? (
             <Policy t={t} handleAcceptPolicy={handleAcceptPolicy} />
           ) : responseData ? (
-            <>
-              <div className="w-full p-6 border-b border-gray-200">
-                <h1 className="text-2xl md:text-3xl font-semibold text-center text-gray-800">
-                  {t("login.TITLE")}
-                </h1>
-              </div>
-
+            <div className="w-full p-6 border-b border-gray-200">
+              <h1 className="text-2xl md:text-3xl font-semibold text-center text-gray-800">
+                {t("login.TITLE")}
+              </h1>
               <div className="p-4 sm:p-6 md:p-8">
                 <LoginForm t={t} queryParams={queryParams} />
               </div>
-            </>
+            </div>
           ) : null}
         </div>
 
-        <div className="mt-6 flex justify-center">
-          <LanguageSelector changeLanguage={changeLanguage} />
-        </div>
+        <div className="mt-6 flex justify-center"></div>
       </div>
     </div>
   );

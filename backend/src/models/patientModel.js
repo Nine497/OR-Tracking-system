@@ -1,3 +1,5 @@
+const db = require("../config/database");
+
 const patient = {
   getPatientIdByCaseId: (surgery_case_id) => {
     return db("surgery_case")
@@ -6,11 +8,13 @@ const patient = {
       .first();
   },
 
-  getPatientDetailsByCaseId: (surgery_case_id) => {
+  getPatientDetailsByCaseId: (surgery_case_id, hn, dob) => {
     return db("surgery_case")
       .join("patients", "surgery_case.patient_id", "=", "patients.patient_id")
-      .select("patients.hn", "patients.dob", "patients.patient_id")
+      .select("patients.hn_code", "patients.dob", "patients.patient_id")
       .where("surgery_case.surgery_case_id", surgery_case_id)
+      .where("patients.hn_code", hn)
+      .where("patients.dob", dob)
       .first();
   },
 
@@ -22,6 +26,17 @@ const patient = {
         jwt_token: token,
       })
       .first();
+  },
+
+  getLinkStatusById: (surgery_case_links_id) => {
+    return db("surgery_case_links")
+      .select("surgery_case_id", "isactive", "expiration_time")
+      .where("surgery_case_links_id", surgery_case_links_id)
+      .first();
+  },
+
+  getAllStatuses: () => {
+    return db("status").select("status_id", "status_name", "description");
   },
 };
 

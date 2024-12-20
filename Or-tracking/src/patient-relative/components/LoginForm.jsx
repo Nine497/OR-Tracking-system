@@ -1,34 +1,43 @@
 import React, { useState, useEffect } from "react";
-import { Form, Input, Button, DatePicker, notification } from "antd"; // เพิ่มการ import notification
+import { Form, Input, Button, DatePicker, notification } from "antd";
 import IMask from "imask";
 import hospitalBedGif from "../assets/hospital-bed.gif";
 import hospitalBedStatic from "../assets/hospital-bed-static.png";
 import axiosInstance from "../../admin/api/axiosInstance";
+import { usePatient } from "../context/PatientContext";
+import { useNavigate } from "react-router-dom";
 
 const LoginForm = ({ t, queryParams }) => {
   const [playGif, setPlayGif] = useState(false);
   const hnInputRef = React.useRef(null);
+  const { surgery_case_id, setPatient, setSurgeryCase } = usePatient();
+  const navigate = useNavigate();
 
   const onFinish = async (values) => {
     try {
-      const { HospitalNumber, dob } = values;
+      const { hn, dob } = values;
+      console.log("Payload sent to API:", { hn, dob, surgery_case_id });
 
-      const { data } = await axiosInstance.post("patient/login", {
-        HospitalNumber,
+      const response = await axiosInstance.post("patient/login", {
+        hn,
         dob,
+        surgery_case_id,
       });
 
-      if (data.success) {
-        localStorage.setItem("jwtToken", queryParams);
+      if (response.data.valid) {
+        localStorage.setItem("token", response.data.token);
+        setPatient(response.data.patient_id);
+        setSurgeryCase(surgery_case_id);
+        navigate("/ptr/view");
         notification.success({ message: t("login.SUCCESS") });
       } else {
         notification.error({ message: t("login.FAILED") });
       }
     } catch (error) {
       console.error("Login error:", error);
-      notification.error({
-        message: error.response?.data?.message || t("login.FAILED"),
-      });
+      const errorMessage =
+        error.response?.data?.message || error.message || t("login.FAILED");
+      notification.error({ message: errorMessage });
     }
   };
 
@@ -69,7 +78,7 @@ const LoginForm = ({ t, queryParams }) => {
               {t("login.HN")}
             </span>
           }
-          name="HospitalNumber"
+          name="hn"
           rules={[
             { required: true, message: t("login.HN_REQUIRED") },
             {
@@ -104,7 +113,7 @@ const LoginForm = ({ t, queryParams }) => {
 
         <Form.Item className="mb-0">
           <Button
-            type="submit"
+            htmlType="submit"
             className="w-full py-2 px-4 bg-blue-500 hover:bg-blue-600 text-white text-sm sm:text-base font-medium rounded-md transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
           >
             {t("login.SUBMIT")}

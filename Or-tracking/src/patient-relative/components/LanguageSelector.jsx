@@ -1,17 +1,28 @@
 import React from "react";
+import { Dropdown, Menu } from "antd";
+import { useTranslation } from "react-i18next";
 
-const LanguageSelector = ({ changeLanguage }) => {
+const LanguageSelector = () => {
+  const { t, i18n } = useTranslation();
+  const changeLanguage = (lang) => {
+    i18n.changeLanguage(lang);
+  };
+
+  const menu = (
+    <Menu>
+      <Menu.Item onClick={() => changeLanguage("en")}>English</Menu.Item>
+      <Menu.Item onClick={() => changeLanguage("th")}>ไทย</Menu.Item>
+      <Menu.Item onClick={() => changeLanguage("bs")}>Bahasa</Menu.Item>
+    </Menu>
+  );
+
   return (
-    <div className="absolute top-4 right-4 flex space-x-2">
-      <button onClick={() => changeLanguage("en")} className="text-sm p-2">
-        English
-      </button>
-      <button onClick={() => changeLanguage("th")} className="text-sm p-2">
-        ไทย
-      </button>
-      <button onClick={() => changeLanguage("bs")} className="text-sm p-2">
-        Bahasa
-      </button>
+    <div className="absolute top-4 right-4 z-10">
+      <Dropdown overlay={menu} trigger={["click"]}>
+        <button className="text-sm p-2 bg-slate-500 text-white rounded-md">
+          Select Language
+        </button>
+      </Dropdown>
     </div>
   );
 };

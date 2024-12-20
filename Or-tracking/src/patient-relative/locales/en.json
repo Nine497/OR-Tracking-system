@@ -15,9 +15,9 @@
     },
     "login": {
         "TITLE": "Login",
-        "HN": "Citizen ID",
-        "HN_REQUIRED": "Please enter your Citizen ID",
-        "HN_INVALID": "Invalid Citizen ID",
+        "HN": "Hospital Number",
+        "HN_REQUIRED": "Please enter your HN",
+        "HN_INVALID": "Invalid HN",
         "DOB": "Date of Birth",
         "DOB_REQUIRED": "Please enter your Date of Birth",
         "DOB_PLACEHOLDER": "Select Date of Birth",

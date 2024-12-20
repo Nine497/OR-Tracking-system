@@ -4,6 +4,7 @@ import {
   Routes,
   Route,
   Navigate,
+  Outlet,
 } from "react-router-dom";
 import { AuthProvider } from "./admin/context/AuthContext";
 import PrivateRoute from "./admin/hooks/PrivateRoute";
@@ -19,6 +20,9 @@ import PermissionDenied from "./admin/page/permissionDenied";
 import PermissionRoute from "./admin/hooks/PermissionRoute";
 import PatientMain from "./patient-relative/page/PatientMain";
 import "./patient-relative/page/i18n";
+import { PatientProvider } from "./patient-relative/context/PatientContext";
+import View from "./patient-relative/page/View";
+import PatientRoute from "./patient-relative/context/PatientRoute";
 
 function App() {
   return (
@@ -51,8 +55,23 @@ function App() {
             </Route>
           </Route>
 
-          <Route path="/ptr" element={<PatientMain />}>
-            <Route path="view" element={<Room_schedule />} />
+          <Route
+            path="/ptr"
+            element={
+              <PatientProvider>
+                <Outlet />
+              </PatientProvider>
+            }
+          >
+            <Route path="" element={<PatientMain />} />
+            <Route
+              path="view"
+              element={
+                <PatientRoute>
+                  <View />
+                </PatientRoute>
+              }
+            />
           </Route>
 
           <Route path="*" element={<ErrorPage />} />

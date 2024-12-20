@@ -159,7 +159,6 @@ const LinkForm = ({ formLink, onClose, handleCopyLink, record }) => {
   }, [record.surgery_case_id, user.id]);
 
   const createLink = async (linkData) => {
-    console.log(linkData.expiration_time);
     setLoading(true);
     try {
       const token = localStorage.getItem("jwtToken");
@@ -296,7 +295,7 @@ const LinkForm = ({ formLink, onClose, handleCopyLink, record }) => {
             />
           ) : linkData?.expiration_time ? (
             <ActiveLinkComponent
-              link={`${BASE_URL}ptr?token=${linkData.jwt_token}`}
+              link={`${BASE_URL}ptr?link=${linkData.surgery_case_links_id}`}
               expirationTime={moment(linkData.expiration_time).format(
                 "YYYY-MM-DD HH:mm"
               )}

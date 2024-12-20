@@ -1,5 +1,5 @@
 const linkCase = require("../models/linkCaseModel");
-const jwt = require("jsonwebtoken");
+const bcrypt = require("bcryptjs");
 require("dotenv").config();
 
 const linkCaseController = {
@@ -28,9 +28,10 @@ const linkCaseController = {
     }
   },
 
-  // Token Creation
   createLinkCase: async (req, res) => {
+    console.log(req.body);
     const { surgery_case_id, expiration_time, created_by } = req.body;
+
     if (!surgery_case_id || !expiration_time) {
       return res.status(400).json({ message: "Missing required fields" });
     }
@@ -38,29 +39,24 @@ const linkCaseController = {
     const created_at = new Date().toLocaleString("en-US", {
       timeZone: "Asia/Bangkok",
     });
-    const isactive = true;
+
+    const timestamp = Date.now();
+    const randomValue = Math.floor(Math.random() * 1000);
+    const surgery_case_links_id = `${timestamp}${randomValue}`;
+    const saltRounds = 10;
 
     try {
-      const payload = {
-        surgery_case_id: surgery_case_id,
-        exp: Math.floor(new Date(expiration_time).getTime() / 1000),
-      };
+      const hash = await bcrypt.hash(surgery_case_links_id, saltRounds);
+      const cleanHash = hash.replace(/[^\w\s]/g, "");
 
-      const token = jwt.sign(payload, process.env.JWT_SECRET_KEY, {
-        algorithm: "HS256",
-      });
-
-      const urlSafeToken = token
-        .replace(/\+/g, "-")
-        .replace(/\//g, "_")
-        .replace(/=+$/, "");
+      const isactive = true;
 
       const linkCaseData = {
+        surgery_case_links_id: cleanHash,
         surgery_case_id,
         created_at: created_at,
         created_by,
         isactive,
-        jwt_token: urlSafeToken,
         expiration_time: new Date(expiration_time).toLocaleString("en-US", {
           timeZone: "Asia/Bangkok",
         }),
