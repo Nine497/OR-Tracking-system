@@ -1,56 +1,41 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate, Outlet } from "react-router-dom";
 import { notification } from "antd";
-import { jwtDecode } from "jwt-decode";
-import { Spin } from "antd";
 import { usePatient } from "./PatientContext";
 
 const PatientRoute = ({ children }) => {
   const navigate = useNavigate();
-  const { setPatient } = usePatient();
-  const [loading, setLoading] = useState(true);
+  const { patient_link } = usePatient();
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     const checkToken = () => {
       const token = localStorage.getItem("token");
-      if (token) {
-        try {
-          const decoded = jwtDecode(token);
-          console.log("Decoded:", decoded);
-          const currentTime = Date.now() / 1000;
 
-          if (decoded.exp > currentTime) {
-            setPatient(decoded.patient_id);
-            setLoading(false);
-          } else {
-            localStorage.removeItem("token");
-            notification.warning({
-              message: "Session expired. Please login again.",
-            });
-            navigate("/ptr/", { replace: true });
-          }
-        } catch (error) {
-          console.error("Invalid token:", error);
-          localStorage.removeItem("token");
+      if (!token) {
+        if (!isLoading) {
           notification.warning({
-            message: "Invalid token. Please login again.",
+            message: "Please login to access this page.",
           });
-          navigate("/ptr/", { replace: true });
+          navigate(`/ptr?link=${patient_link}`, { replace: true });
         }
-      } else {
-        navigate("/ptr/", { replace: true });
       }
     };
 
-    checkToken();
-  }, [navigate, setPatient]);
+    if (!isLoading) {
+      checkToken();
+    }
+  }, [navigate, isLoading, patient_link]);
 
-  if (loading) {
-    return (
-      <div className="flex justify-center items-center h-screen">
-        <Spin spinning={loading} size="large" />
-      </div>
-    );
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setIsLoading(false);
+    }, 500);
+    return () => clearTimeout(timer);
+  }, []);
+
+  if (isLoading) {
+    return null;
   }
 
   return children ? <>{children}</> : <Outlet />;

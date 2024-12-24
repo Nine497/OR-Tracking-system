@@ -4,6 +4,7 @@ import moment from "moment";
 import { useAuth } from "../../context/AuthContext";
 import axiosInstance from "../../api/axiosInstance";
 import { Icon } from "@iconify/react";
+import { Spin } from "antd";
 
 const CancelLinkModal = ({ visible, onCancel, onConfirm }) => {
   return (
@@ -68,7 +69,10 @@ const NoLinkComponent = ({ onGenerateLink }) => {
 const ActiveLinkComponent = ({ link, expirationTime, handleCopyLink }) => (
   <div className="w-full space-y-5 px-10">
     <div className="bg-gray-50 border border-gray-200 p-4 rounded-lg shadow-md flex items-center justify-between">
-      <p className="text-base text-gray-800 font-medium truncate" title={link}>
+      <p
+        className="text-base text-gray-800 font-medium truncate w-full max-w-[400px]"
+        title={link}
+      >
         {link}
       </p>
       <Button
@@ -90,8 +94,25 @@ const ActiveLinkComponent = ({ link, expirationTime, handleCopyLink }) => (
   </div>
 );
 
-const ExpiredLinkComponent = ({ expirationTime }) => (
-  <div className="w-full h-full flex items-center justify-center space-y-5 px-10">
+const ExpiredLinkComponent = ({ expirationTime, link, handleCopyLink }) => (
+  <div className="w-full h-full flex flex-col items-center justify-center space-y-5 px-10">
+    <div className="bg-gray-50 border border-gray-200 p-4 rounded-lg shadow-md flex items-center justify-between">
+      <p
+        className="text-base text-gray-800 font-medium truncate w-full max-w-[400px]"
+        title={link}
+      >
+        {link}
+      </p>
+      <Button
+        type="default"
+        size="small"
+        onClick={() => handleCopyLink(link)}
+        className="px-4 py-4 border-blue-500 text-blue-600 hover:bg-blue-50 transition-colors text-lg flex items-center gap-2"
+      >
+        <Icon icon="solar:copy-linear" className="text-xl" />
+        <span className="font-normal">Copy</span>
+      </Button>
+    </div>
     <Alert
       message={
         <span className="font-medium">Link Expired {expirationTime}</span>
@@ -151,7 +172,9 @@ const LinkForm = ({ formLink, onClose, handleCopyLink, record }) => {
           setLinkData(null);
         }
       } finally {
-        setLoading(false);
+        setTimeout(() => {
+          setLoading(false);
+        }, 1000);
       }
     };
 
@@ -278,6 +301,14 @@ const LinkForm = ({ formLink, onClose, handleCopyLink, record }) => {
     setIsModalVisible(false);
   };
 
+  if (loading) {
+    return (
+      <div className="flex flex-col items-center justify-center space-y-6 w-full min-h-48">
+        <Spin spinning={loading} size="large" />
+      </div>
+    );
+  }
+
   return (
     <Form
       form={formLink}
@@ -289,9 +320,11 @@ const LinkForm = ({ formLink, onClose, handleCopyLink, record }) => {
           {linkData?.expiration_time &&
           moment(linkData.expiration_time).isBefore(moment()) ? (
             <ExpiredLinkComponent
+              link={`${BASE_URL}ptr?link=${linkData.surgery_case_links_id}`}
               expirationTime={moment(linkData.expiration_time).format(
                 "YYYY-MM-DD HH:mm"
               )}
+              handleCopyLink={handleCopyLink}
             />
           ) : linkData?.expiration_time ? (
             <ActiveLinkComponent

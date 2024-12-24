@@ -48,10 +48,6 @@ function UpdateModal({ visible, record, onClose, type }) {
     }
   };
 
-  const handleStatusFinish = (values) => {
-    console.log("Status Form values:", values);
-    onClose();
-  };
 
   if (!record) {
     return null;
@@ -62,7 +58,7 @@ function UpdateModal({ visible, record, onClose, type }) {
       title={
         <div className="flex flex-col items-center justify-center p-2">
           <span className="text-2xl font-semibold text-gray-800">
-            {type === "status" ? "Update Case Status" : "Link Configuration"}{" "}
+            {type === "status" ? "Update Case Status" : "Link Setting"}{" "}
           </span>
           <span className="text-2xl font-semibold text-blue-600">
             Case #{record.surgery_case_id}
@@ -84,7 +80,6 @@ function UpdateModal({ visible, record, onClose, type }) {
       {type === "status" ? (
         <StatusForm
           formStatus={formStatus}
-          handleStatusFinish={handleStatusFinish}
           onClose={onClose}
           record={record}
         />

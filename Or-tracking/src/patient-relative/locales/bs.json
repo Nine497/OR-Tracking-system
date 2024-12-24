@@ -23,7 +23,35 @@
     "DOB_PLACEHOLDER": "Pilih tanggal lahir",
     "SUBMIT": "Kirim",
     "POLICY_TITLE": "Kebijakan Privasi",
-    "POLICY_TEXT": "Dengan menggunakan aplikasi ini, Anda menyetujui ketentuan yang tercantum dalam kebijakan privasi kami",
-    "ACCEPT_POLICY": "Setuju"
+    "POLICY_TEXT": "Dengan menggunakan aplikasi ini, Anda menyetujui syarat dan ketentuan yang tercantum dalam Kebijakan Privasi kami. Kebijakan ini menjelaskan bagaimana kami mengumpulkan, menggunakan, dan berbagi data pribadi Anda. Kebijakan ini juga menjelaskan hak Anda terkait data pribadi yang Anda berikan kepada kami dan bagaimana Anda dapat mengelolanya. Kami berkomitmen untuk melindungi privasi Anda dan menjaga keamanan informasi Anda. Harap baca kebijakan ini dengan saksama sebelum menggunakan aplikasi kami. Jika Anda tidak setuju dengan syarat ini, harap hentikan penggunaan aplikasi. Untuk informasi lebih lanjut, kunjungi situs resmi kami atau hubungi tim dukungan kami.",
+    "ACCEPT_POLICY": "Saya Setuju",
+    "DECLINE_POLICY": "Saya Menolak"
+  },
+  "or_tracking": {
+    "TITLE": "Pelacakan Operasi"
+  },
+  "patient": {
+    "HN": "HN",
+    "NAME": "Nama",
+    "GENDER": "Jenis Kelamin",
+    "SURGEON": "Ahli Bedah",
+    "ROOM": "Ruang Operasi",
+    "SURGERY_TIME": "Waktu Operasi",
+    "SURGERY_DATE": "Tanggal Operasi"
+  },
+  "timeline": {
+    "TITLE": "Linimasa Operasi"
+  },
+  "loading": {
+    "LOADING": "Memuat..."
+  },
+  "error": {
+    "FAILED_TO_LOAD": "Gagal memuat data"
+  },
+  "common": {
+    "CURRENT": "Status Saat Ini",
+    "COMPLETED": "Selesai",
+    "NEXT": "Berikutnya",
+    "LOGOUT": "Keluar"
   }
 }

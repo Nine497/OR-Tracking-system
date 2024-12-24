@@ -1,35 +1,37 @@
-import React, { useState, useEffect } from "react";
-import { Form, Input, Button, DatePicker, notification } from "antd";
+import React, { useEffect, useState } from "react";
+import { Form, Input, Button, notification } from "antd";
 import IMask from "imask";
-import hospitalBedGif from "../assets/hospital-bed.gif";
-import hospitalBedStatic from "../assets/hospital-bed-static.png";
+import Logo from "../assets/Logo.png";
 import axiosInstance from "../../admin/api/axiosInstance";
 import { usePatient } from "../context/PatientContext";
 import { useNavigate } from "react-router-dom";
 
-const LoginForm = ({ t, queryParams }) => {
-  const [playGif, setPlayGif] = useState(false);
+const LoginForm = ({ t, link }) => {
+  const [loading, setLoading] = useState(false);
   const hnInputRef = React.useRef(null);
+  const dobInputRef = React.useRef(null);
   const { surgery_case_id, setPatient, setSurgeryCase } = usePatient();
   const navigate = useNavigate();
 
   const onFinish = async (values) => {
     try {
+      setLoading(true);
       const { hn, dob } = values;
-      console.log("Payload sent to API:", { hn, dob, surgery_case_id });
+      const patient_link = link;
+      const [day, month, year] = dob.split("/");
+      const formattedDob = `${year}-${month}-${day}`;
 
       const response = await axiosInstance.post("patient/login", {
         hn,
-        dob,
+        dob: formattedDob,
         surgery_case_id,
+        link: patient_link,
       });
 
       if (response.data.valid) {
         localStorage.setItem("token", response.data.token);
-        setPatient(response.data.patient_id);
-        setSurgeryCase(surgery_case_id);
-        navigate("/ptr/view");
         notification.success({ message: t("login.SUCCESS") });
+        navigate("/ptr/view");
       } else {
         notification.error({ message: t("login.FAILED") });
       }
@@ -38,6 +40,8 @@ const LoginForm = ({ t, queryParams }) => {
       const errorMessage =
         error.response?.data?.message || error.message || t("login.FAILED");
       notification.error({ message: errorMessage });
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -47,18 +51,20 @@ const LoginForm = ({ t, queryParams }) => {
         mask: "00-00-000000",
       });
     }
+    if (dobInputRef.current) {
+      IMask(dobInputRef.current.input, {
+        mask: "00/00/0000",
+      });
+    }
   }, []);
 
   return (
     <div className="w-full max-w-md mx-auto px-4 sm:px-6 md:px-8">
-      <div className="mb-8 transition-transform hover:scale-105 cursor-pointer">
+      <div className="mb-8">
         <img
-          src={playGif ? hospitalBedGif : hospitalBedStatic}
-          className="w-24 sm:w-32 md:w-40 mx-auto"
+          src={Logo}
+          className="w-40 sm:w-32 md:w-64 mx-auto"
           alt="Hospital Bed"
-          onClick={() => setPlayGif(true)}
-          onMouseEnter={() => setPlayGif(true)}
-          onMouseLeave={() => setPlayGif(false)}
         />
       </div>
 
@@ -102,12 +108,19 @@ const LoginForm = ({ t, queryParams }) => {
             </span>
           }
           name="dob"
-          rules={[{ required: true, message: t("login.DOB_REQUIRED") }]}
+          rules={[
+            { required: true, message: t("login.DOB_REQUIRED") },
+            {
+              pattern: /^\d{2}\/\d{2}\/\d{4}$/,
+              message: t("login.DOB_INVALID"),
+            },
+          ]}
         >
-          <DatePicker
+          <Input
             placeholder={t("login.DOB_PLACEHOLDER")}
+            ref={dobInputRef}
+            maxLength={10}
             className="w-full p-2 text-sm sm:text-base border rounded-md"
-            format="YYYY-MM-DD"
           />
         </Form.Item>
 
@@ -115,6 +128,7 @@ const LoginForm = ({ t, queryParams }) => {
           <Button
             htmlType="submit"
             className="w-full py-2 px-4 bg-blue-500 hover:bg-blue-600 text-white text-sm sm:text-base font-medium rounded-md transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+            disabled={loading}
           >
             {t("login.SUBMIT")}
           </Button>

@@ -76,13 +76,13 @@ exports.validate_link = async (req, res) => {
 };
 
 exports.login = async (req, res) => {
-  const { hn, dob, surgery_case_id } = req.body;
+  const { hn, dob, surgery_case_id, link } = req.body;
 
   const date = new Date(dob);
   const formattedDob = date.toLocaleDateString("en-CA");
 
   console.log("DOB", formattedDob);
-  console.log("HN", hn);
+  console.log("link", link);
 
   if (!hn || !formattedDob || !surgery_case_id) {
     return res.status(400).json({
@@ -110,6 +110,7 @@ exports.login = async (req, res) => {
     const payload = {
       patient_id: patientDetails.patient_id,
       surgery_case_id: surgery_case_id,
+      link: link,
     };
 
     const token = jwt.sign(payload, process.env.JWT_SECRET_KEY, {
@@ -166,7 +167,8 @@ exports.getPatientData = async (req, res) => {
         "status.description",
         "surgery_type.surgery_type_name",
         "surgery_case.estimate_start_time",
-        "surgery_case.estimate_duration"
+        "surgery_case.estimate_duration",
+        "surgery_case.surgery_date"
       )
       .where("surgery_case.surgery_case_id", surgery_case_id)
       .first();
@@ -196,6 +198,41 @@ exports.getAllStatus = async (req, res) => {
     res.status(500).json({
       message: "Failed to retrieve statuses",
       details: error.message,
+    });
+  }
+};
+
+exports.getCaseWithStatusHistory = async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    const statusHistory = await db("surgery_case_status_history")
+      .select("status_id", "surgery_case_status_history_id", "updated_at")
+      .where("surgery_case_id", id)
+      .orderBy("surgery_case_status_history_id", "asc");
+
+    const latestStatus = await db("surgery_case_status_history")
+      .select("surgery_case_status_history_id")
+      .where("surgery_case_id", id)
+      .orderBy("surgery_case_status_history_id", "desc")
+      .first();
+
+    if (!statusHistory.length || !latestStatus) {
+      return res.status(404).json({
+        message: "No status history found for this surgery case",
+      });
+    }
+
+    res.status(200).json({
+      message: "Status history and latest status fetched successfully",
+      statusHistory,
+      latestStatus: latestStatus.surgery_case_status_history_id,
+    });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({
+      message: "Server error",
+      error: err.message,
     });
   }
 };

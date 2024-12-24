@@ -149,20 +149,79 @@ exports.updateSurgeryCase = async (req, res) => {
   }
 };
 
-// ฟังก์ชันสำหรับอัปเดตสถานะของกรณีการผ่าตัด
-exports.updateSurgeryCaseStatus = async (req, res) => {
+// ฟังก์ชันสำหรับอัปเดตสถานะของกรณีการผ่าตัดตาม ID
+exports.updateStatusById = async (req, res) => {
+  const { status_id, updatedBy } = req.body;
   const { id } = req.params;
-  const { statusId } = req.body;
+
+  if (!status_id) {
+    return res.status(400).json({
+      message: "status_id is required",
+    });
+  }
+
   try {
-    const updatedSurgeryCase = await SurgeryCase.updateStatus(id, statusId);
-    if (!updatedSurgeryCase) {
-      return res.status(404).json({
-        message: "Surgery case not found",
+    await db.transaction(async (trx) => {
+      const result = await trx("surgery_case")
+        .where("surgery_case_id", id)
+        .update({ status_id });
+
+      if (result === 0) {
+        throw new Error("Surgery case not found");
+      }
+
+      await trx("surgery_case_status_history").insert({
+        surgery_case_id: id,
+        status_id,
+        updated_at: new Date(),
+        updated_by: updatedBy,
       });
-    }
+    });
+
     res.status(200).json({
       message: "Surgery case status updated successfully",
-      data: updatedSurgeryCase,
+    });
+  } catch (err) {
+    console.error(err);
+
+    if (err.message === "Surgery case not found") {
+      return res.status(404).json({
+        message: err.message,
+      });
+    }
+
+    res.status(500).json({
+      message: "Server error",
+      error: err.message,
+    });
+  }
+};
+
+exports.getCaseWithStatusHistory = async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    const statusHistory = await db("surgery_case_status_history")
+      .select("status_id", "updated_at")
+      .where("surgery_case_id", id)
+      .orderBy("updated_at", "asc");
+
+    const latestStatus = await db("surgery_case_status_history")
+      .select("status_id")
+      .where("surgery_case_id", id)
+      .orderBy("updated_at", "desc")
+      .first();
+
+    if (!statusHistory || !latestStatus) {
+      return res.status(404).json({
+        message: "No status history found for this surgery case",
+      });
+    }
+
+    res.status(200).json({
+      message: "Status history and latest status fetched successfully",
+      statusHistory,
+      latestStatus: latestStatus.status_id,
     });
   } catch (err) {
     console.error(err);

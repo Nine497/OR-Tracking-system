@@ -11,10 +11,12 @@ router.post("/", verifyToken, surgeryController.createSurgeryCase);
 
 router.put("/:id", verifyToken, surgeryController.updateSurgeryCase);
 
-router.patch(
-  "/:id/status",
+router.patch("/status/:id", verifyToken, surgeryController.updateStatusById);
+
+router.get(
+  "/status/:id",
   verifyToken,
-  surgeryController.updateSurgeryCaseStatus
+  surgeryController.getCaseWithStatusHistory
 );
 
 module.exports = router;

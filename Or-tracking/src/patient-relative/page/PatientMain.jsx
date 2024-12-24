@@ -1,13 +1,14 @@
 import React, { useEffect, useState } from "react";
 import { useLocation } from "react-router-dom";
+import { Result, Button } from "antd";
 import { Icon } from "@iconify/react";
-import warningCircle from "@iconify/icons-mdi/warning-circle";
 import LoginForm from "../components/LoginForm";
 import LanguageSelector from "../components/LanguageSelector";
 import axiosInstance from "../../admin/api/axiosInstance";
 import { useTranslation } from "react-i18next";
 import Policy from "../components/Policy";
 import { usePatient } from "../context/PatientContext";
+import AccessLinkError from "./accessLinkError";
 
 const PatientMain = () => {
   const { t } = useTranslation();
@@ -18,10 +19,10 @@ const PatientMain = () => {
   const [acceptedPolicy, setAcceptedPolicy] = useState(false);
   const queryParams = new URLSearchParams(location.search);
   const { setSurgeryCase, setPatientLink, patient_link } = usePatient();
+  const link = queryParams.get("link");
 
   useEffect(() => {
     const validateToken = async () => {
-      const link = queryParams.get("link");
       if (!link) {
         setErrorMessage(t("errors.NO_TOKEN_PROVIDED"));
         setLoading(false);
@@ -63,28 +64,31 @@ const PatientMain = () => {
       </div>
     );
   }
+
+  if (errorMessage) {
+    return <AccessLinkError errorMessage={errorMessage} t={t} />;
+  }
+
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col items-center justify-center">
-      <div className="w-full max-w-lg bg-white">
-        <LanguageSelector />
-        <div className="w-full max-w-screen bg-white rounded-lg shadow-md">
-          {!acceptedPolicy ? (
-            <Policy t={t} handleAcceptPolicy={handleAcceptPolicy} />
-          ) : responseData ? (
-            <div className="w-full p-6 border-b border-gray-200">
-              <h1 className="text-2xl md:text-3xl font-semibold text-center text-gray-800">
-                {t("login.TITLE")}
-              </h1>
-              <div className="p-4 sm:p-6 md:p-8">
-                <LoginForm t={t} queryParams={queryParams} />
+    <>
+      {!acceptedPolicy ? (
+        <Policy t={t} handleAcceptPolicy={handleAcceptPolicy} />
+      ) : responseData ? (
+        <div className="h-screen w-full flex items-center justify-center bg-white overflow-hidden">
+          <div className="w-full h-full flex flex-col items-center">
+            <div className="flex-1 w-full flex items-center justify-center px-4">
+              <div className="w-full">
+                <div className="w-full">
+                  <div className="p-4">
+                    <LoginForm t={t} link={link} />
+                  </div>
+                </div>
               </div>
             </div>
-          ) : null}
+          </div>
         </div>
-
-        <div className="mt-6 flex justify-center"></div>
-      </div>
-    </div>
+      ) : null}
+    </>
   );
 };
 

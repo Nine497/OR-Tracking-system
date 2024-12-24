@@ -10,7 +10,8 @@ function CaseTable() {
   const [isStatusModalVisible, setIsStatusModalVisible] = useState(false);
   const [isLinkModalVisible, setIsLinkModalVisible] = useState(false);
   const [filteredData, setFilteredData] = useState([]);
-  const [loading, setLoading] = useState(false);
+  const [loadingCases, setLoadingCases] = useState(false);
+  const [loadingDoctors, setLoadingDoctors] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [pagination, setPagination] = useState({ pageSize: 6, current: 1 });
   const [doctorSelectedOption, setDoctorSelectedOption] = useState(null);
@@ -24,10 +25,7 @@ function CaseTable() {
 
   const handleSearch = async (value, doctor = doctorSelectedOption) => {
     setSearchTerm(value);
-    setLoading(true);
-    console.log("SEARCH :", value);
-    console.log("Doctor :", doctor);
-
+    setLoadingCases(true);
     try {
       const token = localStorage.getItem("jwtToken");
       const response = await axiosInstance.get("/surgery_case/", {
@@ -61,7 +59,7 @@ function CaseTable() {
         description: error.message,
       });
     } finally {
-      setLoading(false);
+      setLoadingCases(false);
     }
   };
 
@@ -97,8 +95,7 @@ function CaseTable() {
 
   useEffect(() => {
     const fetchData = async () => {
-      setLoading(true);
-
+      setLoadingCases(true);
       try {
         const token = localStorage.getItem("jwtToken");
         const response = await axiosInstance.get("/surgery_case/", {
@@ -111,9 +108,7 @@ function CaseTable() {
             page: pagination.current,
           },
         });
-        if (response) {
-          console.log(response);
-        }
+
         const dataWithKeys = Array.isArray(response.data?.data)
           ? response.data.data.map((item) => ({
               ...item,
@@ -133,9 +128,7 @@ function CaseTable() {
           description: error.message,
         });
       } finally {
-        setTimeout(() => {
-          setLoading(false);
-        }, 200);
+        setLoadingCases(false);
       }
     };
 
@@ -143,7 +136,7 @@ function CaseTable() {
   }, [pagination.current, searchTerm]);
 
   useEffect(() => {
-    setLoading(true);
+    setLoadingDoctors(true);
     const fetchDoctorsData = async () => {
       try {
         const token = localStorage.getItem("jwtToken");
@@ -168,7 +161,7 @@ function CaseTable() {
           description: error.message,
         });
       } finally {
-        setLoading(false);
+        setLoadingDoctors(false);
       }
     };
 
@@ -264,7 +257,7 @@ function CaseTable() {
                 onClick={() => openLinkModal(record)}
                 icon={<Icon icon="lucide:copy" />}
               >
-                <span className="font-medium text-base">Config</span>
+                <span className="font-medium text-base">Setting</span>
               </CustomButton>
             </div>
           </Tooltip>
@@ -312,9 +305,9 @@ function CaseTable() {
           onChange={handleSelectChange}
         >
           {doctorsData.map((doctor) => (
-            <Option key={doctor.doctor_id} value={doctor.doctor_id}>
+            <Select.Option key={doctor.doctor_id} value={doctor.doctor_id}>
               {`${doctor.firstname} ${doctor.lastname}`}
-            </Option>
+            </Select.Option>
           ))}
         </Select>
         <CustomButton
@@ -329,11 +322,11 @@ function CaseTable() {
         </CustomButton>
       </div>
       <div className="w-full h-full mt-4 overflow-x-auto">
-        <Spin spinning={loading} size="large">
+        <Spin spinning={loadingCases} size="large">
           <Table
             dataSource={filteredData}
             columns={columns}
-            loading={loading}
+            loading={loadingCases}
             pagination={{
               pageSize: pagination.pageSize,
               current: pagination.current,

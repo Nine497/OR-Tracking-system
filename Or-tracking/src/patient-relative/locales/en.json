@@ -20,10 +20,38 @@
         "HN_INVALID": "Invalid HN",
         "DOB": "Date of Birth",
         "DOB_REQUIRED": "Please enter your Date of Birth",
-        "DOB_PLACEHOLDER": "Select Date of Birth",
+        "DOB_PLACEHOLDER": "Select Date of Birth (YYYY-MM-DD)",
         "SUBMIT": "Submit",
         "POLICY_TITLE": "Privacy Policy",
-        "POLICY_TEXT": "By using this application, you agree to the terms and conditions outlined in our Privacy Policy.",
-        "ACCEPT_POLICY": "I Accept"
+        "POLICY_TEXT": "By using this application, you agree to the terms and conditions outlined in our Privacy Policy. This policy explains how we collect, use, and share your personal data. It also describes your rights regarding the personal data you provide to us and how you can manage it. We are committed to protecting your privacy and ensuring the security of your information. Please read this policy carefully before using our application. If you do not agree with the terms, please discontinue use of the application. For more details, visit our official website or contact our support team.",
+        "ACCEPT_POLICY": "I Accept",
+        "DECLINE_POLICY": "I Decline"
+    },
+    "or_tracking": {
+        "TITLE": "OR-Tracking"
+    },
+    "patient": {
+        "HN": "HN",
+        "NAME": "Name",
+        "GENDER": "Gender",
+        "SURGEON": "Surgeon",
+        "ROOM": "Operating Room",
+        "SURGERY_TIME": "Surgery Time",
+        "SURGERY_DATE": "Surgery Date"
+    },
+    "timeline": {
+        "TITLE": "Operation Timeline"
+    },
+    "loading": {
+        "LOADING": "Loading..."
+    },
+    "error": {
+        "FAILED_TO_LOAD": "Failed to load data"
+    },
+    "common": {
+        "CURRENT": "Current",
+        "COMPLETED": "Completed",
+        "NEXT": "Next",
+        "LOGOUT": "Logout"
     }
 }
