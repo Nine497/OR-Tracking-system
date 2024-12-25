@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { usePatient } from "../context/PatientContext";
 import { useNavigate } from "react-router-dom";
-import { Timeline, Card, Avatar, Tag, Typography } from "antd";
+import { Card, Avatar, Tag, Typography } from "antd";
 import axiosInstance from "../../admin/api/axiosInstance";
 import LanguageSelector from "../components/LanguageSelector";
 import { useTranslation } from "react-i18next";
@@ -15,6 +15,7 @@ import moment from "moment";
 import LogoutButton from "../components/LogoutButton";
 import { motion } from "framer-motion";
 import StatusTimeline from "../components/TimeLine";
+import { UserOutlined } from "@ant-design/icons";
 
 const View = () => {
   const { patient_id, surgery_case_id, patient_link } = usePatient();
@@ -29,14 +30,7 @@ const View = () => {
   const [statusHistory, setStatusHistory] = useState([]);
   const [sortedStatuses, setSortedStatuses] = useState([]);
   const [patient_currentStatus, setPatient_currentStatus] = useState([]);
-
-  const {
-    isLoading,
-    showLoadingContent,
-    isExiting,
-    startLoading,
-    exitLoading,
-  } = useLoading();
+  const { isLoading, startLoading, exitLoading } = useLoading();
 
   useEffect(() => {
     let isMounted = true;
@@ -112,7 +106,6 @@ const View = () => {
         statusHistory.statusHistory
       );
 
-      // ค้นหาสถานะปัจจุบันจาก surgery_case_status_history_id
       const currentStatus = statusHistory.statusHistory.find(
         (history) =>
           history.surgery_case_status_history_id === statusHistory.latestStatus
@@ -120,12 +113,10 @@ const View = () => {
 
       console.log("Current Status:", currentStatus);
 
-      // กรองเฉพาะ status ที่มี surgery_case_status_history_id น้อยกว่า latestStatus
       const filteredStatuses = statusHistory.statusHistory.filter(
         (history) => history.status_id < currentStatus.status_id
       );
 
-      // ตรวจสอบว่า status_id ใดมี surgery_case_status_history_id มากที่สุด (ใหม่ที่สุด)
       const latestStatuses = filteredStatuses.reduce((acc, curr) => {
         if (
           !acc[curr.status_id] ||
@@ -137,7 +128,6 @@ const View = () => {
         return acc;
       }, {});
 
-      // แปลง Object เป็น Array และจัดเรียงตาม surgery_case_status_history_id จากใหม่ที่สุดไปเก่าที่สุด
       const sortedLatestStatuses = Object.values(latestStatuses).sort(
         (a, b) =>
           b.surgery_case_status_history_id - a.surgery_case_status_history_id
@@ -145,7 +135,6 @@ const View = () => {
 
       console.log("Filtered and Sorted Latest Statuses:", sortedLatestStatuses);
 
-      // รวมสถานะปัจจุบันกับสถานะที่กรองและจัดเรียงแล้ว
       const finalStatuses = currentStatus
         ? [currentStatus, ...sortedLatestStatuses]
         : sortedLatestStatuses;
@@ -166,22 +155,11 @@ const View = () => {
   }, [isLoading, isDataReady]);
 
   if (errorMessage) {
-    return <AccessLinkError errorMessage={errorMessage} t={t} />;
+    return <AccessLinkError errorMessage={errorMessage} />;
   }
 
   if (!patientData) {
     return null;
-  }
-
-  if (isLoading || !isDataReady) {
-    return (
-      <FullScreenLoading
-        isLoading={isLoading}
-        showLoadingContent={showLoadingContent}
-        isExiting={isExiting}
-        t={t}
-      />
-    );
   }
 
   const startTime = moment(
@@ -195,7 +173,7 @@ const View = () => {
 
   return (
     <>
-      <FullScreenLoading isLoading={isLoading} />
+      <FullScreenLoading isLoading={isLoading} t={t} />
 
       <motion.div
         className="flex flex-col min-h-screen w-full relative font-normal text-base bg-slate-100"
@@ -225,135 +203,70 @@ const View = () => {
               </div>
             </div>
 
-            <div className="grid gap-6 max-w-3xl mx-auto">
+            <div className="grid gap-6 w-full max-w-xl mx-auto">
               <Card
-                className="shadow-lg hover:shadow-xl transition-shadow duration-300"
+                className="shadow-lg hover:shadow-xl transition-all duration-300 bg-white"
                 bordered={false}
-                styles={{ body: { padding: "1.5rem" } }}
+                styles={{
+                  body: {
+                    padding: 0,
+                  },
+                }}
               >
-                <div className="flex flex-row sm:flex-row items-center sm:items-start gap-6">
-                  <Avatar
-                    src={ManAvatar}
-                    size={96}
-                    icon={
-                      <Icon
-                        icon="mdi:account-circle-outline"
-                        className="text-gray-500"
-                        style={{ fontSize: "48px" }}
-                      />
-                    }
-                    className="border-2 border-gray-200"
-                  />
-                  <div className="flex flex-col gap-3 flex-grow">
-                    <div className="space-y-2">
-                      <div className="flex items-center gap-2">
-                        <Tag
-                          color="blue"
-                          className="m-0 text-base sm:text-lg font-medium"
-                        >
-                          {t("patient.HN")} : {patientData.hn_code}
-                        </Tag>
-                      </div>
-                      <div className="flex flex-wrap gap-2 items-center">
-                        <Text className="font-medium text-gray-700 min-w-[10px] text-base sm:text-xl">
-                          {t("patient.NAME")}:
-                        </Text>
-                        <Text className="text-base sm:text-xl font-normal">
-                          {patientData.patient_first_name}{" "}
-                          {patientData.patient_last_name}
-                        </Text>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <Text
-                          strong
-                          className="text-gray-700 min-w-[10px] text-base sm:text-xl"
-                        >
-                          {t("patient.GENDER")}:
-                        </Text>
-                        <Text className="text-base sm:text-xl font-normal">
-                          {patientData.gender}
-                        </Text>
-                      </div>
-                    </div>
-                  </div>
+                {/* Header Section */}
+                <div className="px-4 sm:px-6 py-4 border-b border-gray-100">
+                  <Title level={4} className="text-xl sm:text-2xl m-0">
+                    {t("view.patient_information")}
+                  </Title>
                 </div>
-              </Card>
 
-              <Card
-                className="shadow-lg hover:shadow-xl transition-shadow duration-300"
-                bordered={false}
-                styles={{ body: { padding: "1.5rem" } }}
-              >
-                <div className="space-y-4">
-                  <div className="flex items-center gap-3">
-                    <Icon
-                      icon="mdi:stethoscope"
-                      className="text-blue-500 text-xl sm:text-2xl"
-                    />
-                    <div className="flex flex-wrap gap-2 items-center">
-                      <Text
-                        strong
-                        className="text-gray-700 text-base sm:text-xl"
+                {/* Content Section */}
+                <div className="flex flex-row gap-5 items-center w-full p-5 sm:gap-0">
+                  <div className="w-3/6 sm:w-3/5 flex flex-col items-center">
+                    {/* Avatar Section */}
+                    <div className="flex justify-center items-center mb-4">
+                      <div className="relative group">
+                        <Avatar
+                          src={ManAvatar}
+                          size={96}
+                          icon={
+                            <UserOutlined className="text-gray-500 text-4xl" />
+                          }
+                          className="border-4 border-gray-100 shadow-md transition-all duration-300 group-hover:scale-105 group-hover:border-blue-100"
+                        />
+                      </div>
+                    </div>
+
+                    {/* HN Section */}
+                    <div className="flex justify-center items-center">
+                      <Tag
+                        color="blue"
+                        className="text-sm sm:text-lg font-medium px-1 py-1"
                       >
-                        {t("patient.SURGEON")}:
-                      </Text>
-                      <Text className="text-base sm:text-2xl font-normal">
-                        {patientData.doctor_first_name}{" "}
-                        {patientData.doctor_last_name}
-                      </Text>
+                        {t("patient.HN")}: {patientData.hn_code}
+                      </Tag>
                     </div>
                   </div>
 
-                  <div className="flex items-center gap-3">
-                    <Icon
-                      icon="mdi:hospital-marker"
-                      className="text-blue-500 text-xl sm:text-2xl"
-                    />
-                    <div className="flex flex-wrap gap-2 items-center">
-                      <Text
-                        strong
-                        className="text-gray-700 text-base sm:text-xl"
-                      >
-                        {t("patient.ROOM")}:
+                  <div className="w-4/6 sm:w-2/5">
+                    {/* Patient Name Section */}
+                    <div className="flex flex-col items-start space-y-2 mb-4">
+                      <Text className="text-gray-400 text-sm font-semibold">
+                        {t("patient.NAME")}
                       </Text>
-                      <Text className="text-base sm:text-2xl font-normal">
-                        {patientData.room_name}
+                      <Text className="text-base sm:text-lg font-medium">
+                        {patientData.patient_first_name}{" "}
+                        {patientData.patient_last_name}
                       </Text>
                     </div>
-                  </div>
 
-                  <div className="flex items-center gap-3">
-                    <Icon
-                      icon="mdi:calendar-today"
-                      className="text-blue-500 text-xl sm:text-2xl"
-                    />
-                    <div className="flex flex-wrap gap-2 items-center">
-                      <Text
-                        strong
-                        className="text-gray-700 text-base sm:text-xl"
-                      >
-                        {t("patient.SURGERY_DATE")}:
+                    {/* Patient Gender Section */}
+                    <div className="flex flex-col items-start space-y-2">
+                      <Text className="text-gray-500 text-sm font-semibold">
+                        {t("patient.GENDER")}
                       </Text>
-                      <Text className="text-base sm:text-2xl font-normal">
-                        {formattedDate}
-                      </Text>
-                    </div>
-                  </div>
-
-                  <div className="flex items-center gap-3">
-                    <Icon
-                      icon="mdi:clock-time-four"
-                      className="text-blue-500 text-xl sm:text-2xl"
-                    />
-                    <div className="flex flex-wrap gap-2 items-center">
-                      <Text
-                        strong
-                        className="text-gray-700 text-base sm:text-xl"
-                      >
-                        {t("patient.SURGERY_TIME")}:
-                      </Text>
-                      <Text className="text-base sm:text-2xl font-normal">
-                        {startTime.format("HH:mm")} - {endTime.format("HH:mm")}
+                      <Text className="text-base sm:text-lg font-medium">
+                        {patientData.gender}
                       </Text>
                     </div>
                   </div>
@@ -361,17 +274,127 @@ const View = () => {
               </Card>
 
               <Card
-                className="shadow-lg hover:shadow-xl transition-shadow duration-300"
+                className="shadow-lg hover:shadow-xl transition-all duration-300 bg-white"
                 bordered={false}
-                styles={{ body: { padding: "1.5rem" } }}
+                styles={{
+                  body: {
+                    padding: 0,
+                  },
+                }}
               >
-                <Title
-                  level={4}
-                  className="mb-6 text-gray-800 font-semibold text-base sm:text-2xl"
-                >
-                  {t("timeline.TITLE")}
-                </Title>
-                <div className="p-4">
+                {/* Header Section */}
+                <div className="px-6 py-4 border-b border-gray-100">
+                  <Title level={4} className="text-xl sm:text-2xl m-0">
+                    {t("view.surgery_information")}
+                  </Title>
+                </div>
+
+                {/* Content Section */}
+                <div className="p-4 sm:p-6">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                    {/* Surgeon Info */}
+                    <div className="group p-2 bg-gray-50 rounded-lg hover:bg-gray-100 transition-all duration-300">
+                      <div className="flex items-start gap-3">
+                        <div className="mt-1">
+                          <Icon
+                            icon="mdi:stethoscope"
+                            className="text-blue-500 text-2xl sm:text-3xl group-hover:scale-110 transition-transform duration-300"
+                          />
+                        </div>
+                        <div className="space-y-1">
+                          <Text strong className="text-gray-500 text-sm block">
+                            {t("patient.SURGEON")}
+                          </Text>
+                          <Text className="text-base sm:text-lg block font-medium">
+                            {patientData.doctor_first_name}{" "}
+                            {patientData.doctor_last_name}
+                          </Text>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Room Info */}
+                    <div className="group p-2 bg-gray-50 rounded-lg hover:bg-gray-100 transition-all duration-300">
+                      <div className="flex items-start gap-3">
+                        <div className="mt-1">
+                          <Icon
+                            icon="mdi:hospital-marker"
+                            className="text-blue-500 text-2xl sm:text-3xl group-hover:scale-110 transition-transform duration-300"
+                          />
+                        </div>
+                        <div className="space-y-1">
+                          <Text strong className="text-gray-500 text-sm block">
+                            {t("patient.ROOM")}
+                          </Text>
+                          <Text className="text-base sm:text-lg block font-medium">
+                            {patientData.room_name}
+                          </Text>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Date Info */}
+                    <div className="group p-2 bg-gray-50 rounded-lg hover:bg-gray-100 transition-all duration-300">
+                      <div className="flex items-start gap-3">
+                        <div className="mt-1">
+                          <Icon
+                            icon="mdi:calendar-today"
+                            className="text-blue-500 text-2xl sm:text-3xl group-hover:scale-110 transition-transform duration-300"
+                          />
+                        </div>
+                        <div className="space-y-1">
+                          <Text strong className="text-gray-500 text-sm block">
+                            {t("patient.SURGERY_DATE")}
+                          </Text>
+                          <Text className="text-base sm:text-lg block font-medium">
+                            {formattedDate}
+                          </Text>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Time Info */}
+                    <div className="group p-2 bg-gray-50 rounded-lg hover:bg-gray-100 transition-all duration-300">
+                      <div className="flex items-start gap-3">
+                        <div className="mt-1">
+                          <Icon
+                            icon="mdi:clock-time-four"
+                            className="text-blue-500 text-2xl sm:text-3xl group-hover:scale-110 transition-transform duration-300"
+                          />
+                        </div>
+                        <div className="space-y-1">
+                          <Text strong className="text-gray-500 text-sm block">
+                            {t("patient.SURGERY_TIME")}
+                          </Text>
+                          <Text className="text-base sm:text-lg block font-medium">
+                            {startTime.format("HH:mm")} -{" "}
+                            {endTime.format("HH:mm")}
+                          </Text>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </Card>
+
+              <Card
+                className="shadow-lg hover:shadow-xl transition-all duration-300 bg-white"
+                bordered={false}
+                styles={{
+                  body: {
+                    padding: 0,
+                  },
+                }}
+              >
+                <div className="px-6 py-4 border-b border-gray-100">
+                  <Title
+                    level={4}
+                    className="text-gray-800 font-semibold text-base sm:text-2xl"
+                  >
+                    {t("view.surgery_timeline")}
+                  </Title>
+                </div>
+                <div className="flex flex-col items-start mt-8 m-4">
                   <StatusTimeline
                     statusData={statusData}
                     sortedStatuses={sortedStatuses}

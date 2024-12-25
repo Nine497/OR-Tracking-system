@@ -10,8 +10,18 @@
         "VALIDATION_FAILED": "การตรวจสอบโทเค็นล้มเหลว"
     },
     "patient": {
-        "CASE_ID": "หมายเลขเคส",
-        "PATIENT_ID": "หมายเลขผู้ป่วย"
+        "NAME": "ชื่อผู้ป่วย",
+        "GENDER": "เพศ",
+        "SURGEON": "ศัลยแพทย์",
+        "ROOM": "ห้องผ่าตัด",
+        "SURGERY_DATE": "วันที่ผ่าตัด",
+        "SURGERY_TIME": "เวลาผ่าตัด",
+        "HN": "รหัสผู้ป่วย"
+    },
+    "view": {
+        "patient_information": "ข้อมูลผู้ป่วย",
+        "surgery_information": "ข้อมูลการผ่าตัด",
+        "surgery_timeline": "ไทม์ไลน์การผ่าตัด"
     },
     "login": {
         "TITLE": "เข้าสู่ระบบ",

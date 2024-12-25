@@ -1,104 +1,65 @@
 import React, { useState, useEffect } from "react";
-import { motion, AnimatePresence } from "framer-motion";
-import { Card, Avatar, Tag, Typography, Timeline } from "antd";
-import { Icon } from "@iconify/react";
-import LoadingGif from "../assets/hospital-bed.gif";
+import { Progress } from "antd";
+import Logo from "../assets/Logo.png";
 
-const FullScreenLoading = ({ isLoading, showLoadingContent, isExiting, t }) => {
+const FullScreenLoading = ({ isLoading, t }) => {
+  const [percent, setPercent] = useState(0);
+
+  useEffect(() => {
+    let interval;
+
+    if (isLoading) {
+      interval = setInterval(() => {
+        setPercent((prev) => {
+          if (prev >= 100) {
+            clearInterval(interval);
+            return 100;
+          }
+          return prev + 4;
+        });
+      }, 50);
+    } else {
+      setPercent(0);
+    }
+
+    return () => clearInterval(interval);
+  }, [isLoading]);
+
+  if (!isLoading) return null;
+
   return (
-    <AnimatePresence>
-      {isLoading && (
-        <div
-          className={`fixed inset-0 bg-white transition-opacity duration-500 ${
-            isLoading ? "opacity-100 z-50" : "opacity-0 -z-10"
-          } flex items-center justify-center`}
-        >
-          <div
-            className={`transform transition-all duration-700 ease-out ${
-              showLoadingContent && !isExiting
-                ? "scale-100 translate-y-0 opacity-100"
-                : isExiting
-                ? "scale-95 -translate-y-10 opacity-0"
-                : "scale-95 translate-y-10 opacity-0"
-            }`}
-          >
-            <div className="relative w-40 h-40 md:w-60 md:h-60 mb-8">
-              <div className="absolute inset-0 bg-blue-200 rounded-full animate-ping opacity-20" />
-              <motion.div
-                initial={{ scale: 0.9, opacity: 0 }}
-                animate={{
-                  scale: showLoadingContent ? 1 : 0.9,
-                  opacity: showLoadingContent ? 1 : 0,
-                }}
-                transition={{ duration: 0.5 }}
-                className="relative"
-              >
-                <img
-                  src={LoadingGif}
-                  alt="Loading..."
-                  className="w-full h-full object-contain"
-                />
-              </motion.div>
-            </div>
-
-            <div className="relative">
-              <div
-                className={`text-center transition-all duration-500 ${
-                  showLoadingContent && !isExiting ? "opacity-100" : "opacity-0"
-                }`}
-              >
-                <span className="font-semibold text-2xl md:text-3xl text-gray-700">
-                  {t("loading.LOADING")}
-                </span>
-                <span className="inline-flex gap-1 ml-2">
-                  <motion.span
-                    className="inline-block"
-                    animate={{ y: [0, -8, 0] }}
-                    transition={{
-                      duration: 0.6,
-                      repeat: Infinity,
-                      repeatDelay: 0.1,
-                    }}
-                  >
-                    .
-                  </motion.span>
-                  <motion.span
-                    className="inline-block"
-                    animate={{ y: [0, -8, 0] }}
-                    transition={{
-                      duration: 0.6,
-                      repeat: Infinity,
-                      repeatDelay: 0.2,
-                      delay: 0.2,
-                    }}
-                  >
-                    .
-                  </motion.span>
-                  <motion.span
-                    className="inline-block"
-                    animate={{ y: [0, -8, 0] }}
-                    transition={{
-                      duration: 0.6,
-                      repeat: Infinity,
-                      repeatDelay: 0.3,
-                      delay: 0.3,
-                    }}
-                  >
-                    .
-                  </motion.span>
-                </span>
-              </div>
-
-              <div
-                className={`absolute inset-0 bg-gradient-to-r from-transparent via-white to-transparent bg-[length:200%_100%] animate-shimmer opacity-30 ${
-                  showLoadingContent && !isExiting ? "" : "hidden"
-                }`}
-              />
-            </div>
+    <div className="inset-0 bg-gradient-to-b from-white via-blue-50 to-white z-50">
+      <div className="flex flex-col items-center justify-center min-h-screen gap-2 p-4">
+        <div className="relative">
+          <img
+            src={Logo}
+            alt="Hospital Logo"
+            className="w-32 h-32 object-contain"
+          />
+        </div>
+        <div className="w-2/3 px-4 sm:w-1/3">
+          <Progress
+            percent={percent}
+            status="active"
+            strokeColor="#4096ff"
+            showInfo={false}
+          />
+        </div>
+        <div className="text-center space-y-3">
+          <div className="text-blue-600 text-xl font-semibold animate-pulse">
+            Loading...
+          </div>
+          <div className="text-blue-900/60 text-sm font-medium">
+            Please wait while we process your request
           </div>
         </div>
-      )}
-    </AnimatePresence>
+      </div>
+
+      <div className="absolute top-4 right-4 flex items-center gap-2">
+        <div className="w-3 h-3 bg-blue-500 rounded-full animate-ping opacity-75" />
+        <div className="w-3 h-3 bg-blue-500 rounded-full" />
+      </div>
+    </div>
   );
 };
 

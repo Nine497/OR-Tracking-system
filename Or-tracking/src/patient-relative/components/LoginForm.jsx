@@ -64,7 +64,7 @@ const LoginForm = ({ t, link }) => {
         <img
           src={Logo}
           className="w-40 sm:w-32 md:w-64 mx-auto"
-          alt="Hospital Bed"
+          alt="Hospital Logo"
         />
       </div>
 
@@ -127,10 +127,10 @@ const LoginForm = ({ t, link }) => {
         <Form.Item className="mb-0">
           <Button
             htmlType="submit"
-            className="w-full py-2 px-4 bg-blue-500 hover:bg-blue-600 text-white text-sm sm:text-base font-medium rounded-md transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+            className="w-full p-4 bg-blue-500 hover:bg-blue-600 text-white text-sm sm:text-base font-medium rounded-md shadow-lg transition-all duration-300"
             disabled={loading}
           >
-            {t("login.SUBMIT")}
+            {loading ? t("login.LOADING") : t("login.SUBMIT")}
           </Button>
         </Form.Item>
       </Form>

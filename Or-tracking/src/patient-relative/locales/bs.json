@@ -31,13 +31,18 @@
     "TITLE": "Pelacakan Operasi"
   },
   "patient": {
-    "HN": "HN",
-    "NAME": "Nama",
+    "NAME": "Nama Pasien",
     "GENDER": "Jenis Kelamin",
-    "SURGEON": "Ahli Bedah",
-    "ROOM": "Ruang Operasi",
+    "SURGEON": "Dokter Bedah",
+    "ROOM": "Ruangan Operasi",
+    "SURGERY_DATE": "Tanggal Operasi",
     "SURGERY_TIME": "Waktu Operasi",
-    "SURGERY_DATE": "Tanggal Operasi"
+    "HN": "ID Pasien"
+  },
+  "view": {
+    "patient_information": "Informasi Pasien",
+    "surgery_information": "Informasi Operasi",
+    "surgery_timeline": "Timeline Operasi"
   },
   "timeline": {
     "TITLE": "Linimasa Operasi"

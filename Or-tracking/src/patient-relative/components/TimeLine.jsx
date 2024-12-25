@@ -1,5 +1,5 @@
 import React, { useMemo, useEffect } from "react";
-import { Timeline, Tag, Typography } from "antd";
+import { Timeline, Tag, Typography, Card } from "antd";
 import moment from "moment";
 import { Icon } from "@iconify/react";
 
@@ -13,7 +13,7 @@ const StatusTimeline = ({
   t,
 }) => {
   useEffect(() => {
-    console.log("sortedStatuses", sortedStatuses);
+    console.log("currentStatus : ", currentStatus);
     console.log("statusHistory", statusHistory);
   }, [sortedStatuses, statusHistory]);
 
@@ -27,75 +27,71 @@ const StatusTimeline = ({
         (history) => history.status_id === status.status_id
       );
 
+      const isRecoveryRoomStatus = currentStatus?.status_id === 5;
+
       const isLatestStatus =
-        currentStatus?.status_id === status.status_id &&
-        currentStatus?.status_name !== "Patient returned to the recovery room";
+        currentStatus?.status_id === status.status_id && !isRecoveryRoomStatus;
 
       const isPastStatus =
         historyEntry &&
-        (!isLatestStatus ||
-          currentStatus?.status_name ===
-            "Patient returned to the recovery room");
+        (currentStatus?.status_id !== status.status_id || isRecoveryRoomStatus);
 
       return {
         key: status.status_id,
         color: isLatestStatus ? "blue" : isPastStatus ? "green" : "gray",
         className: `${
-          isLatestStatus
-            ? "[&>.ant-timeline-item-tail]:!border-blue-500"
-            : isPastStatus
+          isPastStatus
             ? "[&>.ant-timeline-item-tail]:!border-green-500"
             : "[&>.ant-timeline-item-tail]:!border-gray-300"
         }`,
         dot: isLatestStatus ? (
-          <div className="flex items-center justify-center w-8 h-8 rounded-full bg-blue-100 border-2 border-blue-500">
+          <div className="flex items-center justify-center w-6 h-6 md:w-8 md:h-8 rounded-full bg-blue-100 border-2 border-blue-500 transition-all duration-300 hover:scale-110">
             <Icon
               icon="material-symbols:pending"
-              className="text-blue-500 text-xl"
+              className="text-blue-500 text-lg md:text-xl"
             />
           </div>
         ) : isPastStatus ? (
-          <div className="flex items-center justify-center w-8 h-8 rounded-full bg-green-100 border-2 border-green-500">
+          <div className="flex items-center justify-center w-6 h-6 md:w-8 md:h-8 rounded-full bg-green-100 border-2 border-green-500 transition-all duration-300 hover:scale-110">
             <Icon
               icon="material-symbols:check-circle"
-              className="text-green-500 text-xl"
+              className="text-green-500 text-lg md:text-xl"
             />
           </div>
         ) : (
-          <div className="flex items-center justify-center w-8 h-8 rounded-full bg-gray-100 border-2 border-gray-300">
+          <div className="flex items-center justify-center w-6 h-6 md:w-8 md:h-8 rounded-full bg-gray-100 border-2 border-gray-300 transition-all duration-300 hover:scale-110">
             <Icon
               icon="material-symbols:circle-outline"
-              className="text-gray-500 text-xl"
+              className="text-gray-500 text-lg md:text-xl"
             />
           </div>
         ),
         children: (
-          <div className="flex flex-col md:flex-row md:items-center gap-3 p-3 hover:bg-gray-50 rounded-lg transition-colors">
+          <div className="flex flex-col gap-4">
             {historyEntry && (
-              <Text className="font-medium text-sm sm:text-base text-gray-600 bg-gray-50 px-3 py-1.5 rounded-md w-fit md:min-w-[160px]">
+              <Text className="font-semibold text-sm md:text-base text-gray-600 bg-gray-50 px-2 md:px-3 py-1 rounded-md w-fit mb-4">
                 {moment(historyEntry.updated_at).format("HH:mm DD/MM/YYYY")}
               </Text>
             )}
-
-            <div className="flex flex-col md:flex-row md:items-center gap-2 md:gap-4">
+            <div className="flex flex-row items-center gap-2 md:gap-6">
               <Text
                 strong
-                className={`text-sm sm:text-base ${
+                className={`text-sm md:text-base ${
                   isLatestStatus
                     ? "text-blue-600"
                     : isPastStatus
                     ? "text-green-600"
                     : "text-gray-600"
-                } font-semibold`}
+                } font-semibold flex-2`}
               >
                 {status.status_name}
               </Text>
 
-              <div className="flex items-center gap-2">
+              <div className="flex items-center flex-1 justify-end">
                 {isLatestStatus && (
                   <Tag
                     color="blue"
-                    className="text-xs sm:text-sm font-medium px-3 sm:px-4 py-0.5 sm:py-1 rounded-full shadow-sm"
+                    className="text-xs md:text-sm px-2 md:px-3 py-0.5 rounded-full font-semibold"
                   >
                     {t("common.CURRENT")}
                   </Tag>
@@ -103,13 +99,15 @@ const StatusTimeline = ({
                 {isPastStatus && (
                   <Tag
                     color="success"
-                    className="text-xs sm:text-sm font-medium px-3 sm:px-4 py-0.5 sm:py-1 rounded-full shadow-sm"
+                    className="text-xs md:text-sm px-2 md:px-3 py-0.5 rounded-full font-semibold"
                   >
                     {t("common.COMPLETED")}
                   </Tag>
                 )}
               </div>
             </div>
+            {/* เพิ่มเส้นแบ่งด้านล่างแต่ละขั้นตอน */}
+            <div className="border-b border-gray-200 my-4"></div>
           </div>
         ),
       };
@@ -117,8 +115,14 @@ const StatusTimeline = ({
   }, [statusData, sortedStatuses, currentStatus, t]);
 
   return (
-    <div className="p-4">
-      <Timeline items={timelineItems} className="max-w-3xl mx-auto" />
+    <div className="px-4 sm:px-6 md:px-8 lg:px-16">
+      <Timeline
+        items={timelineItems}
+        className="max-w-3xl mx-auto"
+        style={{
+          "--timeline-item-padding": "20px",
+        }}
+      />
     </div>
   );
 };

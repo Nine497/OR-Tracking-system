@@ -1,64 +1,99 @@
 import React from "react";
-import { Button } from "antd";
-import { Icon } from "@iconify/react";
-import LanguageSelector from "./LanguageSelector";
+import LanguageSelector from "../components/LanguageSelector";
 
-const Policy = ({ t, handleAcceptPolicy, handleDeclinePolicy }) => {
+const Policy = ({
+  t,
+  handleAcceptPolicy,
+  handleDeclinePolicy,
+  visible,
+  handleCloseModal,
+}) => {
+  if (!visible) return null;
+
   return (
-    <div className="flex justify-center items-center h-screen bg-white md:py-16">
-      <div className="max-w-2xl w-full bg-white shadow-xl overflow-hidden transform transition-all h-full flex flex-col">
-        {/* Header */}
-        <div className="w-full p-6 md:p-8 border-b border-gray-300 bg-blue-500">
-          <div className="flex flex-row items-center justify-between">
-            <div className="flex flex-row gap-2">
-              <Icon icon="mdi:shield-check" className="text-3xl text-white" />
-              <h1 className="text-xl md:text-2xl font-bold text-white tracking-tight">
+    <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto flex justify-center items-center z-50 p-4 sm:p-6 md:p-8">
+      <div className="bg-white rounded-lg shadow-lg w-full max-w-4xl relative">
+        <div className="p-4 sm:p-6 md:p-8">
+          <header className="flex flex-row justify-between items-center border-b pb-4 mb-4 gap-4">
+            <div className="flex items-center gap-3">
+              <svg
+                className="w-6 h-6 text-blue-600"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={1.5}
+                  d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"
+                />
+              </svg>
+              <h2 className="text-lg sm:text-xl font-medium text-blue-600">
                 {t("login.POLICY_TITLE")}
-              </h1>
+              </h2>
             </div>
-            <div className="md:ml-4">
+            <div className="w-auto ml-auto">
               <LanguageSelector />
             </div>
-          </div>
-        </div>
+          </header>
 
-        {/* Content */}
-        <div className="p-6 md:p-8 space-y-6 flex-grow overflow-y-auto">
-          <p className="text-base md:text-lg text-gray-700 leading-relaxed font-medium">
-            {t("login.POLICY_TEXT")} {t("login.POLICY_TEXT")}
-            {t("login.POLICY_TEXT")} {t("login.POLICY_TEXT")}
-          </p>
+          <main className="mb-6">
+            <div className="overflow-y-auto max-h-[40vh] sm:max-h-[60vh] md:max-h-96 mb-6 pr-2">
+              <p className="font-normal text-sm sm:text-base text-gray-600 leading-relaxed">
+                {t("login.POLICY_TEXT")}
+              </p>
+            </div>
 
-          {/* Enhanced Buttons Section */}
-          <div className="flex flex-col md:flex-row-reverse justify-between gap-4 p-4">
-            <Button
-              type="primary"
-              size="large"
-              icon={<Icon icon="mdi:check-circle" className="text-xl" />}
-              onClick={handleAcceptPolicy}
-              className="w-full md:w-48 h-12 flex items-center justify-center gap-2 bg-green-600 hover:bg-green-700 border-none shadow-md hover:shadow-lg transition-all duration-200 group"
-            >
-              <span className="text-base font-semibold group-hover:translate-x-0.5 transition-transform">
-                {t("login.ACCEPT_POLICY")}
-              </span>
-            </Button>
-
-            <Button
-              size="large"
-              icon={
-                <Icon
-                  icon="mdi:close-circle"
-                  className="text-xl text-red-600"
-                />
-              }
-              onClick={handleDeclinePolicy}
-              className="w-full md:w-48 h-12 flex items-center justify-center gap-2 bg-white hover:bg-gray-50 border border-red-200 hover:border-red-300 shadow-sm hover:shadow-md transition-all duration-200 group"
-            >
-              <span className="text-base font-semibold text-red-600 group-hover:translate-x-0.5 transition-transform">
-                {t("login.DECLINE_POLICY")}
-              </span>
-            </Button>
-          </div>
+            <div className="flex flex-col sm:flex-row justify-end gap-3 sm:gap-4">
+              <button
+                onClick={handleDeclinePolicy}
+                className="w-full sm:w-auto h-10 sm:h-11 px-4 sm:px-6 border border-gray-200 
+                bg-white text-gray-600 hover:bg-gray-50 flex items-center justify-center
+                rounded transition-colors duration-200 order-2 sm:order-1"
+              >
+                <svg
+                  className="w-4 h-4 mr-2"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={1.5}
+                    d="M6 18L18 6M6 6l12 12"
+                  />
+                </svg>
+                <span className="text-sm sm:text-base">
+                  {t("login.DECLINE_POLICY")}
+                </span>
+              </button>
+              <button
+                onClick={handleAcceptPolicy}
+                className="w-full sm:w-auto h-10 sm:h-11 px-4 sm:px-6 
+                bg-blue-600 text-white hover:bg-gray-800 flex items-center justify-center
+                rounded transition-colors duration-200 order-1 sm:order-2"
+              >
+                <svg
+                  className="w-4 h-4 mr-2"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={1.5}
+                    d="M5 13l4 4L19 7"
+                  />
+                </svg>
+                <span className="text-sm sm:text-base">
+                  {t("login.ACCEPT_POLICY")}
+                </span>
+              </button>
+            </div>
+          </main>
         </div>
       </div>
     </div>

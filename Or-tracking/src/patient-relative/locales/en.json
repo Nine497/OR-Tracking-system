@@ -31,13 +31,18 @@
         "TITLE": "OR-Tracking"
     },
     "patient": {
-        "HN": "HN",
-        "NAME": "Name",
+        "NAME": "Patient Name",
         "GENDER": "Gender",
         "SURGEON": "Surgeon",
         "ROOM": "Operating Room",
+        "SURGERY_DATE": "Surgery Date",
         "SURGERY_TIME": "Surgery Time",
-        "SURGERY_DATE": "Surgery Date"
+        "HN": "HN"
+    },
+    "view": {
+        "patient_information": "Patient Information",
+        "surgery_information": "Surgery Information",
+        "surgery_timeline": "Surgery Timeline"
     },
     "timeline": {
         "TITLE": "Operation Timeline"
