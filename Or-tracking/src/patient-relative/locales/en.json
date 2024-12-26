@@ -10,8 +10,15 @@
         "VALIDATION_FAILED": "Token validation failed"
     },
     "patient": {
-        "CASE_ID": "Case ID",
-        "PATIENT_ID": "Patient ID"
+        "HN": "HN",
+        "NAME": "Full Name",
+        "GENDER": "Gender",
+        "SURGEON": "Surgeon",
+        "ROOM": "Operating Room",
+        "SURGERY_TIME": "Surgery Time",
+        "SURGERY_DATE": "Surgery Date",
+        "SURGERY_START_TIME": "Surgery Start",
+        "SURGERY_FINSIH_TIME": "Finish"
     },
     "login": {
         "TITLE": "Login",
@@ -30,25 +37,17 @@
     "or_tracking": {
         "TITLE": "OR-Tracking"
     },
-    "patient": {
-        "NAME": "Patient Name",
-        "GENDER": "Gender",
-        "SURGEON": "Surgeon",
-        "ROOM": "Operating Room",
-        "SURGERY_DATE": "Surgery Date",
-        "SURGERY_TIME": "Surgery Time",
-        "HN": "HN"
-    },
     "view": {
         "patient_information": "Patient Information",
         "surgery_information": "Surgery Information",
-        "surgery_timeline": "Surgery Timeline"
+        "surgery_timeline": "Procedure status"
     },
     "timeline": {
         "TITLE": "Operation Timeline"
     },
     "loading": {
-        "LOADING": "Loading..."
+        "LOADING": "Loading...",
+        "text": "Please hold on while we process the information."
     },
     "error": {
         "FAILED_TO_LOAD": "Failed to load data"

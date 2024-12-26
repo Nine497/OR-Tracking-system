@@ -49,7 +49,11 @@ const Login = () => {
             </h1>
             <h2 className="text-2xl font-semibold">Log in</h2>
           </div>
-          <Form onFinish={handleSubmit} layout="vertical" className="space-y-4">
+          <Form
+            onFinish={handleSubmit}
+            layout="vertical"
+            className="space-y-5 px-7"
+          >
             <Form.Item
               name="username"
               rules={[
@@ -74,9 +78,9 @@ const Login = () => {
                 placeholder="Password"
               />
             </Form.Item>
-            <Form.Item>
+            <Form.Item className="pt-5">
               <Button type="primary" htmlType="submit" block size="large">
-                Log in
+                <span className="font-medium">Log in</span>
               </Button>
             </Form.Item>
           </Form>

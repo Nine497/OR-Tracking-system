@@ -1,0 +1,104 @@
+.circle-loading {
+  animation: CircleLoading 6s infinite ease-in-out; /* Total duration */
+  background: rgb(38, 76, 244);
+  width: 300px;
+  height: 300px;
+  position: absolute;
+  border-radius: 50%;
+  z-index: 100;
+}
+
+@keyframes CircleLoading {
+  0% {
+    transform: scale(0, 0);
+    opacity: 0;
+  }
+  25% {
+    transform: scale(10, 10);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(10, 10);
+
+    opacity: 1;
+  }
+  80% {
+    transform: scale(0, 0);
+    opacity: 0;
+  }
+  100% {
+    transform: scale(0, 0);
+    opacity: 0; /* Pause here */
+  }
+}
+
+.bed-stroke {
+  animation: BedStroke 6s infinite linear both; /* Total duration */
+  stroke: rgb(38, 76, 244);
+}
+
+@keyframes BedStroke {
+  0% {
+    stroke: rgb(38, 76, 244);
+  }
+  25% {
+    stroke: rgb(255, 255, 255);
+  }
+  50% {
+    stroke: rgb(255, 255, 255);
+  }
+  80% {
+    stroke: rgb(38, 76, 244);
+  }
+  100% {
+    stroke: rgb(38, 76, 244);
+  }
+}
+
+.loading-text-loop {
+  animation: LoadingTextLoop 6s infinite linear both; /* Total duration */
+  stroke: rgb(38, 76, 244);
+}
+
+@keyframes LoadingTextLoop {
+  0% {
+    color: black;
+  }
+  25% {
+    color: white;
+  }
+  50% {
+    color: white;
+  }
+  80% {
+    color: black;
+  }
+  100% {
+    color: black;
+  }
+}
+
+/* .bed-stroke-container {
+  animation: BedStrokeWheel 6s infinite linear both;
+  stroke: rgb(38, 76, 244);
+  transform-origin: center bottom;
+}
+@keyframes BedStrokeWheel {
+  0% {
+    stroke: rgb(38, 76, 244);
+  }
+  25% {
+    stroke: rgb(255, 255, 255);
+    transform: rotateZ(-45deg);
+  }
+  50% {
+    stroke: rgb(255, 255, 255);
+  }
+  80% {
+    stroke: rgb(38, 76, 244);
+  }
+  100% {
+    stroke: rgb(38, 76, 244);
+    transform: rotateZ(0deg);
+  }
+} */

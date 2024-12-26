@@ -31,24 +31,27 @@
     "TITLE": "Pelacakan Operasi"
   },
   "patient": {
-    "NAME": "Nama Pasien",
+    "HN": "HN",
+    "NAME": "Nama Lengkap",
     "GENDER": "Jenis Kelamin",
     "SURGEON": "Dokter Bedah",
-    "ROOM": "Ruangan Operasi",
-    "SURGERY_DATE": "Tanggal Operasi",
+    "ROOM": "Ruang Operasi",
     "SURGERY_TIME": "Waktu Operasi",
-    "HN": "ID Pasien"
+    "SURGERY_DATE": "Tanggal Operasi",
+    "SURGERY_START_TIME": "Waktu Mulai Operasi",
+    "SURGERY_FINSIH_TIME": "Selesai "
   },
   "view": {
     "patient_information": "Informasi Pasien",
     "surgery_information": "Informasi Operasi",
-    "surgery_timeline": "Timeline Operasi"
+    "surgery_timeline": "Status prosedur"
   },
   "timeline": {
     "TITLE": "Linimasa Operasi"
   },
   "loading": {
-    "LOADING": "Memuat..."
+    "LOADING": "Memuat...",
+    "text": "Mohon tunggu sebentar, kami sedang memproses data Anda."
   },
   "error": {
     "FAILED_TO_LOAD": "Gagal memuat data"

@@ -5,7 +5,9 @@ require("dotenv").config();
 
 exports.validate_link = async (req, res) => {
   const { link } = req.body;
-  if (!link) {
+  const trimmedLink = link?.trim().replace(/[^\w]/g, "");
+
+  if (!trimmedLink) {
     return res.status(400).json({
       valid: false,
       error: "NO_LINK_PROVIDED",
@@ -14,7 +16,9 @@ exports.validate_link = async (req, res) => {
   }
 
   try {
-    const linkStatus = await patientModel.getLinkStatusById(link);
+    const linkStatus = await patientModel.getLinkStatusById(trimmedLink);
+    console.log("link : ", trimmedLink);
+    console.log("linkStatus : ", linkStatus);
 
     if (!linkStatus || !linkStatus.isactive) {
       return res.status(403).json({

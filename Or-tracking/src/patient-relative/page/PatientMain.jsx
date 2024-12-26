@@ -1,7 +1,9 @@
 import React, { useEffect, useState } from "react";
 import { useLocation } from "react-router-dom";
 import LoginForm from "../components/LoginForm";
-import FullScreenLoading from "../components/FullScreenLoading";
+import FullScreenLoading, {
+  ORIconLoading,
+} from "../components/FullScreenLoading";
 import axiosInstance from "../../admin/api/axiosInstance";
 import { useTranslation } from "react-i18next";
 import Policy from "../components/Policy";
@@ -67,7 +69,9 @@ const PatientMain = () => {
   };
 
   if (loading) {
-    return <FullScreenLoading isLoading={loading} />;
+    return (
+      <FullScreenLoading loading={loading} t={t} icon={<ORIconLoading />} />
+    );
   }
 
   if (errorMessage) {

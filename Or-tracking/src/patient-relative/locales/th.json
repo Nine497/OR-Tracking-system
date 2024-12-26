@@ -10,18 +10,20 @@
         "VALIDATION_FAILED": "การตรวจสอบโทเค็นล้มเหลว"
     },
     "patient": {
-        "NAME": "ชื่อผู้ป่วย",
+        "HN": "HN",
+        "NAME": "ชื่อ-สกุล",
         "GENDER": "เพศ",
         "SURGEON": "ศัลยแพทย์",
         "ROOM": "ห้องผ่าตัด",
-        "SURGERY_DATE": "วันที่ผ่าตัด",
         "SURGERY_TIME": "เวลาผ่าตัด",
-        "HN": "รหัสผู้ป่วย"
+        "SURGERY_DATE": "วันผ่าตัด",
+        "SURGERY_START_TIME": "เริ่มผ่าตัด",
+        "SURGERY_FINSIH_TIME": "สิ้นสุด"
     },
     "view": {
         "patient_information": "ข้อมูลผู้ป่วย",
         "surgery_information": "ข้อมูลการผ่าตัด",
-        "surgery_timeline": "ไทม์ไลน์การผ่าตัด"
+        "surgery_timeline": "สถานะการทำหัตถการ"
     },
     "login": {
         "TITLE": "เข้าสู่ระบบ",
@@ -40,20 +42,12 @@
     "or_tracking": {
         "TITLE": "ติดตามการผ่าตัด"
     },
-    "patient": {
-        "HN": "HN",
-        "NAME": "ชื่อ",
-        "GENDER": "เพศ",
-        "SURGEON": "ศัลยแพทย์",
-        "ROOM": "ห้องผ่าตัด",
-        "SURGERY_TIME": "เวลาผ่าตัด",
-        "SURGERY_DATE": "วันผ่าตัด"
-    },
     "timeline": {
         "TITLE": "ลำดับเวลาการผ่าตัด"
     },
     "loading": {
-        "LOADING": "กำลังโหลด..."
+        "LOADING": "กำลังโหลด...",
+        "text": "กรุณารอสักครู่ ระบบกำลังประมวลผลข้อมูล"
     },
     "error": {
         "FAILED_TO_LOAD": "ไม่สามารถโหลดข้อมูลได้"

@@ -5,6 +5,7 @@ import Logo from "../assets/Logo.png";
 import axiosInstance from "../../admin/api/axiosInstance";
 import { usePatient } from "../context/PatientContext";
 import { useNavigate } from "react-router-dom";
+import { Footer } from "antd/es/layout/layout";
 
 const LoginForm = ({ t, link }) => {
   const [loading, setLoading] = useState(false);
@@ -68,7 +69,7 @@ const LoginForm = ({ t, link }) => {
         />
       </div>
 
-      <h2 className="text-lg sm:text-xl md:text-2xl font-semibold text-center mb-6 text-gray-800">
+      <h2 className="text-lg sm:text-xl md:text-2xl font-semibold text-center mb-6 text-blue-800">
         {t("login.TITLE")}
       </h2>
 
@@ -134,6 +135,7 @@ const LoginForm = ({ t, link }) => {
           </Button>
         </Form.Item>
       </Form>
+      <Footer>asdasdasd</Footer>
     </div>
   );
 };

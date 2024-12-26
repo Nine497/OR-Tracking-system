@@ -4,7 +4,6 @@ import { jwtDecode } from "jwt-decode";
 import AccessLinkError from "../page/accessLinkError";
 import { usePatient } from "./PatientContext";
 import axiosInstance from "../../admin/api/axiosInstance";
-import FullScreenLoading from "../components/FullScreenLoading";
 
 const PatientRoute = ({ children }) => {
   const { patient_link, patient_id } = usePatient();

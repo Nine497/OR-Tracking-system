@@ -67,7 +67,7 @@ const StatusTimeline = ({
           </div>
         ),
         children: (
-          <div className="flex flex-col gap-4">
+          <div className="flex flex-col">
             {historyEntry && (
               <Text className="font-semibold text-sm md:text-base text-gray-600 bg-gray-50 px-2 md:px-3 py-1 rounded-md w-fit mb-4">
                 {moment(historyEntry.updated_at).format("HH:mm DD/MM/YYYY")}
@@ -75,14 +75,13 @@ const StatusTimeline = ({
             )}
             <div className="flex flex-row items-center gap-2 md:gap-6">
               <Text
-                strong
                 className={`text-sm md:text-base ${
                   isLatestStatus
                     ? "text-blue-600"
                     : isPastStatus
                     ? "text-green-600"
                     : "text-gray-600"
-                } font-semibold flex-2`}
+                } font-medium flex-2`}
               >
                 {status.status_name}
               </Text>
@@ -91,7 +90,7 @@ const StatusTimeline = ({
                 {isLatestStatus && (
                   <Tag
                     color="blue"
-                    className="text-xs md:text-sm px-2 md:px-3 py-0.5 rounded-full font-semibold"
+                    className="text-xs md:text-sm px-2 md:px-3 py-0.5 rounded-full font-normal"
                   >
                     {t("common.CURRENT")}
                   </Tag>
@@ -99,15 +98,14 @@ const StatusTimeline = ({
                 {isPastStatus && (
                   <Tag
                     color="success"
-                    className="text-xs md:text-sm px-2 md:px-3 py-0.5 rounded-full font-semibold"
+                    className="text-xs md:text-sm px-2 md:px-3 py-0.5 rounded-full font-normal"
                   >
                     {t("common.COMPLETED")}
                   </Tag>
                 )}
               </div>
             </div>
-            {/* เพิ่มเส้นแบ่งด้านล่างแต่ละขั้นตอน */}
-            <div className="border-b border-gray-200 my-4"></div>
+            <div className="border-b border-gray-100 pt-3"></div>
           </div>
         ),
       };
