@@ -80,8 +80,8 @@ const PatientMain = () => {
 
   return (
     responseData && (
-      <div className="h-screen flex items-center justify-center bg-white">
-        <div className="w-full h-full flex flex-col items-center">
+      <div className="min-h-screen w-screen flex items-center justify-center bg-white">
+        <div className="w-full max-w-7xl px-4 h-full flex flex-col items-center">
           <Policy
             t={t}
             handleAcceptPolicy={handleAcceptPolicy}
@@ -89,8 +89,10 @@ const PatientMain = () => {
             visible={modalVisible}
             handleCloseModal={handleCloseModal}
           />
-          <div className="flex-1 flex items-center justify-center w-full px-10">
-            <LoginForm t={t} link={link} />
+          <div className="flex-1 w-full flex items-center justify-center px-0">
+            <div className="w-full max-w-md">
+              <LoginForm t={t} link={link} />
+            </div>
           </div>
         </div>
       </div>

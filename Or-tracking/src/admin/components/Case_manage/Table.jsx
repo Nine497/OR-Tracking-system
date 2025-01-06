@@ -1,9 +1,18 @@
 import React, { useState, useEffect } from "react";
-import { Table, Input, Tooltip, Spin, notification, Select } from "antd";
+import {
+  Table,
+  Input,
+  Tooltip,
+  Spin,
+  notification,
+  Select,
+  FloatButton,
+} from "antd";
 import { Icon } from "@iconify/react";
 import CustomButton from "../CustomButton";
 import axiosInstance from "../../api/axiosInstance";
 import UpdateModal from "./UpdateModal";
+import StatusUpdateForm from "./Status_update";
 
 function CaseTable() {
   const [selectedRecord, setSelectedRecord] = useState(null);
@@ -12,10 +21,12 @@ function CaseTable() {
   const [filteredData, setFilteredData] = useState([]);
   const [loadingCases, setLoadingCases] = useState(false);
   const [loadingDoctors, setLoadingDoctors] = useState(false);
+  const [loading, setLoading] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [pagination, setPagination] = useState({ pageSize: 6, current: 1 });
   const [doctorSelectedOption, setDoctorSelectedOption] = useState(null);
   const [doctorsData, setDoctorsData] = useState([]);
+  const [allStatus, setAllStatus] = useState([]);
 
   const handleSelectChange = (value) => {
     setDoctorSelectedOption(value);
@@ -196,6 +207,31 @@ function CaseTable() {
     fetchDoctorsData();
   }, []);
 
+  useEffect(() => {
+    const fetchStatusData = async () => {
+      setLoading(true);
+      try {
+        const response = await axiosInstance.get("patient/getAllStatus");
+        if (response.status === 200 && response.data) {
+          setAllStatus(response.data);
+        }
+      } catch (err) {
+        notification.error({
+          message: "Error Fetching Status Data",
+          description: err.response
+            ? `Server responded with status ${err.response.status}: ${
+                err.response.data.message || "Unknown error"
+              }`
+            : "Unable to fetch status data. Please check your connection and try again.",
+        });
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchStatusData();
+  }, []);
+
   const columns = [
     {
       title: <span className="text-base font-bold">#</span>,
@@ -246,11 +282,30 @@ function CaseTable() {
       ),
     },
     {
+      title: <span className="text-base font-bold">Update status</span>,
+      dataIndex: "status_id",
+      key: "status_id",
+      render: (_, record) => (
+        <StatusUpdateForm record={record} allStatus={allStatus} />
+      ),
+    },
+    {
       title: <span className="text-base font-bold">Action</span>,
       key: "status",
       render: (_, record) => (
         <div className="flex items-center justify-between">
-          <Tooltip title="Copy Link">
+          <Tooltip title="View Status Timeline">
+            <div>
+              <CustomButton
+                variant="primary"
+                onClick={() => openStatusModal(record)}
+                icon={<Icon icon="mdi:timeline-clock" className="h-5" />}
+              >
+                View
+              </CustomButton>
+            </div>
+          </Tooltip>
+          <Tooltip title="Setting Link">
             <div>
               <CustomButton
                 variant="default"
@@ -258,17 +313,6 @@ function CaseTable() {
                 icon={<Icon icon="lucide:copy" />}
               >
                 <span className="font-medium text-base">Setting</span>
-              </CustomButton>
-            </div>
-          </Tooltip>
-          <Tooltip title="Update Link Status">
-            <div>
-              <CustomButton
-                variant="primary"
-                onClick={() => openStatusModal(record)}
-                icon={<Icon icon="line-md:link" className="mr-2 w-4 h-4" />}
-              >
-                <span className="font-medium text-base">Update</span>
               </CustomButton>
             </div>
           </Tooltip>
@@ -304,12 +348,16 @@ function CaseTable() {
           value={doctorSelectedOption}
           onChange={handleSelectChange}
         >
+          <Select.Option key="none" value="">
+            None
+          </Select.Option>
           {doctorsData.map((doctor) => (
             <Select.Option key={doctor.doctor_id} value={doctor.doctor_id}>
               {`${doctor.firstname} ${doctor.lastname}`}
             </Select.Option>
           ))}
         </Select>
+
         <CustomButton
           variant="white"
           icon={<Icon icon="mdi:reload" className="mr-2 w-4 h-4" />}

@@ -107,7 +107,7 @@ exports.login = async (req, res) => {
       return res.status(404).json({
         valid: false,
         error: "PATIENT_DETAILS_NOT_MATCH",
-        message: "HN and DOB do not match with the provided CaseId",
+        message: "Invalid HN or DOB. Please try again.",
       });
     }
 
@@ -195,6 +195,8 @@ exports.getAllStatus = async (req, res) => {
     if (!allStatuses || allStatuses.length === 0) {
       return res.status(404).json({ message: "No statuses found" });
     }
+
+    allStatuses.sort((a, b) => a.status_id - b.status_id);
 
     res.status(200).json(allStatuses);
   } catch (error) {

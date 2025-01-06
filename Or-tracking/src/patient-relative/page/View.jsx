@@ -40,6 +40,7 @@ const View = () => {
     const fetchData = async () => {
       try {
         startLoading();
+
         if (!patient_id || !surgery_case_id || !patient_link) {
           console.log("Missing data:", {
             patient_id,
@@ -57,13 +58,26 @@ const View = () => {
               patient_link,
             }),
             axiosInstance.get("patient/getAllStatus"),
-            axiosInstance.get(`patient/getStatus/${surgery_case_id}`),
+            axiosInstance
+              .get(`patient/getStatus/${surgery_case_id}`)
+              .catch((error) => {
+                // Handle 404 or other errors for the status history request
+                if (error.response && error.response.status === 404) {
+                  console.log("Status history not found, setting empty array");
+                  return { data: [] }; // Return empty array if status history is not found
+                } else {
+                  throw error; // Rethrow other errors
+                }
+              }),
           ]);
 
         if (isMounted) {
           setPatientData(patientResponse.data);
           setStatusData(statusResponse.data);
-          setStatusHistory(statusHisResponse.data);
+
+          // Check if statusHistory is not null or undefined, otherwise set it to an empty array
+          setStatusHistory(statusHisResponse?.data || []);
+
           setErrorMessage("");
           setIsDataReady(true);
         }
@@ -308,14 +322,25 @@ const View = () => {
                     },
                   }}
                 >
-                  <div className="flex flex-col items-start mt-8 m-4">
-                    <StatusTimeline
-                      statusData={statusData}
-                      sortedStatuses={sortedStatuses}
-                      statusHistory={statusHistory}
-                      currentStatus={patient_currentStatus}
-                      t={t}
-                    />
+                  <div className="flex flex-col items-center justify-center mt-8 m-4">
+                    {patientData?.status_id === 0 ? (
+                      <div className="text-center p-6">
+                        <p className="text-lg sm:text-xl md:text-2xl font-semibold text-gray-800 mb-2">
+                          {t("view.pending_title")}
+                        </p>
+                        <p className="text-sm sm:text-base md:text-lg text-gray-600 mt-2 leading-relaxed">
+                          {t("view.pending_des")}
+                        </p>
+                      </div>
+                    ) : (
+                      <StatusTimeline
+                        statusData={statusData}
+                        sortedStatuses={sortedStatuses}
+                        statusHistory={statusHistory}
+                        currentStatus={patient_currentStatus}
+                        t={t}
+                      />
+                    )}
                   </div>
                 </Card>
               </div>

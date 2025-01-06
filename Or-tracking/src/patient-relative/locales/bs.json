@@ -44,7 +44,9 @@
   "view": {
     "patient_information": "Informasi Pasien",
     "surgery_information": "Informasi Operasi",
-    "surgery_timeline": "Status prosedur"
+    "surgery_timeline": "Status prosedur",
+    "pending_title": "Menunggu Operasi",
+    "pending_des": "Operasi Anda telah dijadwalkan"
   },
   "timeline": {
     "TITLE": "Linimasa Operasi"

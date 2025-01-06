@@ -19,97 +19,103 @@ const StatusTimeline = ({
 
   const timelineItems = useMemo(() => {
     const statusMap = new Map(
-      statusData.map((status) => [status.status_id, status])
+      statusData
+        .filter((status) => status.status_name !== "Pending")
+        .map((status) => [status.status_id, status])
     );
 
-    return statusData.map((status) => {
-      const historyEntry = sortedStatuses.find(
-        (history) => history.status_id === status.status_id
-      );
+    return statusData
+      .filter((status) => status.status_name !== "Pending")
+      .map((status) => {
+        const historyEntry = sortedStatuses.find(
+          (history) => history.status_id === status.status_id
+        );
 
-      const isRecoveryRoomStatus = currentStatus?.status_id === 5;
+        const isRecoveryRoomStatus = currentStatus?.status_id === 5;
 
-      const isLatestStatus =
-        currentStatus?.status_id === status.status_id && !isRecoveryRoomStatus;
+        const isLatestStatus =
+          currentStatus?.status_id === status.status_id &&
+          !isRecoveryRoomStatus;
 
-      const isPastStatus =
-        historyEntry &&
-        (currentStatus?.status_id !== status.status_id || isRecoveryRoomStatus);
+        const isPastStatus =
+          historyEntry &&
+          (currentStatus?.status_id !== status.status_id ||
+            isRecoveryRoomStatus);
 
-      return {
-        key: status.status_id,
-        color: isLatestStatus ? "blue" : isPastStatus ? "green" : "gray",
-        className: `${
-          isPastStatus
-            ? "[&>.ant-timeline-item-tail]:!border-green-500"
-            : "[&>.ant-timeline-item-tail]:!border-gray-300"
-        }`,
-        dot: isLatestStatus ? (
-          <div className="flex items-center justify-center w-6 h-6 md:w-8 md:h-8 rounded-full bg-blue-100 border-2 border-blue-500 transition-all duration-300 hover:scale-110">
-            <Icon
-              icon="material-symbols:pending"
-              className="text-blue-500 text-lg md:text-xl"
-            />
-          </div>
-        ) : isPastStatus ? (
-          <div className="flex items-center justify-center w-6 h-6 md:w-8 md:h-8 rounded-full bg-green-100 border-2 border-green-500 transition-all duration-300 hover:scale-110">
-            <Icon
-              icon="material-symbols:check-circle"
-              className="text-green-500 text-lg md:text-xl"
-            />
-          </div>
-        ) : (
-          <div className="flex items-center justify-center w-6 h-6 md:w-8 md:h-8 rounded-full bg-gray-100 border-2 border-gray-300 transition-all duration-300 hover:scale-110">
-            <Icon
-              icon="material-symbols:circle-outline"
-              className="text-gray-500 text-lg md:text-xl"
-            />
-          </div>
-        ),
-        children: (
-          <div className="flex flex-col">
-            {historyEntry && (
-              <Text className="font-semibold text-sm md:text-base text-gray-600 bg-gray-50 px-2 md:px-3 py-1 rounded-md w-fit mb-4">
-                {moment(historyEntry.updated_at).format("HH:mm DD/MM/YYYY")}
-              </Text>
-            )}
-            <div className="flex flex-row items-center gap-2 md:gap-6">
-              <Text
-                className={`text-sm md:text-base ${
-                  isLatestStatus
-                    ? "text-blue-600"
-                    : isPastStatus
-                    ? "text-green-600"
-                    : "text-gray-600"
-                } font-medium flex-2`}
-              >
-                {status.status_name}
-              </Text>
-
-              <div className="flex items-center flex-1 justify-end">
-                {isLatestStatus && (
-                  <Tag
-                    color="blue"
-                    className="text-xs md:text-sm px-2 md:px-3 py-0.5 rounded-full font-normal"
-                  >
-                    {t("common.CURRENT")}
-                  </Tag>
-                )}
-                {isPastStatus && (
-                  <Tag
-                    color="success"
-                    className="text-xs md:text-sm px-2 md:px-3 py-0.5 rounded-full font-normal"
-                  >
-                    {t("common.COMPLETED")}
-                  </Tag>
-                )}
-              </div>
+        return {
+          key: status.status_id,
+          color: isLatestStatus ? "blue" : isPastStatus ? "green" : "gray",
+          className: `${
+            isPastStatus
+              ? "[&>.ant-timeline-item-tail]:!border-green-500"
+              : "[&>.ant-timeline-item-tail]:!border-gray-300"
+          }`,
+          dot: isLatestStatus ? (
+            <div className="flex items-center justify-center w-6 h-6 md:w-8 md:h-8 rounded-full bg-blue-100 border-2 border-blue-500 transition-all duration-300 hover:scale-110">
+              <Icon
+                icon="material-symbols:pending"
+                className="text-blue-500 text-lg md:text-xl"
+              />
             </div>
-            <div className="border-b border-gray-100 pt-3"></div>
-          </div>
-        ),
-      };
-    });
+          ) : isPastStatus ? (
+            <div className="flex items-center justify-center w-6 h-6 md:w-8 md:h-8 rounded-full bg-green-100 border-2 border-green-500 transition-all duration-300 hover:scale-110">
+              <Icon
+                icon="material-symbols:check-circle"
+                className="text-green-500 text-lg md:text-xl"
+              />
+            </div>
+          ) : (
+            <div className="flex items-center justify-center w-6 h-6 md:w-8 md:h-8 rounded-full bg-gray-100 border-2 border-gray-300 transition-all duration-300 hover:scale-110">
+              <Icon
+                icon="material-symbols:circle-outline"
+                className="text-gray-500 text-lg md:text-xl"
+              />
+            </div>
+          ),
+          children: (
+            <div className="flex flex-col">
+              {historyEntry && (
+                <Text className="font-semibold text-sm md:text-base text-gray-600 bg-gray-50 px-2 md:px-3 py-1 rounded-md w-fit mb-4">
+                  {moment(historyEntry.updated_at).format("HH:mm DD/MM/YYYY")}
+                </Text>
+              )}
+              <div className="flex flex-row items-center gap-2 md:gap-6">
+                <Text
+                  className={`text-sm md:text-base ${
+                    isLatestStatus
+                      ? "text-blue-600"
+                      : isPastStatus
+                      ? "text-green-600"
+                      : "text-gray-600"
+                  } font-medium flex-2`}
+                >
+                  {status.status_name}
+                </Text>
+
+                <div className="flex items-center flex-1 justify-end">
+                  {isLatestStatus && (
+                    <Tag
+                      color="blue"
+                      className="text-xs md:text-sm px-2 md:px-3 py-0.5 rounded-full font-normal"
+                    >
+                      {t("common.CURRENT")}
+                    </Tag>
+                  )}
+                  {isPastStatus && (
+                    <Tag
+                      color="success"
+                      className="text-xs md:text-sm px-2 md:px-3 py-0.5 rounded-full font-normal"
+                    >
+                      {t("common.COMPLETED")}
+                    </Tag>
+                  )}
+                </div>
+              </div>
+              <div className="border-b border-gray-100 pt-3"></div>
+            </div>
+          ),
+        };
+      });
   }, [statusData, sortedStatuses, currentStatus, t]);
 
   return (

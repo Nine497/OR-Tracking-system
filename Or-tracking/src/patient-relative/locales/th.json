@@ -23,7 +23,9 @@
     "view": {
         "patient_information": "ข้อมูลผู้ป่วย",
         "surgery_information": "ข้อมูลการผ่าตัด",
-        "surgery_timeline": "สถานะการทำหัตถการ"
+        "surgery_timeline": "สถานะการทำหัตถการ",
+        "pending_title": "รอการผ่าตัด",
+        "pending_des": "การผ่าตัดของคุณได้รับการกำหนดเวลาแล้ว"
     },
     "login": {
         "TITLE": "เข้าสู่ระบบ",

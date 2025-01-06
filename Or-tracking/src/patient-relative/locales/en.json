@@ -40,7 +40,9 @@
     "view": {
         "patient_information": "Patient Information",
         "surgery_information": "Surgery Information",
-        "surgery_timeline": "Procedure status"
+        "surgery_timeline": "Procedure status",
+        "pending_title": "Pending Surgery",
+        "pending_des": "Your surgery has been scheduled"
     },
     "timeline": {
         "TITLE": "Operation Timeline"

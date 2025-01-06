@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { Modal, Form, notification } from "antd";
-import StatusForm from "./StatusForm";
+import TimelineStatus from "./TimelineStatus";
 import LinkForm from "./LinkForm";
 
 function UpdateModal({ visible, record, onClose, type }) {
@@ -48,7 +48,6 @@ function UpdateModal({ visible, record, onClose, type }) {
     }
   };
 
-
   if (!record) {
     return null;
   }
@@ -58,7 +57,7 @@ function UpdateModal({ visible, record, onClose, type }) {
       title={
         <div className="flex flex-col items-center justify-center p-2">
           <span className="text-2xl font-semibold text-gray-800">
-            {type === "status" ? "Update Case Status" : "Link Setting"}{" "}
+            {type === "status" ? "Status Timeline" : "Link Setting"}{" "}
           </span>
           <span className="text-2xl font-semibold text-blue-600">
             Case #{record.surgery_case_id}
@@ -78,11 +77,7 @@ function UpdateModal({ visible, record, onClose, type }) {
       }}
     >
       {type === "status" ? (
-        <StatusForm
-          formStatus={formStatus}
-          onClose={onClose}
-          record={record}
-        />
+        <TimelineStatus onClose={onClose} record={record} />
       ) : (
         <LinkForm
           formLink={formLink}
