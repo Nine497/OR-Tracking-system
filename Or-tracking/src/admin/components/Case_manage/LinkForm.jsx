@@ -3,21 +3,17 @@ import {
   Form,
   Button,
   DatePicker,
-  Alert,
   notification,
   Modal,
   Spin,
+  Tag,
+  Tooltip,
+  Input,
 } from "antd";
 import moment from "moment";
 import { useAuth } from "../../context/AuthContext";
 import axiosInstance from "../../api/axiosInstance";
 import { Icon } from "@iconify/react";
-
-const LinkContainer = ({ children }) => (
-  <div className="w-full max-w-2xl mx-auto px-6 py-8 bg-white rounded-lg">
-    <div className="flex flex-col space-y-6">{children}</div>
-  </div>
-);
 
 const CancelLinkModal = ({ visible, onCancel, onConfirm }) => (
   <Modal
@@ -81,69 +77,288 @@ const NoLinkComponent = ({ onGenerateLink }) => {
   );
 };
 
-const LinkDisplay = ({ link, handleCopyLink }) => (
-  <div className="bg-gray-50 border border-gray-200 p-4 rounded-lg flex items-center justify-between gap-4">
-    <p className="text-base text-gray-800 truncate flex-1" title={link}>
-      {link}
-    </p>
-    <Button
-      type="default"
-      onClick={() => handleCopyLink(link)}
-      className="flex items-center gap-2 min-w-[100px] h-10"
-    >
-      <Icon icon="solar:copy-linear" className="text-lg" />
-      <span className="text-base">Copy</span>
-    </Button>
+const LinkDisplay = ({ link, handleCopyLink, onCancelLink, isActive }) => (
+  <div className="bg-gray-50 rounded-lg p-4 space-y-4">
+    <div className="flex items-center justify-between">
+      {isActive ? (
+        <div>
+          Status :{" "}
+          <Tag color="success" className="px-3 py-1 text-sm whitespace-nowrap">
+            Active
+          </Tag>
+        </div>
+      ) : (
+        <div>
+          Status :{" "}
+          <Tag color="error" className="px-3 py-1 text-sm whitespace-nowrap">
+            Expired
+          </Tag>
+        </div>
+      )}
+      <div className="flex gap-2 shrink-0">
+        <Tooltip title="Copy Link">
+          <Button
+            type="default"
+            icon={<Icon icon="bx:bx-copy" />}
+            onClick={() => handleCopyLink(link)}
+            className="flex items-center gap-1"
+          >
+            Copy
+          </Button>
+        </Tooltip>
+        <Tooltip title="Cancel Link">
+          <Button
+            type="primary"
+            danger
+            icon={<Icon icon="bx:bx-x" />}
+            onClick={onCancelLink}
+            className="flex items-center gap-1"
+          >
+            Cancel
+          </Button>
+        </Tooltip>
+      </div>
+    </div>
+
+    <div className="w-full">
+      <Input
+        value={link}
+        readOnly
+        className="font-mono text-sm bg-white"
+        style={{
+          whiteSpace: "nowrap",
+          overflow: "hidden",
+          textOverflow: "ellipsis",
+        }}
+      />
+    </div>
+  </div>
+);
+
+const LinkContainer = ({ children }) => (
+  <div className="w-full max-w-2xl mx-auto bg-white">
+    <div className=" space-y-6">{children}</div>
+  </div>
+);
+
+const InfoItem = ({ label, value, isExpiration, isActive, isCount }) => (
+  <div className="flex flex-col sm:flex-row sm:items-center py-3 border-b border-gray-100 last:border-0">
+    <span className="text-gray-500 font-medium w-32 mb-1 sm:mb-0">{label}</span>
+    {isExpiration ? (
+      <div className="flex items-center gap-2">
+        <Tag
+          color={isActive ? "success" : "error"}
+          className="px-3 py-1.5 text-sm flex items-center gap-2"
+        >
+          {value}
+        </Tag>
+      </div>
+    ) : isCount ? (
+      <Tag color="blue" className="px-3 py-1 text-sm flex items-center gap-2">
+        <Icon icon="heroicons:user-group" className="text-base" />
+        {value} times
+      </Tag>
+    ) : (
+      <span className="text-gray-800 flex items-center gap-2">
+        <Icon
+          icon={
+            label === "Created By"
+              ? "heroicons:user"
+              : label === "Created At"
+              ? "heroicons:calendar"
+              : "heroicons:clock"
+          }
+          className="text-gray-400"
+        />
+        {value}
+      </span>
+    )}
   </div>
 );
 
 const ActiveLinkComponent = ({
   link,
-  expirationTime,
+  linkData,
   handleCopyLink,
   onCancelLink,
-}) => (
-  <LinkContainer>
-    <LinkDisplay link={link} handleCopyLink={handleCopyLink} />
-    <Alert
-      message={`Link valid until : ${expirationTime}`}
-      type="success"
-      showIcon
-      className="text-base font-medium"
-    />
-    <Button
-      type="primary"
-      danger
-      onClick={onCancelLink}
-      className="w-full h-10 text-base mt-4"
-    >
-      Cancel Link
-    </Button>
-  </LinkContainer>
-);
+}) => {
+  const [isEditing, setIsEditing] = useState(false);
+  const [newExpirationTime, setNewExpirationTime] = useState(null);
+  const [expirationTime, setExpirationTime] = useState(
+    moment(linkData.expiration_time)
+  );
+  const handleExpirationChange = (date) => {
+    setNewExpirationTime(date);
+  };
+
+  const handleSaveExpiration = async () => {
+    try {
+      await handleUpdateExpiration(newExpirationTime);
+      setIsEditing(false);
+    } catch (error) {
+      console.error("Error updating expiration:", error);
+    }
+  };
+
+  const handleUpdateExpiration = async (newTime) => {
+    const response = await axiosInstance.put(
+      `/link_cases/${linkData.surgery_case_links_id}/expiration`,
+      {
+        expiration_time: newTime,
+      }
+    );
+
+    if (response.status === 200) {
+      setExpirationTime(response.data.data.expiration_time);
+      console.log("Expiration time updated successfully");
+    } else {
+      console.error("Failed to update expiration time");
+    }
+  };
+
+  return (
+    <LinkContainer>
+      <LinkDisplay
+        link={link}
+        handleCopyLink={handleCopyLink}
+        onCancelLink={onCancelLink}
+        isActive={true}
+      />
+
+      <div className="bg-gray-50 rounded-lg p-4 space-y-2">
+        <span className="text-lg underline">Link details</span>
+
+        <div className="flex flex-row gap-2 items-center">
+          {isEditing ? (
+            <div className="space-y-2">
+              <label className="block text-sm font-medium text-gray-700">
+                Expiration At
+              </label>
+              <DatePicker
+                showTime
+                className="w-full border border-gray-200 rounded-md hover:border-blue-400 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                size="middle"
+                popupClassName="text-sm shadow-lg"
+                format="YYYY-MM-DD HH:mm"
+                placeholder="Select new expiration date"
+                onChange={(date) => handleExpirationChange(date)}
+                disabledDate={(current) =>
+                  current && current < moment().startOf("day")
+                }
+                showNow={false}
+              />
+            </div>
+          ) : (
+            <InfoItem
+              label="Expiration At"
+              value={
+                isEditing ? (
+                  <input
+                    type="datetime-local"
+                    value={newExpirationTime}
+                    onChange={handleExpirationChange}
+                    className="border p-2 rounded-md"
+                  />
+                ) : (
+                  moment(linkData.expiration_time).format("YYYY-MM-DD, HH:mm")
+                )
+              }
+              isExpiration={true}
+              isActive={true}
+            />
+          )}
+        </div>
+
+        {!isEditing ? (
+          <Button
+            type="primary"
+            onClick={() => setIsEditing(true)}
+            className="hover:opacity-90 transition-opacity duration-200"
+          >
+            Edit
+          </Button>
+        ) : (
+          <>
+            <Button
+              type="primary"
+              onClick={handleSaveExpiration}
+              className="hover:opacity-90 transition-opacity duration-200"
+            >
+              Save
+            </Button>
+            <Button
+              type="default"
+              onClick={() => setIsEditing(false)}
+              className="hover:bg-gray-50 transition-colors duration-200"
+            >
+              Cancel
+            </Button>
+          </>
+        )}
+
+        <InfoItem
+          label="Created At"
+          value={moment(linkData.created_at).format("YYYY-MM-DD, HH:mm")}
+        />
+        <InfoItem label="Created By" value={linkData.staff_fullname} />
+        <InfoItem
+          label="Last Accessed"
+          value={
+            linkData.last_accessed
+              ? moment(linkData.last_accessed).format("YYYY-MM-DD, HH:mm")
+              : "N/A"
+          }
+        />
+        <InfoItem
+          label="Logged In Count"
+          value={linkData.loggedInCount ?? "0"}
+          isCount={true}
+        />
+      </div>
+    </LinkContainer>
+  );
+};
 
 const ExpiredLinkComponent = ({
   link,
-  expirationTime,
+  linkData,
   handleCopyLink,
   onCancelLink,
 }) => (
   <LinkContainer>
-    <LinkDisplay link={link} handleCopyLink={handleCopyLink} />
-    <Alert
-      message={`Link Expired ${expirationTime}`}
-      type="error"
-      showIcon
-      className="text-base font-medium"
+    <LinkDisplay
+      link={link}
+      handleCopyLink={handleCopyLink}
+      onCancelLink={() => onCancelLink(linkData.surgery_case_links_id)}
+      isActive={false}
     />
-    <Button
-      type="primary"
-      danger
-      onClick={onCancelLink}
-      className="w-full h-10 text-base mt-4"
-    >
-      Cancel Link
-    </Button>
+
+    <div className="bg-gray-50 rounded-lg p-4 space-y-2">
+      <InfoItem
+        label="Expiration At"
+        value={moment(linkData.expiration_time).format("YYYY-MM-DD, HH:mm")}
+        isExpiration={true}
+        isActive={false}
+      />
+      <InfoItem
+        label="Created At"
+        value={moment(linkData.created_at).format("YYYY-MM-DD, HH:mm")}
+      />
+      <InfoItem label="Created By" value={linkData.staff_fullname} />
+      <InfoItem
+        label="Last Accessed"
+        value={
+          linkData.last_accessed
+            ? moment(linkData.last_accessed).format("YYYY-MM-DD, HH:mm")
+            : "N/A"
+        }
+      />
+      <InfoItem
+        label="Logged In Count"
+        value={linkData.loggedInCount ?? "0"}
+        isCount={true}
+      />
+    </div>
   </LinkContainer>
 );
 
@@ -155,6 +370,8 @@ const LinkForm = ({ formLink, onClose, handleCopyLink, record }) => {
   const BASE_URL = import.meta.env.VITE_BASE_URL;
 
   useEffect(() => {
+    console.log(record);
+
     const fetchData = async () => {
       setLoading(true);
       try {
@@ -167,6 +384,8 @@ const LinkForm = ({ formLink, onClose, handleCopyLink, record }) => {
         );
 
         if (response.status === 200 && response.data) {
+          console.log(response.data);
+
           setLinkData(response.data);
         } else {
           notification.warning({
@@ -290,18 +509,14 @@ const LinkForm = ({ formLink, onClose, handleCopyLink, record }) => {
           moment(linkData.expiration_time).isBefore(moment()) ? (
             <ExpiredLinkComponent
               link={linkUrl}
-              expirationTime={moment(linkData.expiration_time).format(
-                "YYYY-MM-DD HH:mm"
-              )}
+              linkData={linkData}
               handleCopyLink={handleCopyLink}
               onCancelLink={() => setIsModalVisible(true)}
             />
           ) : (
             <ActiveLinkComponent
               link={linkUrl}
-              expirationTime={moment(linkData.expiration_time).format(
-                "YYYY-MM-DD HH:mm"
-              )}
+              linkData={linkData}
               handleCopyLink={handleCopyLink}
               onCancelLink={() => setIsModalVisible(true)}
             />

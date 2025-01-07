@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { usePatient } from "../context/PatientContext";
 import { useNavigate } from "react-router-dom";
-import { Card, Avatar, Tag, Typography } from "antd";
+import { Card, Avatar, Tag, Typography, Spin, Button } from "antd";
 import axiosInstance from "../../admin/api/axiosInstance";
 import LanguageSelector from "../components/LanguageSelector";
 import { useTranslation } from "react-i18next";
@@ -17,7 +17,7 @@ import moment from "moment";
 import LogoutButton from "../components/LogoutButton";
 import { motion, time } from "framer-motion";
 import StatusTimeline from "../components/TimeLine";
-import { UserOutlined } from "@ant-design/icons";
+import { UserOutlined, ReloadOutlined } from "@ant-design/icons";
 
 const View = () => {
   const { patient_id, surgery_case_id, patient_link } = usePatient();
@@ -33,6 +33,40 @@ const View = () => {
   const [sortedStatuses, setSortedStatuses] = useState([]);
   const [patient_currentStatus, setPatient_currentStatus] = useState([]);
   const { isLoading, startLoading, exitLoading } = useLoading();
+  const [TimelineLoading, setTimelineLoading] = useState(false);
+  const [lastUpdated, setLastUpdated] = useState(moment().format("HH:mm A"));
+
+  const fetchPatientData = async ({ surgery_case_id, patient_link }) => {
+    try {
+      const [patientResponse, statusResponse, statusHisResponse] =
+        await Promise.all([
+          axiosInstance.post("patient/getPatientData", {
+            surgery_case_id,
+            patient_link,
+          }),
+          axiosInstance.get("patient/getAllStatus"),
+          axiosInstance
+            .get(`patient/getStatus/${surgery_case_id}`)
+            .catch((error) => {
+              if (error.response && error.response.status === 404) {
+                console.log("Status history not found, setting empty array");
+                return { data: [] };
+              } else {
+                throw error;
+              }
+            }),
+        ]);
+
+      return {
+        patientData: patientResponse.data,
+        statusData: statusResponse.data,
+        statusHistory: statusHisResponse?.data || [],
+      };
+    } catch (error) {
+      console.error("Error fetching data:", error);
+      throw error;
+    }
+  };
 
   useEffect(() => {
     let isMounted = true;
@@ -51,39 +85,20 @@ const View = () => {
           return;
         }
 
-        const [patientResponse, statusResponse, statusHisResponse] =
-          await Promise.all([
-            axiosInstance.post("patient/getPatientData", {
-              surgery_case_id,
-              patient_link,
-            }),
-            axiosInstance.get("patient/getAllStatus"),
-            axiosInstance
-              .get(`patient/getStatus/${surgery_case_id}`)
-              .catch((error) => {
-                // Handle 404 or other errors for the status history request
-                if (error.response && error.response.status === 404) {
-                  console.log("Status history not found, setting empty array");
-                  return { data: [] }; // Return empty array if status history is not found
-                } else {
-                  throw error; // Rethrow other errors
-                }
-              }),
-          ]);
+        const { patientData, statusData, statusHistory } =
+          await fetchPatientData({
+            surgery_case_id,
+            patient_link,
+          });
 
         if (isMounted) {
-          setPatientData(patientResponse.data);
-          setStatusData(statusResponse.data);
-
-          // Check if statusHistory is not null or undefined, otherwise set it to an empty array
-          setStatusHistory(statusHisResponse?.data || []);
-
+          setPatientData(patientData);
+          setStatusData(statusData);
+          setStatusHistory(statusHistory);
           setErrorMessage("");
           setIsDataReady(true);
         }
       } catch (error) {
-        console.error("Error fetching data:", error);
-
         if (error.response && error.response.status === 403) {
           setErrorMessage(t("error.LINK_INACTIVE"));
         } else {
@@ -103,15 +118,7 @@ const View = () => {
     return () => {
       isMounted = false;
     };
-  }, [
-    patient_id,
-    surgery_case_id,
-    patient_link,
-    navigate,
-    startLoading,
-    exitLoading,
-    t,
-  ]);
+  }, [patient_id, surgery_case_id, patient_link, startLoading, exitLoading, t]);
 
   useEffect(() => {
     console.log("Full statusHistory:", statusHistory);
@@ -162,7 +169,7 @@ const View = () => {
     } else {
       console.log("statusHistory.statusHistory is not an array or is empty");
     }
-  }, [statusHistory]);
+  }, [statusHistory, lastUpdated]);
 
   useEffect(() => {
     console.log(patientData);
@@ -194,6 +201,30 @@ const View = () => {
     .clone()
     .add(patientData.estimate_duration, "minutes");
   const formattedDate = moment(patientData.surgery_date).format("DD/MM/YYYY");
+
+  const handleRefresh = async () => {
+    try {
+      setTimelineLoading(true);
+
+      const { patientData, statusData, statusHistory } = await fetchPatientData(
+        {
+          surgery_case_id,
+          patient_link,
+        }
+      );
+
+      setPatientData(patientData);
+      setStatusData(statusData);
+      setStatusHistory(statusHistory);
+      setLastUpdated(moment().format("HH:mm A"));
+    } catch (error) {
+      setErrorMessage(t("error.FAILED_TO_LOAD"));
+    } finally {
+      setTimeout(() => {
+        setTimelineLoading(false);
+      }, 2000);
+    }
+  };
 
   return (
     <>
@@ -238,7 +269,6 @@ const View = () => {
                   }}
                 >
                   <div className="flex flex-row gap-5 items-center w-full h-auto p-5 sm:gap-0">
-                    {/* Avatar Section */}
                     <div className="w-3/6 sm:w-2/4 flex flex-col justify-center items-center">
                       <Avatar
                         src={ManAvatar}
@@ -249,7 +279,6 @@ const View = () => {
                       />
                     </div>
 
-                    {/* Text Section */}
                     <div className="flex flex-col justify-center w-4/6 space-y-2 sm:w-2/4">
                       <Text className="text-black text-sm font-medium sm:text-lg">
                         {t("patient.HN")} : {patientData.hn_code}
@@ -309,10 +338,26 @@ const View = () => {
                   </div>
                 </Card>
 
-                <div className="text-gray-800 font-semibold text-base pt-2 sm:text-2xl mb-0">
-                  {t("view.surgery_timeline")}
-                </div>
+                <div className="flex flex-row justify-between items-center gap-4 px-4">
+                  <Typography.Title
+                    level={4}
+                    style={{ margin: 0 }}
+                    className="flex-1 text-left"
+                  >
+                    {t("view.surgery_timeline")}
+                  </Typography.Title>
 
+                  <div className="flex flex-col items-end gap-4">
+                    <Button
+                      type="primary"
+                      icon={<ReloadOutlined />}
+                      onClick={handleRefresh}
+                      size="small"
+                    >
+                      Refresh
+                    </Button>
+                  </div>
+                </div>
                 <Card
                   className="shadow-lg hover:shadow-xl transition-all duration-300 bg-white rounded-2xl"
                   bordered={false}
@@ -322,25 +367,46 @@ const View = () => {
                     },
                   }}
                 >
-                  <div className="flex flex-col items-center justify-center mt-8 m-4">
-                    {patientData?.status_id === 0 ? (
-                      <div className="text-center p-6">
-                        <p className="text-lg sm:text-xl md:text-2xl font-semibold text-gray-800 mb-2">
-                          {t("view.pending_title")}
-                        </p>
-                        <p className="text-sm sm:text-base md:text-lg text-gray-600 mt-2 leading-relaxed">
-                          {t("view.pending_des")}
-                        </p>
-                      </div>
-                    ) : (
-                      <StatusTimeline
-                        statusData={statusData}
-                        sortedStatuses={sortedStatuses}
-                        statusHistory={statusHistory}
-                        currentStatus={patient_currentStatus}
-                        t={t}
-                      />
-                    )}
+                  <div className="relative m-4">
+                    <div className="absolute top-0 right-0 z-10">
+                      <Typography.Text type="secondary">
+                        {t("view.status_updated")}: {lastUpdated}
+                      </Typography.Text>
+                    </div>
+
+                    <div className="flex flex-col items-center justify-center pt-5">
+                      {" "}
+                      {patientData?.status_id === 0 ? (
+                        <div className="text-center p-6">
+                          <p className="text-lg sm:text-xl md:text-2xl font-semibold text-gray-800 mb-2">
+                            {t("view.pending_title")}
+                          </p>
+                          <p className="text-sm sm:text-base md:text-lg text-gray-600 mt-2 leading-relaxed">
+                            {t("view.pending_des")}
+                          </p>
+                        </div>
+                      ) : (
+                        <div className="flex flex-col justify-center items-center h-full min-h-[500px]">
+                          {TimelineLoading ? (
+                            <div className="flex justify-center items-center w-full">
+                              <Spin
+                                size="large"
+                                tip={t("view.loading_status")}
+                              />
+                            </div>
+                          ) : (
+                            <StatusTimeline
+                              key={lastUpdated}
+                              statusData={statusData}
+                              sortedStatuses={sortedStatuses}
+                              statusHistory={statusHistory}
+                              currentStatus={patient_currentStatus}
+                              t={t}
+                            />
+                          )}
+                        </div>
+                      )}
+                    </div>
                   </div>
                 </Card>
               </div>

@@ -20,7 +20,7 @@
     "HN_INVALID": "Nomor KTP tidak valid",
     "DOB": "Tanggal Lahir",
     "DOB_REQUIRED": "Harap masukkan tanggal lahir",
-    "DOB_PLACEHOLDER": "Pilih tanggal lahir",
+    "DOB_PLACEHOLDER": "Pilih tanggal lahir (DD/MM/YYYY)",
     "SUBMIT": "Kirim",
     "POLICY_TITLE": "Kebijakan Privasi",
     "POLICY_TEXT": "Dengan menggunakan aplikasi ini, Anda menyetujui syarat dan ketentuan yang tercantum dalam Kebijakan Privasi kami. Kebijakan ini menjelaskan bagaimana kami mengumpulkan, menggunakan, dan berbagi data pribadi Anda. Kebijakan ini juga menjelaskan hak Anda terkait data pribadi yang Anda berikan kepada kami dan bagaimana Anda dapat mengelolanya. Kami berkomitmen untuk melindungi privasi Anda dan menjaga keamanan informasi Anda. Harap baca kebijakan ini dengan saksama sebelum menggunakan aplikasi kami. Jika Anda tidak setuju dengan syarat ini, harap hentikan penggunaan aplikasi. Untuk informasi lebih lanjut, kunjungi situs resmi kami atau hubungi tim dukungan kami.",
@@ -46,7 +46,8 @@
     "surgery_information": "Informasi Operasi",
     "surgery_timeline": "Status prosedur",
     "pending_title": "Menunggu Operasi",
-    "pending_des": "Operasi Anda telah dijadwalkan"
+    "pending_des": "Operasi Anda telah dijadwalkan",
+    "status_updated": "Diperbarui pada"
   },
   "timeline": {
     "TITLE": "Linimasa Operasi"

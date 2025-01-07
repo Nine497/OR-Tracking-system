@@ -137,6 +137,41 @@ const linkCaseController = {
       });
     }
   },
+
+  updateLinkCaseExpiration: async (req, res) => {
+    try {
+      const { id } = req.params;
+      const { expiration_time } = req.body;
+
+      const link = await linkCase.getLinkById(id);
+      if (!link) {
+        return res.status(404).json({ message: "Link case not found" });
+      }
+
+      const formattedExpirationTime = new Date(expiration_time).toLocaleString(
+        "en-US",
+        {
+          timeZone: "Asia/Bangkok",
+        }
+      );
+
+      const updatedLink = await linkCase.updateLink(id, {
+        expiration_time: formattedExpirationTime,
+      });
+
+      if (updatedLink.length > 0) {
+        return res.status(200).json({
+          message: "Link case expiration time updated successfully",
+          data: updatedLink[0],
+        });
+      } else {
+        throw new Error("Failed to update expiration time");
+      }
+    } catch (error) {
+      console.error(error);
+      return res.status(500).json({ message: error.message });
+    }
+  },
 };
 
 module.exports = linkCaseController;

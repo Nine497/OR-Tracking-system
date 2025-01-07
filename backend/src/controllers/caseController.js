@@ -201,15 +201,23 @@ exports.getCaseWithStatusHistory = async (req, res) => {
   const { id } = req.params;
 
   try {
-    const statusHistory = await db("surgery_case_status_history")
-      .select("status_id", "updated_at")
-      .where("surgery_case_id", id)
-      .orderBy("updated_at", "asc");
+    const statusHistory = await db("surgery_case_status_history as sch")
+      .select(
+        "sch.status_id",
+        "sch.updated_at",
+        "sch.updated_by",
+        "staff.staff_id",
+        "staff.firstname as staff_firstname",
+        "staff.lastname as staff_lastname"
+      )
+      .leftJoin("staff", "sch.updated_by", "staff.staff_id")
+      .where("sch.surgery_case_id", id)
+      .orderBy("sch.updated_at", "asc");
 
-    const latestStatus = await db("surgery_case_status_history")
-      .select("status_id")
-      .where("surgery_case_id", id)
-      .orderBy("updated_at", "desc")
+    const latestStatus = await db("surgery_case_status_history as sch")
+      .select("sch.status_id")
+      .where("sch.surgery_case_id", id)
+      .orderBy("sch.updated_at", "desc")
       .first();
 
     if (!statusHistory || !latestStatus) {

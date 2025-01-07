@@ -32,7 +32,6 @@ const StatusTimeline = ({
         );
 
         const isRecoveryRoomStatus = currentStatus?.status_id === 5;
-
         const isLatestStatus =
           currentStatus?.status_id === status.status_id &&
           !isRecoveryRoomStatus;
@@ -45,11 +44,6 @@ const StatusTimeline = ({
         return {
           key: status.status_id,
           color: isLatestStatus ? "blue" : isPastStatus ? "green" : "gray",
-          className: `${
-            isPastStatus
-              ? "[&>.ant-timeline-item-tail]:!border-green-500"
-              : "[&>.ant-timeline-item-tail]:!border-gray-300"
-          }`,
           dot: isLatestStatus ? (
             <div className="flex items-center justify-center w-6 h-6 md:w-8 md:h-8 rounded-full bg-blue-100 border-2 border-blue-500 transition-all duration-300 hover:scale-110">
               <Icon
@@ -91,7 +85,6 @@ const StatusTimeline = ({
                 >
                   {status.status_name}
                 </Text>
-
                 <div className="flex items-center flex-1 justify-end">
                   {isLatestStatus && (
                     <Tag
@@ -119,7 +112,7 @@ const StatusTimeline = ({
   }, [statusData, sortedStatuses, currentStatus, t]);
 
   return (
-    <div className="px-4 sm:px-6 md:px-8 lg:px-16">
+    <div className="px-5 pt-6">
       <Timeline
         items={timelineItems}
         className="max-w-3xl mx-auto"

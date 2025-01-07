@@ -144,10 +144,10 @@ const LoginForm = ({ t, link }) => {
       <footer className="w-full bg-white mt-auto py-4">
         <div className="text-center text-gray-600">
           <p className="text-sm mt-2">
-            Your health and well-being are our top priority.
+            Lorem ipsum dolor sit amet, consectetur.
           </p>
           <p className="text-xs mt-4">
-            © 2025 Hospital Name. All rights reserved.
+            © 2025 Lorem ipsum dolor. All rights reserved.
           </p>
         </div>
       </footer>

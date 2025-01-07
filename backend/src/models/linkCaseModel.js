@@ -50,11 +50,17 @@ const linkCase = {
   },
 
   getLatestActiveLinkCaseBySurgeryCaseId: (surgery_case_id) => {
-    return db("surgery_case_links")
-      .where("surgery_case_id", surgery_case_id)
-      .andWhere("isactive", true)
-      .orderBy("surgery_case_id", "desc")
-      .first();
+    return db("surgery_case_links as scl")
+      .join("staff as s", "scl.created_by", "=", "s.staff_id")
+      .where("scl.surgery_case_id", surgery_case_id)
+      .andWhere("scl.isactive", true)
+      .orderBy("scl.surgery_case_id", "desc")
+      .first()
+      .select(
+        "scl.*",
+        "s.staff_id",
+        db.raw("concat(s.firstname, ' ', s.lastname) as staff_fullname")
+      );
   },
 };
 

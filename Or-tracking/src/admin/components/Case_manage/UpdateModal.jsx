@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { Modal, Form, notification } from "antd";
-import TimelineStatus from "./TimelineStatus";
+import TimelineStatus from "./TimelineStatusModal";
 import LinkForm from "./LinkForm";
 
 function UpdateModal({ visible, record, onClose, type }) {
@@ -60,7 +60,7 @@ function UpdateModal({ visible, record, onClose, type }) {
             {type === "status" ? "Status Timeline" : "Link Setting"}{" "}
           </span>
           <span className="text-2xl font-semibold text-blue-600">
-            Case #{record.surgery_case_id}
+            {record.hn_code}
           </span>
         </div>
       }

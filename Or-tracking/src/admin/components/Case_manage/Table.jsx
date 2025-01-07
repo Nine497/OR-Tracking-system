@@ -293,31 +293,32 @@ function CaseTable() {
       title: <span className="text-base font-bold">Action</span>,
       key: "status",
       render: (_, record) => (
-        <div className="flex items-center justify-between">
+        <div className="flex flex-wrap items-center justify-between gap-2">
           <Tooltip title="View Status Timeline">
-            <div>
+            <div className="w-full sm:w-auto">
               <CustomButton
                 variant="primary"
                 onClick={() => openStatusModal(record)}
-                icon={<Icon icon="mdi:timeline-clock" className="h-5" />}
+                icon={<Icon icon="mdi:eye" className="h-5" />}
               >
                 View
               </CustomButton>
             </div>
           </Tooltip>
           <Tooltip title="Setting Link">
-            <div>
+            <div className="w-full sm:w-auto">
               <CustomButton
                 variant="default"
                 onClick={() => openLinkModal(record)}
-                icon={<Icon icon="lucide:copy" />}
+                icon={<Icon icon="lucide:settings" />}
               >
-                <span className="font-medium text-base">Setting</span>
+                <span className="font-medium text-base">Share</span>
               </CustomButton>
             </div>
           </Tooltip>
+
           <Tooltip title="Edit Record">
-            <div>
+            <div className="w-full sm:w-auto">
               <CustomButton
                 variant="primary"
                 onClick={() => handleEditRecord(record)}
