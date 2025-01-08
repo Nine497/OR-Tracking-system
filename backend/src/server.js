@@ -12,6 +12,7 @@ const caseRoutes = require("./routes/caseRoutes");
 const doctorRoutes = require("./routes/doctorRoutes");
 const linkCaseRoutes = require("./routes/linkCaseRoutes");
 const patientRoutes = require("./routes/patientRoutes");
+const or_roomRoutes = require("./routes/operatingRoomRoutes");
 const app = express();
 
 // Middleware
@@ -28,6 +29,7 @@ app.use("/api/surgery_case", caseRoutes); // Route สำหรับ Case
 app.use("/api/doctor", doctorRoutes); // Route สำหรับ Doctor
 app.use("/api/link_cases", linkCaseRoutes); // Route สำหรับ link
 app.use("/api/patient", patientRoutes); // Route สำหรับ patient
+app.use("/api/or_room", or_roomRoutes); // Route สำหรับ OR-Room
 
 const startServer = async () => {
   try {

@@ -11,6 +11,8 @@ const StatusUpdateForm = ({ record, allStatus, onStatusUpdate }) => {
   const { user } = useAuth();
 
   useEffect(() => {
+    console.log("record", record);
+
     const fetchData = async () => {
       try {
         const token = localStorage.getItem("jwtToken");
@@ -23,8 +25,8 @@ const StatusUpdateForm = ({ record, allStatus, onStatusUpdate }) => {
           }
         );
         if (response.status === 200 && response.data) {
-          setSelectedStatus(response.data.latestStatus || 1);
-          setTempStatus(response.data.latestStatus || 1);
+          setSelectedStatus(response.data.latestStatus || 0);
+          setTempStatus(response.data.latestStatus || 0);
         }
       } catch (err) {
         notification.error({
@@ -44,6 +46,7 @@ const StatusUpdateForm = ({ record, allStatus, onStatusUpdate }) => {
   }, [record]);
 
   const handleStatusChange = (value) => {
+    console.log(value);
     setTempStatus(value);
   };
 
@@ -53,7 +56,7 @@ const StatusUpdateForm = ({ record, allStatus, onStatusUpdate }) => {
       const token = localStorage.getItem("jwtToken");
       const response = await axiosInstance.patch(
         `surgery_case/status/${record.surgery_case_id}`,
-        { status_id: tempStatus, updatedBy: user?.id || "system" },
+        { status_id: tempStatus, updatedBy: user?.id },
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -96,6 +99,9 @@ const StatusUpdateForm = ({ record, allStatus, onStatusUpdate }) => {
     (status) => status.status_id === tempStatus
   )?.status_name;
 
+  console.log("tempStatus:", tempStatus);
+  console.log("selectedStatus:", selectedStatus);
+
   const hasStatusChanged = tempStatus !== selectedStatus;
 
   return (
@@ -127,8 +133,7 @@ const StatusUpdateForm = ({ record, allStatus, onStatusUpdate }) => {
       </Select>
 
       <Popconfirm
-        title="Confirm Status Update"
-        description={`Are you sure you want to update the status to "${currentStatusName}"?`}
+        title="Confirm Status Update ?"
         open={showPopconfirm}
         onConfirm={handleConfirmStatusUpdate}
         onCancel={handleCancel}

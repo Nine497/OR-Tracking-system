@@ -1,5 +1,6 @@
 const SurgeryCase = require("../models/caseModel");
 const db = require("../config/database");
+const patient = require("../models/caseModel");
 
 // ฟังก์ชันสำหรับดึงข้อมูลกรณีการผ่าตัดทั้งหมด
 exports.getAllCase = async (req, res) => {
@@ -107,11 +108,59 @@ exports.getCaseById = async (req, res) => {
   }
 };
 
-// ฟังก์ชันสำหรับเพิ่มกรณีการผ่าตัดใหม่
 exports.createSurgeryCase = async (req, res) => {
   const surgeryCaseData = req.body;
+
+  const patientData = {
+    hn_code: surgeryCaseData.hn_code,
+    firstname: surgeryCaseData.firstName,
+    lastname: surgeryCaseData.lastName,
+    dob: surgeryCaseData.dob,
+    gender: surgeryCaseData.gender,
+    patient_history: surgeryCaseData.patient_history,
+  };
+
   try {
-    const newSurgeryCase = await SurgeryCase.create(surgeryCaseData);
+    if (
+      !patientData.hn_code ||
+      !patientData.firstname ||
+      !patientData.lastname
+    ) {
+      return res
+        .status(400)
+        .json({ message: "Missing required patient details" });
+    }
+
+    let existingPatient = await db("patients")
+      .where("hn_code", patientData.hn_code)
+      .first();
+
+    if (!existingPatient) {
+      const newPatient = await db("patients")
+        .insert(patientData)
+        .returning("*")
+        .then((newPatient) => newPatient[0]);
+      surgeryCaseData.patient_id = newPatient.patient_id;
+    } else {
+      surgeryCaseData.patient_id = existingPatient.patient_id;
+    }
+
+    const newSurgeryCase = await db("surgery_case")
+      .insert({
+        doctor_id: surgeryCaseData.doctor_id,
+        surgery_date: surgeryCaseData.surgery_date,
+        estimate_start_time: surgeryCaseData.estimate_start_time,
+        estimate_duration: surgeryCaseData.estimate_duration,
+        surgery_type_id: surgeryCaseData.surgery_type_id,
+        operating_room_id: surgeryCaseData.operating_room_id,
+        status_id: surgeryCaseData.status_id,
+        created_by: surgeryCaseData.created_by,
+        patient_id: surgeryCaseData.patient_id,
+        created_at: new Date().toISOString(),
+      })
+      .returning("*")
+      .then((newSurgeryCase) => newSurgeryCase[0]);
+
     res.status(201).json({
       message: "Surgery case created successfully",
       data: newSurgeryCase,
@@ -220,22 +269,41 @@ exports.getCaseWithStatusHistory = async (req, res) => {
       .orderBy("sch.updated_at", "desc")
       .first();
 
-    if (!statusHistory || !latestStatus) {
-      return res.status(404).json({
-        message: "No status history found for this surgery case",
+    if (!statusHistory.length && !latestStatus) {
+      return res.status(200).json({
+        message:
+          "No status history found for this surgery case. This is a new case.",
+        statusHistory: [],
+        latestStatus: null,
       });
     }
 
     res.status(200).json({
       message: "Status history and latest status fetched successfully",
       statusHistory,
-      latestStatus: latestStatus.status_id,
+      latestStatus: latestStatus ? latestStatus.status_id : null,
     });
   } catch (err) {
     console.error(err);
     res.status(500).json({
       message: "Server error",
       error: err.message,
+    });
+  }
+};
+
+exports.getAllSurgeryTypes = async (req, res) => {
+  try {
+    const surgeryTypes = await SurgeryCase.getAllSurgeryTypes();
+    res.status(200).json({
+      message: "Surgery types retrieved successfully",
+      data: surgeryTypes,
+    });
+  } catch (error) {
+    console.error("Error fetching surgery types:", error);
+    res.status(500).json({
+      message: "Server error while fetching surgery types",
+      error: error.message,
     });
   }
 };

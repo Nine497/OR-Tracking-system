@@ -5,7 +5,6 @@ import Logo from "../assets/Logo.png";
 import axiosInstance from "../../admin/api/axiosInstance";
 import { usePatient } from "../context/PatientContext";
 import { useNavigate } from "react-router-dom";
-import { Footer } from "antd/es/layout/layout";
 
 const LoginForm = ({ t, link }) => {
   const [loading, setLoading] = useState(false);

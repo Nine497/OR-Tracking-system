@@ -60,7 +60,7 @@ function UpdateModal({ visible, record, onClose, type }) {
             {type === "status" ? "Status Timeline" : "Link Setting"}{" "}
           </span>
           <span className="text-2xl font-semibold text-blue-600">
-            {record.hn_code}
+            HN : {record.hn_code}
           </span>
         </div>
       }

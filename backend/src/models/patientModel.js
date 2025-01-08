@@ -38,6 +38,13 @@ const patient = {
   getAllStatuses: () => {
     return db("status").select("status_id", "status_name", "description");
   },
+
+  create: (patientData) => {
+    return db("patients")
+      .insert(patientData)
+      .returning("*")
+      .then((newPatient) => newPatient[0]);
+  },
 };
 
 module.exports = patient;

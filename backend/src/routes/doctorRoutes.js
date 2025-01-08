@@ -1,18 +1,14 @@
-// routes/surgeryRoutes.js
-
 const express = require("express");
 const router = express.Router();
-const surgeryController = require("../controllers/doctorController");
+const doctorController = require("../controllers/doctorController");
 const verifyToken = require("../middlewares/verifyToken");
 
-router.get("/", verifyToken, surgeryController.getAllDoctors);
+router.use(verifyToken);
 
-router.get("/:id", verifyToken, surgeryController.getDoctorById);
-
-router.post("/", verifyToken, surgeryController.createDoctor);
-
-router.put("/:id", verifyToken, surgeryController.updateDoctor);
-
-router.delete("/:id", verifyToken, surgeryController.deleteDoctor);
+router.get("/", doctorController.getAllDoctors); // ดึงข้อมูลทั้งหมด
+router.get("/:id", doctorController.getDoctorById); // ดึงข้อมูลแพทย์ตาม ID
+router.post("/", doctorController.createDoctor); // สร้างข้อมูลแพทย์ใหม่
+router.put("/:id", doctorController.updateDoctor); // อัพเดตข้อมูลแพทย์
+router.delete("/:id", doctorController.deleteDoctor); // ลบข้อมูลแพทย์
 
 module.exports = router;

@@ -1,18 +1,11 @@
 import React, { useState, useEffect } from "react";
-import {
-  Table,
-  Input,
-  Tooltip,
-  Spin,
-  notification,
-  Select,
-  FloatButton,
-} from "antd";
+import { Table, Input, Tooltip, Spin, notification, Select } from "antd";
 import { Icon } from "@iconify/react";
 import CustomButton from "../CustomButton";
 import axiosInstance from "../../api/axiosInstance";
 import UpdateModal from "./UpdateModal";
 import StatusUpdateForm from "./Status_update";
+import moment from "moment";
 
 function CaseTable() {
   const [selectedRecord, setSelectedRecord] = useState(null);
@@ -27,7 +20,7 @@ function CaseTable() {
   const [doctorSelectedOption, setDoctorSelectedOption] = useState(null);
   const [doctorsData, setDoctorsData] = useState([]);
   const [allStatus, setAllStatus] = useState([]);
-
+  const [dataLastestUpdated, setDataLastestUpdated] = useState(null);
   const handleSelectChange = (value) => {
     setDoctorSelectedOption(value);
     setPagination((prev) => ({ ...prev, current: 1 }));
@@ -104,45 +97,46 @@ function CaseTable() {
     setIsLinkModalVisible(false);
   };
 
+  const fetchData = async () => {
+    setLoadingCases(true);
+    try {
+      const token = localStorage.getItem("jwtToken");
+      const response = await axiosInstance.get("/surgery_case/", {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+        params: {
+          search: searchTerm,
+          limit: pagination.pageSize,
+          page: pagination.current,
+        },
+      });
+
+      const dataWithKeys = Array.isArray(response.data?.data)
+        ? response.data.data.map((item) => ({
+            ...item,
+            key: item.surgery_case_id,
+          }))
+        : [];
+
+      setFilteredData(dataWithKeys);
+      setPagination({
+        ...pagination,
+        total: response.data.totalRecords,
+      });
+      setDataLastestUpdated(moment().format("HH:mm A"));
+    } catch (error) {
+      console.error("Error fetching cases:", error);
+      notification.error({
+        message: "Error fetching cases",
+        description: error.message,
+      });
+    } finally {
+      setLoadingCases(false);
+    }
+  };
+
   useEffect(() => {
-    const fetchData = async () => {
-      setLoadingCases(true);
-      try {
-        const token = localStorage.getItem("jwtToken");
-        const response = await axiosInstance.get("/surgery_case/", {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-          params: {
-            search: searchTerm,
-            limit: pagination.pageSize,
-            page: pagination.current,
-          },
-        });
-
-        const dataWithKeys = Array.isArray(response.data?.data)
-          ? response.data.data.map((item) => ({
-              ...item,
-              key: item.surgery_case_id,
-            }))
-          : [];
-
-        setFilteredData(dataWithKeys);
-        setPagination({
-          ...pagination,
-          total: response.data.totalRecords,
-        });
-      } catch (error) {
-        console.error("Error fetching cases:", error);
-        notification.error({
-          message: "Error fetching cases",
-          description: error.message,
-        });
-      } finally {
-        setLoadingCases(false);
-      }
-    };
-
     fetchData();
   }, [pagination.current, searchTerm]);
 
@@ -334,17 +328,18 @@ function CaseTable() {
   ];
 
   return (
-    <div className="flex flex-col p-7 w-full h-full gap-6">
-      <div className="bg-gray-100 w-full h-fit rounded-lg flex flex-row justify-between items-center px-10">
+    <div className="flex flex-col p-5 sm:p-7 w-full h-full gap-4">
+      <div className="bg-gray-100 w-full rounded-lg flex flex-col sm:flex-row sm:justify-between items-start sm:items-center gap-4 sm:gap-0 px-5 sm:px-10 py-4">
         <Input
           placeholder="Search by case number, patient name..."
-          className="w-1/4 h-10 text-base m-3"
+          className="w-full sm:w-1/3 h-10 text-base"
           prefix={<Icon icon="mingcute:search-line" />}
           onChange={handleInputChange}
           value={searchTerm}
         />
+
         <Select
-          className="w-1/4 h-10 m-3"
+          className="w-full sm:w-1/4 h-10"
           placeholder="Filter By Doctor"
           value={doctorSelectedOption}
           onChange={handleSelectChange}
@@ -365,27 +360,35 @@ function CaseTable() {
           onClick={() => {
             setSearchTerm("");
             setPagination({ ...pagination, current: 1 });
+            fetchData();
           }}
+          className="w-full sm:w-auto"
         >
           <span className="font-medium ml-2 text-lg">Reload Data</span>
         </CustomButton>
       </div>
-      <div className="w-full h-full mt-4 overflow-x-auto">
-        <Spin spinning={loadingCases} size="large">
-          <Table
-            dataSource={filteredData}
-            columns={columns}
-            loading={loadingCases}
-            pagination={{
-              pageSize: pagination.pageSize,
-              current: pagination.current,
-              total: pagination.total,
-              onChange: handlePaginationChange,
-              showTotal: (total) => `Total ${total} items`,
-            }}
-          />
-        </Spin>
+
+      <div className="ml-auto text-right">
+        <div className="text-gray-500 text-sm">
+          Data Updated on: {dataLastestUpdated}
+        </div>
       </div>
+
+      <div className="w-full h-full overflow-x-auto">
+        <Table
+          dataSource={filteredData}
+          columns={columns}
+          loading={loadingCases}
+          pagination={{
+            pageSize: pagination.pageSize,
+            current: pagination.current,
+            total: pagination.total,
+            onChange: handlePaginationChange,
+            showTotal: (total) => `Total ${total} items`,
+          }}
+        />
+      </div>
+
       <UpdateModal
         key={selectedRecord?.surgery_case_id + "status"}
         visible={isStatusModalVisible}

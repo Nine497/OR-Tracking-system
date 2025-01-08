@@ -115,7 +115,7 @@ const SurgeryCase = {
 
   // ดึงข้อมูลประเภทการผ่าตัดทั้งหมด
   getAllSurgeryTypes: () => {
-    return db("surgery_type").select("surgery_type_id", "surgery_type_name");
+    return db("surgery_type").select("*");
   },
 };
 

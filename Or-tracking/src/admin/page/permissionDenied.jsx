@@ -16,7 +16,7 @@ export default function PermissionDenied() {
         <h2 className="text-3xl font-bold text-gray-800 mb-3">Access Denied</h2>
         <p className="text-gray-600 mb-8 font-normal text-lg">
           Sorry, you don't have permission to access this page. Please contact
-          your administrator if you believe this is a mistake.
+          your administrator.
         </p>
 
         <div className="flex gap-4 justify-center">

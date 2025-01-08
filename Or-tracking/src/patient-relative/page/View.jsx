@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { usePatient } from "../context/PatientContext";
 import { useNavigate } from "react-router-dom";
-import { Card, Avatar, Tag, Typography, Spin, Button } from "antd";
+import { Card, Avatar, Typography, Spin, Button } from "antd";
 import axiosInstance from "../../admin/api/axiosInstance";
 import LanguageSelector from "../components/LanguageSelector";
 import { useTranslation } from "react-i18next";
@@ -38,6 +38,9 @@ const View = () => {
 
   const fetchPatientData = async ({ surgery_case_id, patient_link }) => {
     try {
+      console.log("surgery_case_id", surgery_case_id);
+      console.log("patient_link", patient_link);
+
       const [patientResponse, statusResponse, statusHisResponse] =
         await Promise.all([
           axiosInstance.post("patient/getPatientData", {
@@ -309,11 +312,15 @@ const View = () => {
                   <div className=" flex justify-center items-center px-6 py-4 h-full sm:mx-4">
                     <div className="gap-1 flex flex-col space-y-2 w-full max-w-3xl mx-auto">
                       <Text className="text-black text-sm font-medium sm:text-lg">
-                        {t("patient.SURGEON")} : {patientData.doctor_first_name}{" "}
+                        {t("patient.SURGEON")} : {patientData.doctor_prefix}{" "}
+                        {patientData.doctor_first_name}{" "}
                         {patientData.doctor_last_name}
                       </Text>
                       <Text className="text-black text-sm font-medium sm:text-lg">
                         {t("patient.ROOM")} : {patientData.room_name}
+                        {" ( "}
+                        {patientData.location}
+                        {" ) "}
                       </Text>
                       <Text className="text-black text-sm font-medium sm:text-lg">
                         {t("patient.SURGERY_DATE")} : {formattedDate}

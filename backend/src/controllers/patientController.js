@@ -139,6 +139,7 @@ exports.login = async (req, res) => {
 
 exports.getPatientData = async (req, res) => {
   const { surgery_case_id } = req.body;
+  console.log("surgery_case_id", surgery_case_id);
 
   try {
     const patientData = await db("surgery_case")
@@ -163,9 +164,11 @@ exports.getPatientData = async (req, res) => {
         "patients.lastname as patient_last_name",
         "patients.dob",
         "patients.gender",
+        "doctors.prefix as doctor_prefix",
         "doctors.firstname as doctor_first_name",
         "doctors.lastname as doctor_last_name",
         "operating_room.room_name",
+        "operating_room.location",
         "status.status_name",
         "status.status_id",
         "status.description",

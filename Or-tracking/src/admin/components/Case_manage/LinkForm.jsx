@@ -9,6 +9,8 @@ import {
   Tag,
   Tooltip,
   Input,
+  Typography,
+  Badge,
 } from "antd";
 import moment from "moment";
 import { useAuth } from "../../context/AuthContext";
@@ -82,14 +84,14 @@ const LinkDisplay = ({ link, handleCopyLink, onCancelLink, isActive }) => (
     <div className="flex items-center justify-between">
       {isActive ? (
         <div>
-          Status :{" "}
+          Link :{" "}
           <Tag color="success" className="px-3 py-1 text-sm whitespace-nowrap">
             Active
           </Tag>
         </div>
       ) : (
         <div>
-          Status :{" "}
+          Link :{" "}
           <Tag color="error" className="px-3 py-1 text-sm whitespace-nowrap">
             Expired
           </Tag>
@@ -141,23 +143,16 @@ const LinkContainer = ({ children }) => (
   </div>
 );
 
-const InfoItem = ({ label, value, isExpiration, isActive, isCount }) => (
+const InfoItem = ({ label, value, children, isActive, isCount }) => (
   <div className="flex flex-col sm:flex-row sm:items-center py-3 border-b border-gray-100 last:border-0">
     <span className="text-gray-500 font-medium w-32 mb-1 sm:mb-0">{label}</span>
-    {isExpiration ? (
-      <div className="flex items-center gap-2">
-        <Tag
-          color={isActive ? "success" : "error"}
-          className="px-3 py-1.5 text-sm flex items-center gap-2"
-        >
-          {value}
-        </Tag>
-      </div>
-    ) : isCount ? (
+    {isCount ? (
       <Tag color="blue" className="px-3 py-1 text-sm flex items-center gap-2">
         <Icon icon="heroicons:user-group" className="text-base" />
         {value} times
       </Tag>
+    ) : children ? (
+      <div className="flex items-center gap-2">{children}</div>
     ) : (
       <span className="text-gray-800 flex items-center gap-2">
         <Icon
@@ -225,95 +220,92 @@ const ActiveLinkComponent = ({
         isActive={true}
       />
 
-      <div className="bg-gray-50 rounded-lg p-4 space-y-2">
-        <span className="text-lg underline">Link details</span>
+      <div className="bg-gray-50 rounded-lg p-4 space-y-4">
+        <div className="flex items-center justify-between">
+          <Typography.Title level={5} className="!m-0">
+            Link Details
+          </Typography.Title>
+        </div>
 
-        <div className="flex flex-row gap-2 items-center">
-          {isEditing ? (
-            <div className="space-y-2">
-              <label className="block text-sm font-medium text-gray-700">
-                Expiration At
-              </label>
-              <DatePicker
-                showTime
-                className="w-full border border-gray-200 rounded-md hover:border-blue-400 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                size="middle"
-                popupClassName="text-sm shadow-lg"
-                format="YYYY-MM-DD HH:mm"
-                placeholder="Select new expiration date"
-                onChange={(date) => handleExpirationChange(date)}
-                disabledDate={(current) =>
-                  current && current < moment().startOf("day")
-                }
-                showNow={false}
-              />
-            </div>
-          ) : (
+        <div className="flex items-center gap-4">
+          <div className="flex gap-2">
             <InfoItem
               label="Expiration At"
               value={
-                isEditing ? (
-                  <input
-                    type="datetime-local"
-                    value={newExpirationTime}
-                    onChange={handleExpirationChange}
-                    className="border p-2 rounded-md"
-                  />
-                ) : (
-                  moment(linkData.expiration_time).format("YYYY-MM-DD, HH:mm")
-                )
+                isEditing
+                  ? newExpirationTime
+                  : moment(linkData.expiration_time).format("YYYY-MM-DD, HH:mm")
               }
-              isExpiration={true}
               isActive={true}
-            />
+            >
+              {isEditing ? (
+                <DatePicker
+                  showTime
+                  size="middle"
+                  className="w-full"
+                  format="YYYY-MM-DD HH:mm"
+                  onChange={(date) => handleExpirationChange(date)}
+                  disabledDate={(current) =>
+                    current && current < moment().startOf("day")
+                  }
+                  showNow={false}
+                  placeholder="Select new date and time"
+                  popupClassName="text-sm shadow-lg"
+                />
+              ) : null}
+            </InfoItem>
+          </div>
+
+          {isEditing ? (
+            <div className="flex gap-2">
+              <Button
+                type="primary"
+                onClick={handleSaveExpiration}
+                icon={<Icon icon="mdi:check-circle" />}
+                className="flex items-center"
+              >
+                Save
+              </Button>
+              <Button
+                onClick={() => setIsEditing(false)}
+                icon={<Icon icon="mdi:cancel" />}
+                className="flex items-center"
+              >
+                Cancel
+              </Button>
+            </div>
+          ) : (
+            <Button
+              type="primary"
+              onClick={() => setIsEditing(true)}
+              icon={<Icon icon="mdi:pencil" />}
+              className="flex items-center ml-2"
+            >
+              Edit
+            </Button>
           )}
         </div>
 
-        {!isEditing ? (
-          <Button
-            type="primary"
-            onClick={() => setIsEditing(true)}
-            className="hover:opacity-90 transition-opacity duration-200"
-          >
-            Edit
-          </Button>
-        ) : (
-          <>
-            <Button
-              type="primary"
-              onClick={handleSaveExpiration}
-              className="hover:opacity-90 transition-opacity duration-200"
-            >
-              Save
-            </Button>
-            <Button
-              type="default"
-              onClick={() => setIsEditing(false)}
-              className="hover:bg-gray-50 transition-colors duration-200"
-            >
-              Cancel
-            </Button>
-          </>
-        )}
-
-        <InfoItem
-          label="Created At"
-          value={moment(linkData.created_at).format("YYYY-MM-DD, HH:mm")}
-        />
-        <InfoItem label="Created By" value={linkData.staff_fullname} />
-        <InfoItem
-          label="Last Accessed"
-          value={
-            linkData.last_accessed
-              ? moment(linkData.last_accessed).format("YYYY-MM-DD, HH:mm")
-              : "N/A"
-          }
-        />
-        <InfoItem
-          label="Logged In Count"
-          value={linkData.loggedInCount ?? "0"}
-          isCount={true}
-        />
+        <div className="space-y-3">
+          <InfoItem
+            label="Created At"
+            value={moment(linkData.created_at).format("YYYY-MM-DD, HH:mm")}
+          />
+          <InfoItem label="Created By" value={linkData.staff_fullname} />
+          <InfoItem
+            label="Last Accessed"
+            value={
+              linkData.last_accessed
+                ? moment(linkData.last_accessed).format("YYYY-MM-DD, HH:mm")
+                : "N/A"
+            }
+          />
+          <InfoItem
+            label="Logged In Count"
+            value={linkData.loggedInCount ?? "0"}
+            isCount={true}
+          />
+        </div>
       </div>
     </LinkContainer>
   );
@@ -333,31 +325,38 @@ const ExpiredLinkComponent = ({
       isActive={false}
     />
 
-    <div className="bg-gray-50 rounded-lg p-4 space-y-2">
-      <InfoItem
-        label="Expiration At"
-        value={moment(linkData.expiration_time).format("YYYY-MM-DD, HH:mm")}
-        isExpiration={true}
-        isActive={false}
-      />
-      <InfoItem
-        label="Created At"
-        value={moment(linkData.created_at).format("YYYY-MM-DD, HH:mm")}
-      />
-      <InfoItem label="Created By" value={linkData.staff_fullname} />
-      <InfoItem
-        label="Last Accessed"
-        value={
-          linkData.last_accessed
-            ? moment(linkData.last_accessed).format("YYYY-MM-DD, HH:mm")
-            : "N/A"
-        }
-      />
-      <InfoItem
-        label="Logged In Count"
-        value={linkData.loggedInCount ?? "0"}
-        isCount={true}
-      />
+    <div className="bg-gray-50 rounded-lg p-4 space-y-4">
+      <div className="flex items-center justify-between">
+        <Typography.Title level={5} className="!m-0">
+          Link Details
+        </Typography.Title>
+      </div>
+
+      <div className="space-y-3">
+        <InfoItem
+          label="Expiration At"
+          value={moment(linkData.expiration_time).format("YYYY-MM-DD, HH:mm")}
+          isActive={false}
+        />
+        <InfoItem
+          label="Created At"
+          value={moment(linkData.created_at).format("YYYY-MM-DD, HH:mm")}
+        />
+        <InfoItem label="Created By" value={linkData.staff_fullname} />
+        <InfoItem
+          label="Last Accessed"
+          value={
+            linkData.last_accessed
+              ? moment(linkData.last_accessed).format("YYYY-MM-DD, HH:mm")
+              : "N/A"
+          }
+        />
+        <InfoItem
+          label="Logged In Count"
+          value={linkData.loggedInCount ?? "0"}
+          isCount={true}
+        />
+      </div>
     </div>
   </LinkContainer>
 );
