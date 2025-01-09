@@ -55,6 +55,14 @@
     "error": {
         "FAILED_TO_LOAD": "Failed to load data"
     },
+    "review": {
+        "review_title": "Service Satisfaction Survey",
+        "submit_review": "Submit Review",
+        "later": "Later",
+        "review_prompt": "This is a satisfaction survey for the services provided by the hospital.\nWe will use your feedback to improve the services we offer\nin order to achieve the best satisfaction possible.",
+        "additional_suggestions": "Additional Suggestions (Optional)",
+        "suggestions_placeholder": "Enter your suggestions here..."
+    },
     "common": {
         "CURRENT": "Current",
         "COMPLETED": "Completed",

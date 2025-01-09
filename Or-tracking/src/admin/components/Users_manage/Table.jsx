@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from "react";
 import { Input, Table, notification, Tooltip, Switch } from "antd";
-import CustomButton from "../CustomButton";
 import { Icon } from "@iconify/react";
 import axiosInstance from "../../api/axiosInstance";
 import { Spin } from "antd";
 import PermissionModal from "./PermissionModal";
+import { Button } from "antd";
 
 function UsersTable() {
   const [filteredData, setFilteredData] = useState([]);
@@ -158,15 +158,16 @@ function UsersTable() {
         <div className="flex flex-between items-center space-x-4">
           <Tooltip title="Manage Permissions">
             <div>
-              <CustomButton
-                variant="primary"
+              <Button
+                type="primary"
                 icon={
                   <Icon icon="solar:user-outline" className="mr-2 w-4 h-4" />
                 }
                 onClick={() => handlePermission(record)}
+                className="w-full sm:w-auto"
               >
                 <span className="font-medium text-base">Permission</span>
-              </CustomButton>
+              </Button>
             </div>
           </Tooltip>
           <div className="flex items-center space-x-2 bg-gray-100 px-3 py-1 rounded-lg">
@@ -193,17 +194,18 @@ function UsersTable() {
           onChange={(e) => handleSearch(e.target.value)}
           value={searchTerm}
         />
-        <CustomButton
-          variant="white"
+        <Button
+          type="default"
           icon={<Icon icon="mdi:reload" className="mr-2 w-4 h-4" />}
           onClick={() => {
             setSearchTerm("");
             setPagination({ ...pagination, current: 1 });
             setReloadTrigger((prev) => !prev);
           }}
+          className="w-full sm:w-auto"
         >
           <span className="font-medium ml-2 text-lg">Reload Data</span>
-        </CustomButton>
+        </Button>
       </div>
 
       <div className="w-full h-full mt-4 overflow-x-auto">

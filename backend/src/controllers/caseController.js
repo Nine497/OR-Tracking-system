@@ -10,9 +10,6 @@ exports.getAllCase = async (req, res) => {
 
     const lowerSearch = search ? search.trim().toLowerCase() : null;
 
-    console.log("SEARCH : ", search);
-    console.log("Doctor : ", doctor_id);
-
     const addSearchConditions = (query) => {
       if (doctor_id) {
         query.where("surgery_case.doctor_id", doctor_id);
@@ -46,10 +43,12 @@ exports.getAllCase = async (req, res) => {
         "patients.firstname as patient_firstname",
         "patients.lastname as patient_lastname",
         "patients.hn_code as hn_code",
+        "doctors.prefix as doctor_prefix",
         "doctors.firstname as doctor_firstname",
         "doctors.lastname as doctor_lastname",
         "operating_room.room_name as room_name",
-        "status.status_name as status_name"
+        "status.status_name as status_name",
+        "surgery_case_links.surgery_case_links_id as active_link_id" // Add the active link ID
       )
       .leftJoin("patients", "surgery_case.patient_id", "patients.patient_id")
       .leftJoin("doctors", "surgery_case.doctor_id", "doctors.doctor_id")
@@ -58,7 +57,14 @@ exports.getAllCase = async (req, res) => {
         "surgery_case.operating_room_id",
         "operating_room.operating_room_id"
       )
-      .leftJoin("status", "surgery_case.status_id", "status.status_id");
+      .leftJoin("status", "surgery_case.status_id", "status.status_id")
+      .leftJoin("surgery_case_links", function () {
+        this.on(
+          "surgery_case.surgery_case_id",
+          "=",
+          "surgery_case_links.surgery_case_id"
+        ).andOn("surgery_case_links.isactive", "=", db.raw("true"));
+      });
 
     addSearchConditions(query);
 
@@ -131,6 +137,7 @@ exports.createSurgeryCase = async (req, res) => {
         .json({ message: "Missing required patient details" });
     }
 
+    // Check if patient exists
     let existingPatient = await db("patients")
       .where("hn_code", patientData.hn_code)
       .first();
@@ -145,6 +152,7 @@ exports.createSurgeryCase = async (req, res) => {
       surgeryCaseData.patient_id = existingPatient.patient_id;
     }
 
+    // Create new surgery case
     const newSurgeryCase = await db("surgery_case")
       .insert({
         doctor_id: surgeryCaseData.doctor_id,
@@ -160,6 +168,14 @@ exports.createSurgeryCase = async (req, res) => {
       })
       .returning("*")
       .then((newSurgeryCase) => newSurgeryCase[0]);
+
+    // Add initial status (status_id = 0) to surgery_case_status_history
+    await db("surgery_case_status_history").insert({
+      surgery_case_id: newSurgeryCase.surgery_case_id,
+      status_id: 0,
+      updated_at: new Date().toISOString(),
+      updated_by: surgeryCaseData.created_by,
+    });
 
     res.status(201).json({
       message: "Surgery case created successfully",

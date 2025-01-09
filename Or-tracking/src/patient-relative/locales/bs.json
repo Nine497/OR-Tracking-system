@@ -59,6 +59,22 @@
   "error": {
     "FAILED_TO_LOAD": "Gagal memuat data"
   },
+  "review": {
+    "review_title": "Ulasan Kasus Bedah",
+    "submit_review": "Kirim Ulasan",
+    "later": "Nanti",
+    "review_prompt": "Silakan berikan umpan balik atau penilaian untuk kasus bedah ini.",
+    "additional_suggestions": "Saran Tambahan",
+    "suggestions_placeholder": "Masukkan saran Anda di sini..."
+  },
+  "review": {
+    "review_title": "Survei Kepuasan Layanan",
+    "submit_review": "Kirim Ulasan",
+    "later": "Nanti",
+    "review_prompt": "Ini adalah survei kepuasan atas layanan yang diberikan oleh rumah sakit.\nKami akan menggunakan umpan balik Anda untuk meningkatkan layanan yang kami tawarkan\nuntuk mencapai kepuasan terbaik yang mungkin.",
+    "additional_suggestions": "Saran Tambahan (Opsional)",
+    "suggestions_placeholder": "Masukkan saran Anda di sini..."
+  },
   "common": {
     "CURRENT": "Status Saat Ini",
     "COMPLETED": "Selesai",

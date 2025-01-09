@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useMemo } from "react";
-import { notification, Spin, Timeline, Typography } from "antd";
+import { notification, Spin, Timeline, Typography, Divider } from "antd";
 import { Icon } from "@iconify/react";
 import moment from "moment";
 import axiosInstance from "../../api/axiosInstance";
@@ -23,40 +23,48 @@ const TimelineStatus = ({ record }) => {
     });
   };
 
-  const createTimelineItem = (status, statusData, isPast, isAlwaysBlue) => {
+  const createTimelineItem = (status, statusData, isPast) => {
     const updatedAt = statusData?.updated_at;
     const updatedByName = statusData
       ? `${statusData.staff_firstname} ${statusData.staff_lastname}`
       : null;
 
     return {
-      color: isAlwaysBlue || isPast ? "blue" : "gray",
-      dot:
-        isAlwaysBlue || isPast ? (
-          <Icon icon="mdi:check-circle" />
-        ) : (
-          <Icon icon="mdi:circle-outline" />
-        ),
+      color: isPast ? "blue" : "gray",
+      dot: isPast ? (
+        <div className="flex items-center justify-center w-6 h-6 rounded-full bg-blue-500 text-white">
+          <Icon icon="mdi:check-circle" className="w-4 h-4" />
+        </div>
+      ) : (
+        <div className="flex items-center justify-center w-6 h-6 rounded-full bg-gray-100">
+          <Icon icon="mdi:circle-outline" className="w-4 h-4 text-gray-400" />
+        </div>
+      ),
       children: (
-        <div>
-          <Text className="text-base font-semibold">{status.status_name}</Text>
-          <br />
-          <Text>
+        <div className="ml-2 bg-white rounded-lg px-5 py-1 transition-colors duration-200">
+          <Text className="text-base font-semibold text-gray-800">
+            {status.status_name}
+          </Text>
+          <div className="mt-2">
             {isPast ? (
-              <div className="flex flex-col space-y-1">
-                <Text className="text-sm text-gray-500">
-                  Updated at : {moment(updatedAt).format("DD/MM/YYYY, HH:mm")}
-                </Text>
-                <Text className="text-sm text-gray-500">
-                  By : {updatedByName}
-                </Text>
+              <div className="space-y-1">
+                <div className="flex items-center text-gray-500">
+                  <Icon icon="mdi:clock-outline" className="w-4 h-4 mr-2" />
+                  <Text className="text-sm">
+                    {moment(updatedAt).format("DD/MM/YYYY, HH:mm")}
+                  </Text>
+                </div>
+                <div className="flex items-center text-gray-500">
+                  <Icon icon="mdi:account" className="w-4 h-4 mr-2" />
+                  <Text className="text-sm">{updatedByName}</Text>
+                </div>
               </div>
             ) : (
               <Text className="text-sm text-gray-600">
                 {status.description}
               </Text>
             )}
-          </Text>
+          </div>
         </div>
       ),
     };
@@ -74,7 +82,6 @@ const TimelineStatus = ({ record }) => {
           }
         );
         if (response.status === 200 && response.data) {
-          console.log(response.data);
           setStatusHistory(response.data.statusHistory);
           setLatestStatus(response.data.latestStatus);
         }
@@ -107,41 +114,38 @@ const TimelineStatus = ({ record }) => {
   }, []);
 
   const timelineItems = useMemo(() => {
-    if (!allStatus.length || !statusHistory || !latestStatus) return [];
-    console.log("latestStatus : ", latestStatus);
-    console.log("statusHistory : ", statusHistory);
+    if (!allStatus.length || !statusHistory || latestStatus === null) return [];
+
     const passedStatusMap = new Map(
-      statusHistory
-        .filter((history) => history.status_id <= latestStatus)
-        .map((history) => [
-          history.status_id,
-          {
-            updated_at: history.updated_at,
-            staff_firstname: history.staff_firstname,
-            staff_lastname: history.staff_lastname,
-          },
-        ])
+      statusHistory.map((history) => [
+        history.status_id,
+        {
+          updated_at: history.updated_at,
+          staff_firstname: history.staff_firstname,
+          staff_lastname: history.staff_lastname,
+        },
+      ])
     );
 
     return allStatus.map((status) => {
-      const isPast = passedStatusMap.has(status.status_id);
+      const isPast =
+        passedStatusMap.has(status.status_id) || status.status_id === 0;
       const statusData = passedStatusMap.get(status.status_id);
-      const isAlwaysBlue = status.status_id === 0;
 
-      return createTimelineItem(status, statusData, isPast, isAlwaysBlue);
+      return createTimelineItem(status, statusData, isPast);
     });
   }, [allStatus, statusHistory, latestStatus]);
 
   if (isLoading) {
     return (
-      <div className="flex flex-col items-center justify-center space-y-6 min-h-44">
+      <div className="flex items-center justify-center min-h-[400px]">
         <Spin size="large" />
       </div>
     );
   }
 
   return (
-    <div className="min-h-[400px] px-4 py-6">
+    <div className="min-h-[400px] bg-white p-6 rounded-lg">
       <Timeline items={timelineItems} className="px-4" />
     </div>
   );

@@ -62,6 +62,27 @@ const linkCase = {
         db.raw("concat(s.firstname, ' ', s.lastname) as staff_fullname")
       );
   },
+
+  createReview: (surgery_case_id, review_text, rating) => {
+    return db("link_reviews")
+      .insert({
+        surgery_case_id,
+        review_text,
+        rating,
+        reviewed_at: db.fn.now(),
+      })
+      .returning("*")
+      .then((result) => {
+        if (result && result.length > 0) {
+          return result[0];
+        } else {
+          throw new Error("Failed to submit review");
+        }
+      })
+      .catch((error) => {
+        throw new Error(`Error submitting review: ${error.message}`);
+      });
+  },
 };
 
 module.exports = linkCase;

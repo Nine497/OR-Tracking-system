@@ -46,7 +46,6 @@ const StatusUpdateForm = ({ record, allStatus, onStatusUpdate }) => {
   }, [record]);
 
   const handleStatusChange = (value) => {
-    console.log(value);
     setTempStatus(value);
   };
 

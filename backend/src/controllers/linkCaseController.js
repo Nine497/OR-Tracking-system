@@ -1,6 +1,7 @@
 const linkCase = require("../models/linkCaseModel");
 const bcrypt = require("bcryptjs");
 require("dotenv").config();
+const db = require("../config/database");
 
 const linkCaseController = {
   // ดึงข้อมูลทั้งหมด
@@ -170,6 +171,46 @@ const linkCaseController = {
     } catch (error) {
       console.error(error);
       return res.status(500).json({ message: error.message });
+    }
+  },
+
+  checkReviewStatus: async (req, res) => {
+    const { surgery_case_id } = req.params;
+
+    try {
+      const reviewExists = await db("link_reviews")
+        .where("surgery_case_id", surgery_case_id)
+        .first();
+
+      res.status(200).json({
+        reviewExists: !!reviewExists,
+      });
+    } catch (err) {
+      console.error(err);
+      res.status(500).json({
+        message: "Error checking review status",
+        error: err.message,
+      });
+    }
+  },
+
+  submitReview: async (req, res) => {
+    const { surgery_case_id, review_text, rating } = req.body;
+
+    try {
+      const newReview = await linkCase.createReview(
+        surgery_case_id,
+        review_text,
+        rating
+      );
+
+      res.status(200).json({
+        message: "Review submitted successfully",
+        review: newReview,
+      });
+    } catch (error) {
+      console.error("Error submitting review:", error);
+      res.status(500).json({ message: "Internal server error" });
     }
   },
 };

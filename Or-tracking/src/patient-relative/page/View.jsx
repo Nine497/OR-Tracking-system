@@ -393,7 +393,7 @@ const View = () => {
                           </p>
                         </div>
                       ) : (
-                        <div className="flex flex-col justify-center items-center h-full min-h-[500px]">
+                        <div className="flex flex-col justify-center items-center h-full min-h-[300px]">
                           {TimelineLoading ? (
                             <div className="flex justify-center items-center w-full">
                               <Spin
@@ -409,6 +409,7 @@ const View = () => {
                               statusHistory={statusHistory}
                               currentStatus={patient_currentStatus}
                               t={t}
+                              surgery_case_id={surgery_case_id}
                             />
                           )}
                         </div>

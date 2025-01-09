@@ -12,4 +12,10 @@ router.get(
   "/getLast/:surgery_case_id",
   linkCaseController.getLatestActiveLinkCaseBySurgeryCaseId
 );
+router.get(
+  "/check_reviews/:surgery_case_id",
+  linkCaseController.checkReviewStatus
+);
+router.post("/submit_review", linkCaseController.submitReview);
+
 module.exports = router;

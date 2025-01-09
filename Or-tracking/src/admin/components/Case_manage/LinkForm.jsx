@@ -80,58 +80,67 @@ const NoLinkComponent = ({ onGenerateLink }) => {
 };
 
 const LinkDisplay = ({ link, handleCopyLink, onCancelLink, isActive }) => (
-  <div className="bg-gray-50 rounded-lg p-4 space-y-4">
-    <div className="flex items-center justify-between">
-      {isActive ? (
-        <div>
-          Link :{" "}
-          <Tag color="success" className="px-3 py-1 text-sm whitespace-nowrap">
+  <div className="bg-gray-50 rounded-xl p-5 sm:p-6 space-y-5 shadow-sm border border-gray-100">
+    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div className="flex items-center gap-3">
+        <span className="text-gray-600 font-medium">Link Status:</span>
+        {isActive ? (
+          <Tag
+            color="success"
+            className="px-4 py-1.5 text-sm rounded-full font-medium flex items-center gap-2"
+          >
+            <Icon icon="heroicons:check-circle" className="text-base" />
             Active
           </Tag>
-        </div>
-      ) : (
-        <div>
-          Link :{" "}
-          <Tag color="error" className="px-3 py-1 text-sm whitespace-nowrap">
+        ) : (
+          <Tag
+            color="error"
+            className="px-4 py-1.5 text-sm rounded-full font-medium flex items-center gap-2"
+          >
+            <Icon icon="heroicons:x-circle" className="text-base" />
             Expired
           </Tag>
-        </div>
-      )}
-      <div className="flex gap-2 shrink-0">
+        )}
+      </div>
+      <div className="flex gap-3 shrink-0">
         <Tooltip title="Copy Link">
           <Button
             type="default"
-            icon={<Icon icon="bx:bx-copy" />}
+            icon={<Icon icon="bx:bx-copy" className="text-lg" />}
             onClick={() => handleCopyLink(link)}
-            className="flex items-center gap-1"
+            className="flex items-center gap-2 hover:border-blue-400 hover:text-blue-500 transition-colors px-4 h-9"
           >
-            Copy
+            <span className="font-medium">Copy</span>
           </Button>
         </Tooltip>
         <Tooltip title="Cancel Link">
           <Button
             type="primary"
             danger
-            icon={<Icon icon="bx:bx-x" />}
+            icon={<Icon icon="bx:bx-x" className="text-lg" />}
             onClick={onCancelLink}
-            className="flex items-center gap-1"
+            className="flex items-center gap-2 hover:opacity-90 transition-opacity px-4 h-9"
           >
-            Cancel
+            <span className="font-medium">Cancel</span>
           </Button>
         </Tooltip>
       </div>
     </div>
 
-    <div className="w-full">
+    <div className="w-full relative group">
       <Input
         value={link}
         readOnly
-        className="font-mono text-sm bg-white"
+        className="font-mono text-sm sm:text-base bg-white/70 hover:bg-white focus:bg-white transition-colors pl-4 pr-12 py-2.5 rounded-lg border-gray-200 hover:border-gray-300"
         style={{
           whiteSpace: "nowrap",
           overflow: "hidden",
           textOverflow: "ellipsis",
         }}
+      />
+      <Icon
+        icon="heroicons:link"
+        className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 group-hover:text-gray-600 transition-colors text-lg"
       />
     </div>
   </div>
@@ -144,17 +153,25 @@ const LinkContainer = ({ children }) => (
 );
 
 const InfoItem = ({ label, value, children, isActive, isCount }) => (
-  <div className="flex flex-col sm:flex-row sm:items-center py-3 border-b border-gray-100 last:border-0">
-    <span className="text-gray-500 font-medium w-32 mb-1 sm:mb-0">{label}</span>
+  <div className="flex flex-col sm:flex-row sm:items-center py-4 border-b border-gray-100 last:border-0 hover:bg-gray-50/50 transition-colors rounded-lg px-3">
+    <span className="text-gray-500 font-medium w-40 mb-2 sm:mb-0 text-sm sm:text-base">
+      {label}
+    </span>
     {isCount ? (
-      <Tag color="blue" className="px-3 py-1 text-sm flex items-center gap-2">
-        <Icon icon="heroicons:user-group" className="text-base" />
-        {value} times
+      <Tag
+        color="blue"
+        className="px-3 py-1.5 text-sm sm:text-base flex items-center gap-2 rounded-full font-medium hover:scale-105 transition-transform"
+      >
+        <Icon icon="heroicons:user-group" className="text-base sm:text-lg" />
+        <span className="font-semibold">{value}</span>
+        <span className="text-blue-600/80">times</span>
       </Tag>
     ) : children ? (
-      <div className="flex items-center gap-2">{children}</div>
+      <div className="flex items-center gap-2 text-sm sm:text-base">
+        {children}
+      </div>
     ) : (
-      <span className="text-gray-800 flex items-center gap-2">
+      <span className="text-gray-800 flex items-center gap-3 text-sm sm:text-base group">
         <Icon
           icon={
             label === "Created By"
@@ -163,9 +180,9 @@ const InfoItem = ({ label, value, children, isActive, isCount }) => (
               ? "heroicons:calendar"
               : "heroicons:clock"
           }
-          className="text-gray-400"
+          className="text-gray-400 group-hover:text-gray-600 transition-colors text-lg sm:text-xl"
         />
-        {value}
+        <span className="font-medium">{value}</span>
       </span>
     )}
   </div>

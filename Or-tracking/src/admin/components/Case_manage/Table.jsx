@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from "react";
-import { Table, Input, Tooltip, Spin, notification, Select } from "antd";
+import { Table, Input, Tooltip, Button, notification, Select } from "antd";
 import { Icon } from "@iconify/react";
-import CustomButton from "../CustomButton";
 import axiosInstance from "../../api/axiosInstance";
 import UpdateModal from "./UpdateModal";
 import StatusUpdateForm from "./Status_update";
@@ -15,16 +14,53 @@ function CaseTable() {
   const [loadingCases, setLoadingCases] = useState(false);
   const [loadingDoctors, setLoadingDoctors] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [copyLoading, setCopyLoading] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [pagination, setPagination] = useState({ pageSize: 6, current: 1 });
   const [doctorSelectedOption, setDoctorSelectedOption] = useState(null);
   const [doctorsData, setDoctorsData] = useState([]);
   const [allStatus, setAllStatus] = useState([]);
   const [dataLastestUpdated, setDataLastestUpdated] = useState(null);
+  const BASE_URL = import.meta.env.VITE_BASE_URL;
+  const [fetchedLinks, setFetchedLinks] = useState({});
+
   const handleSelectChange = (value) => {
     setDoctorSelectedOption(value);
     setPagination((prev) => ({ ...prev, current: 1 }));
     handleSearch(searchTerm, value);
+  };
+
+  const copyLink = (linkUrl) => {
+    if (!linkUrl) {
+      notification.warning({
+        message: "No Link Available",
+        description: "There is no link to copy. Please fetch the link first.",
+      });
+      return;
+    }
+
+    const textArea = document.createElement("textarea");
+    textArea.value = linkUrl;
+    textArea.style.position = "fixed";
+    textArea.style.left = "-9999px";
+    document.body.appendChild(textArea);
+
+    try {
+      textArea.select();
+      document.execCommand("copy");
+      notification.success({
+        message: "Link Copied Successfully",
+        description: "The link has been copied to your clipboard.",
+      });
+    } catch (err) {
+      notification.error({
+        message: "Copy Failed",
+        description: "Unable to copy the link. Please copy manually.",
+      });
+      console.error("Copy Error:", err);
+    } finally {
+      document.body.removeChild(textArea);
+    }
   };
 
   const handleSearch = async (value, doctor = doctorSelectedOption) => {
@@ -150,10 +186,6 @@ function CaseTable() {
             Authorization: `Bearer ${token}`,
           },
         });
-        if (response) {
-          console.log("Respond : ", response);
-        }
-
         if (response.data && Array.isArray(response.data.data)) {
           setDoctorsData(response.data.data);
         } else {
@@ -170,33 +202,33 @@ function CaseTable() {
       }
     };
 
-    const fetchTypeData = async () => {
-      try {
-        const token = localStorage.getItem("jwtToken");
-        const response = await axiosInstance.get("doctor/", {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
-        if (response) {
-          console.log("Respond : ", response);
-        }
+    // const fetchTypeData = async () => {
+    //   try {
+    //     const token = localStorage.getItem("jwtToken");
+    //     const response = await axiosInstance.get("doctor/", {
+    //       headers: {
+    //         Authorization: `Bearer ${token}`,
+    //       },
+    //     });
+    //     if (response) {
+    //       console.log("Respond : ", response);
+    //     }
 
-        if (response.data && Array.isArray(response.data.data)) {
-          setDoctorsData(response.data.data);
-        } else {
-          console.error("Invalid data format received for doctors.");
-        }
-      } catch (error) {
-        console.error("Error fetching cases:", error);
-        notification.error({
-          message: "Error fetching cases",
-          description: error.message,
-        });
-      } finally {
-        setLoading(false);
-      }
-    };
+    //     if (response.data && Array.isArray(response.data.data)) {
+    //       setDoctorsData(response.data.data);
+    //     } else {
+    //       console.error("Invalid data format received for doctors.");
+    //     }
+    //   } catch (error) {
+    //     console.error("Error fetching cases:", error);
+    //     notification.error({
+    //       message: "Error fetching cases",
+    //       description: error.message,
+    //     });
+    //   } finally {
+    //     setLoading(false);
+    //   }
+    // };
 
     fetchDoctorsData();
   }, []);
@@ -231,18 +263,21 @@ function CaseTable() {
       title: <span className="text-base font-bold">#</span>,
       dataIndex: "surgery_case_id",
       key: "surgery_case_id",
+      align: "center",
       render: (text) => <span className="text-base font-normal">{text}</span>,
     },
     {
       title: <span className="text-base font-bold">HN</span>,
       dataIndex: "hn_code",
       key: "hn_code",
+      align: "center",
       render: (text) => <span className="text-base font-normal">{text}</span>,
     },
     {
       title: <span className="text-base font-bold">Patient Name</span>,
       dataIndex: "patientName",
       key: "patientName",
+      align: "center",
       render: (text, record) => (
         <span className="text-base font-normal">
           {record.patient_firstname} {record.patient_lastname}
@@ -253,8 +288,10 @@ function CaseTable() {
       title: <span className="text-base font-bold">Doctor</span>,
       dataIndex: "doctorName",
       key: "doctorName",
+      align: "center",
       render: (text, record) => (
         <span className="text-base font-normal">
+          {record.doctor_prefix}
           {record.doctor_firstname} {record.doctor_lastname}
         </span>
       ),
@@ -263,12 +300,14 @@ function CaseTable() {
       title: <span className="text-base font-bold">Room</span>,
       dataIndex: "room_name",
       key: "room_name",
+      align: "center",
       render: (text) => <span className="text-base font-normal">{text}</span>,
     },
     {
       title: <span className="text-base font-bold">Surgery Date</span>,
       dataIndex: "surgery_date",
       key: "surgery_date",
+      align: "center",
       render: (text) => (
         <span className="text-base font-normal">
           {new Date(text).toLocaleDateString()}{" "}
@@ -279,47 +318,79 @@ function CaseTable() {
       title: <span className="text-base font-bold">Update status</span>,
       dataIndex: "status_id",
       key: "status_id",
+      align: "center",
       render: (_, record) => (
         <StatusUpdateForm record={record} allStatus={allStatus} />
       ),
     },
     {
-      title: <span className="text-base font-bold">Action</span>,
+      title: <span className="text-base font-bold">Status</span>,
       key: "status",
+      align: "center",
       render: (_, record) => (
         <div className="flex flex-wrap items-center justify-between gap-2">
           <Tooltip title="View Status Timeline">
             <div className="w-full sm:w-auto">
-              <CustomButton
-                variant="primary"
-                onClick={() => openStatusModal(record)}
+              <Button
+                type="primary"
                 icon={<Icon icon="mdi:eye" className="h-5" />}
+                onClick={() => openStatusModal(record)}
+                className="flex items-center gap-2"
               >
                 View
-              </CustomButton>
+              </Button>
             </div>
           </Tooltip>
-          <Tooltip title="Setting Link">
-            <div className="w-full sm:w-auto">
-              <CustomButton
-                variant="default"
-                onClick={() => openLinkModal(record)}
-                icon={<Icon icon="lucide:settings" />}
-              >
-                <span className="font-medium text-base">Share</span>
-              </CustomButton>
-            </div>
-          </Tooltip>
-
+        </div>
+      ),
+    },
+    {
+      title: <span className="text-base font-bold">Link</span>,
+      dataIndex: "status_id",
+      key: "status_id",
+      align: "center",
+      render: (_, record) => (
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          {record.active_link_id ? (
+            <Button
+              type="default"
+              icon={<Icon icon="bx:bx-copy" />}
+              onClick={() =>
+                copyLink(`${BASE_URL}ptr?link=${record.active_link_id}`)
+              }
+              className="flex items-center gap-1"
+              loading={copyLoading}
+            >
+              Copy
+            </Button>
+          ) : null}
+          <Button
+            type="default"
+            icon={<Icon icon="lucide:settings" />}
+            onClick={() => openLinkModal(record)}
+            className="flex items-center gap-1"
+          >
+            Setting
+          </Button>
+        </div>
+      ),
+    },
+    {
+      title: <span className="text-base font-bold">Action</span>,
+      key: "status",
+      align: "center",
+      render: (_, record) => (
+        <div className="flex flex-wrap items-center justify-between gap-2">
           <Tooltip title="Edit Record">
             <div className="w-full sm:w-auto">
-              <CustomButton
-                variant="primary"
-                onClick={() => handleEditRecord(record)}
+              <Button
+                type="primary"
                 icon={<Icon icon="lucide:edit" className="mr-2 w-4 h-4" />}
+                onClick={() => handleEditRecord(record)}
+                className="flex items-center gap-2"
               >
                 <span className="font-medium text-base">Edit</span>
-              </CustomButton>
+              </Button>
             </div>
           </Tooltip>
         </div>
@@ -349,13 +420,13 @@ function CaseTable() {
           </Select.Option>
           {doctorsData.map((doctor) => (
             <Select.Option key={doctor.doctor_id} value={doctor.doctor_id}>
-              {`${doctor.firstname} ${doctor.lastname}`}
+              {`${doctor.prefix}${doctor.firstname} ${doctor.lastname}`}
             </Select.Option>
           ))}
         </Select>
 
-        <CustomButton
-          variant="white"
+        <Button
+          type="default"
           icon={<Icon icon="mdi:reload" className="mr-2 w-4 h-4" />}
           onClick={() => {
             setSearchTerm("");
@@ -365,7 +436,7 @@ function CaseTable() {
           className="w-full sm:w-auto"
         >
           <span className="font-medium ml-2 text-lg">Reload Data</span>
-        </CustomButton>
+        </Button>
       </div>
 
       <div className="ml-auto text-right">

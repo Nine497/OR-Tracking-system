@@ -4,9 +4,7 @@ import TimelineStatus from "./TimelineStatusModal";
 import LinkForm from "./LinkForm";
 
 function UpdateModal({ visible, record, onClose, type }) {
-  const [formStatus] = Form.useForm();
   const [formLink] = Form.useForm();
-  const [link, setLink] = useState(null);
 
   const handleCopyLink = (link) => {
     const fallbackCopy = () => {

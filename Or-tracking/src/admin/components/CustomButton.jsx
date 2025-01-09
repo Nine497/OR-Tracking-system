@@ -11,7 +11,7 @@ const CustomButton = ({
   icon = null,
 }) => {
   const baseStyle =
-    "flex items-center justify-center px-4 py-1 rounded-lg transition-all duration-300 focus:outline-none group relative overflow-hidden";
+    "flex items-center justify-center px-4 py-2 sm:px-5 sm:py-3 lg:px-6 lg:py-4 rounded-lg transition-all duration-300 focus:outline-none group relative overflow-hidden text-sm sm:text-base lg:text-lg";
 
   const variants = {
     default: {
@@ -27,9 +27,9 @@ const CustomButton = ({
       overlay: "group-hover:opacity-20 group-hover:scale-150 bg-white/20",
     },
     danger: {
-      base: "bg-red-500 text-white text-base",
+      base: "bg-red-500 text-white text-sm sm:text-base",
       hover: "hover:bg-red-600 hover:shadow-lg",
-      shadow: "hover:hover:scale-[1.015]",
+      shadow: "hover:scale-[1.015]",
       overlay: "group-hover:opacity-20 group-hover:scale-150 bg-white/20",
     },
     white: {
@@ -97,7 +97,5 @@ CustomButton.propTypes = {
   disabled: PropTypes.bool,
   icon: PropTypes.oneOfType([PropTypes.element, PropTypes.elementType]),
 };
-
-// ลบ defaultProps ออก เพราะใช้ default parameters แทนแล้ว
 
 export default CustomButton;

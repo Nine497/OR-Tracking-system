@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import { Form, Input, Button, Card, notification } from "antd";
 import { LockOutlined, UserOutlined } from "@ant-design/icons";
 import { useAuth } from "../context/AuthContext";
@@ -9,8 +9,10 @@ import LoginImg from "../assets/Login.jpg";
 const Login = () => {
   const { login } = useAuth();
   const navigate = useNavigate();
+  const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (values) => {
+    setLoading(true);
     try {
       const { username, password } = values;
 
@@ -28,6 +30,8 @@ const Login = () => {
       notification.error({
         message: error.response?.data?.message || "Login failed.",
       });
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -64,6 +68,7 @@ const Login = () => {
                 prefix={<UserOutlined />}
                 size="large"
                 placeholder="Username"
+                autoComplete="username"
               />
             </Form.Item>
             <Form.Item
@@ -76,10 +81,18 @@ const Login = () => {
                 prefix={<LockOutlined />}
                 size="large"
                 placeholder="Password"
+                autoComplete="current-password"
               />
             </Form.Item>
             <Form.Item className="pt-5">
-              <Button type="primary" htmlType="submit" block size="large">
+              <Button
+                type="primary"
+                htmlType="submit"
+                block
+                size="large"
+                loading={loading}
+                disabled={loading}
+              >
                 <span className="font-medium">Log in</span>
               </Button>
             </Form.Item>
