@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import {
   Form,
   Button,
@@ -11,11 +11,13 @@ import {
   Input,
   Typography,
   Badge,
+  QRCode,
 } from "antd";
 import moment from "moment";
 import { useAuth } from "../../context/AuthContext";
 import axiosInstance from "../../api/axiosInstance";
 import { Icon } from "@iconify/react";
+import Logo from "../../assets/Logo2.png";
 
 const CancelLinkModal = ({ visible, onCancel, onConfirm }) => (
   <Modal
@@ -79,76 +81,120 @@ const NoLinkComponent = ({ onGenerateLink }) => {
   );
 };
 
-const LinkDisplay = ({ link, handleCopyLink, onCancelLink, isActive }) => (
-  <div className="bg-gray-50 rounded-xl p-5 sm:p-6 space-y-5 shadow-sm border border-gray-100">
-    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-      <div className="flex items-center gap-3">
-        <span className="text-gray-600 font-medium">Link Status:</span>
-        {isActive ? (
-          <Tag
-            color="success"
-            className="px-4 py-1.5 text-sm rounded-full font-medium flex items-center gap-2"
-          >
-            <Icon icon="heroicons:check-circle" className="text-base" />
-            Active
-          </Tag>
-        ) : (
-          <Tag
-            color="error"
-            className="px-4 py-1.5 text-sm rounded-full font-medium flex items-center gap-2"
-          >
-            <Icon icon="heroicons:x-circle" className="text-base" />
-            Expired
-          </Tag>
-        )}
-      </div>
-      <div className="flex gap-3 shrink-0">
-        <Tooltip title="Copy Link">
-          <Button
-            type="default"
-            icon={<Icon icon="bx:bx-copy" className="text-lg" />}
-            onClick={() => handleCopyLink(link)}
-            className="flex items-center gap-2 hover:border-blue-400 hover:text-blue-500 transition-colors px-4 h-9"
-          >
-            <span className="font-medium">Copy</span>
-          </Button>
-        </Tooltip>
-        <Tooltip title="Cancel Link">
-          <Button
-            type="primary"
-            danger
-            icon={<Icon icon="bx:bx-x" className="text-lg" />}
-            onClick={onCancelLink}
-            className="flex items-center gap-2 hover:opacity-90 transition-opacity px-4 h-9"
-          >
-            <span className="font-medium">Cancel</span>
-          </Button>
-        </Tooltip>
-      </div>
-    </div>
+function doDownload(url, fileName) {
+  const a = document.createElement("a");
+  a.download = fileName;
+  a.href = url;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+}
 
-    <div className="w-full relative group">
-      <Input
-        value={link}
-        readOnly
-        className="font-mono text-sm sm:text-base bg-white/70 hover:bg-white focus:bg-white transition-colors pl-4 pr-12 py-2.5 rounded-lg border-gray-200 hover:border-gray-300"
-        style={{
-          whiteSpace: "nowrap",
-          overflow: "hidden",
-          textOverflow: "ellipsis",
-        }}
-      />
-      <Icon
-        icon="heroicons:link"
-        className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 group-hover:text-gray-600 transition-colors text-lg"
-      />
+const LinkDisplay = ({ link, handleCopyLink, onCancelLink, isActive }) => {
+  const qrCanvasRef = useRef(null);
+
+  const downloadQRCode = () => {
+    const canvas = document.querySelector("canvas");
+    if (canvas) {
+      const url = canvas.toDataURL("image/png");
+      doDownload(url, "QRCode.png");
+    }
+  };
+
+  return (
+    <div className="w-full max-w-full bg-gray-50 rounded-xl p-4 sm:p-5 lg:p-6 space-y-4 shadow-sm border border-gray-100">
+      {/* Header Section */}
+      <div className="flex flex-row lg:items-center justify-between space-y-4 lg:space-y-0">
+        {/* Status Section */}
+        <div className="flex items-center gap-2">
+          <span className="text-gray-600 font-medium text-sm md:text-base">
+            Link Status:
+          </span>
+          {isActive ? (
+            <Tag
+              color="success"
+              className="px-3 md:px-4 py-1 md:py-1.5 text-xs md:text-sm rounded-full flex items-center gap-1.5"
+            >
+              <Icon icon="heroicons:check-circle" className="text-base" />
+              Active
+            </Tag>
+          ) : (
+            <Tag
+              color="error"
+              className="px-3 md:px-4 py-1 md:py-1.5 text-xs md:text-sm rounded-full flex items-center gap-1.5"
+            >
+              <Icon icon="heroicons:x-circle" className="text-base" />
+              Expired
+            </Tag>
+          )}
+        </div>
+
+        {/* Action Buttons */}
+        <div className="flex flex-wrap gap-3 items-center justify-end">
+          <Tooltip title="Copy Link">
+            <Button
+              icon={<Icon icon="bx:bx-copy" className="text-lg" />}
+              onClick={() => handleCopyLink(link)}
+              className="flex items-center gap-1.5 hover:border-blue-400 hover:text-blue-500 transition-colors 
+                  h-8 md:h-9 px-2 md:px-3 text-sm md:text-base w-full sm:w-auto"
+            >
+              <span className="hidden sm:inline">Copy</span>
+            </Button>
+          </Tooltip>
+
+          <Tooltip title="Download QR Code">
+            <Button
+              type="primary"
+              icon={<Icon icon="mdi:download" className="text-lg" />}
+              onClick={downloadQRCode}
+              className="flex items-center gap-1.5 h-8 md:h-9 px-2 md:px-3 text-sm md:text-base w-full sm:w-auto"
+            >
+              <span className="hidden sm:inline">QR Code</span>
+            </Button>
+          </Tooltip>
+
+          <Tooltip title="Cancel Link">
+            <Button
+              danger
+              icon={<Icon icon="bx:bx-x" className="text-lg" />}
+              onClick={onCancelLink}
+              className="flex items-center gap-1.5 hover:opacity-90 transition-opacity 
+                  h-8 md:h-9 px-2 md:px-3 text-sm md:text-base w-full sm:w-auto"
+            >
+              <span className="hidden sm:inline">Cancel</span>
+            </Button>
+          </Tooltip>
+        </div>
+      </div>
+
+      {/* Link Input Section */}
+      <div className="w-full relative group">
+        <Input
+          value={link}
+          readOnly
+          className="font-mono text-xs sm:text-sm md:text-base bg-white/70 hover:bg-white focus:bg-white 
+                   transition-colors pl-3 md:pl-4 pr-10 md:pr-12 py-2 md:py-2.5 rounded-lg 
+                   border-gray-200 hover:border-gray-300 overflow-hidden text-ellipsis"
+        />
+        <Icon
+          icon="heroicons:link"
+          className="absolute right-3 md:right-4 top-1/2 -translate-y-1/2 
+                   text-gray-400 group-hover:text-gray-600 transition-colors 
+                   text-base md:text-lg"
+        />
+      </div>
+
+      {/* Hidden QR Code */}
+      <div className="hidden">
+        <QRCode value={link} bgColor="#FFFFFF" size={256} bordered={false} />
+      </div>
     </div>
-  </div>
-);
+  );
+};
 
 const LinkContainer = ({ children }) => (
-  <div className="w-full max-w-2xl mx-auto bg-white">
-    <div className=" space-y-6">{children}</div>
+  <div className="w-full mx-auto bg-white rounded-lg">
+    <div className="space-y-6">{children}</div>
   </div>
 );
 

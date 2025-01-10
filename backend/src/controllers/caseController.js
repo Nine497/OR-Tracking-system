@@ -2,6 +2,65 @@ const SurgeryCase = require("../models/caseModel");
 const db = require("../config/database");
 const patient = require("../models/caseModel");
 
+exports.updateSurgeryCase = async (req, res) => {
+  try {
+    const { surgery_case_id } = req.params;
+    const surgeryCaseData = req.body;
+
+    if (
+      !surgeryCaseData ||
+      !surgeryCaseData.surgery_type_id ||
+      !surgeryCaseData.operating_room_id
+    ) {
+      return res
+        .status(400)
+        .json({ message: "Please provide all required fields." });
+    }
+    console.log("surgeryCaseData : ", surgeryCaseData);
+
+    const updatedCase = await SurgeryCase.update(
+      surgery_case_id,
+      surgeryCaseData
+    );
+
+    if (updatedCase) {
+      return res
+        .status(200)
+        .json({ message: "Surgery case updated successfully", updatedCase });
+    } else {
+      return res.status(404).json({ message: "Surgery case not found" });
+    }
+  } catch (error) {
+    console.error("Error updating surgery case:", error);
+    return res
+      .status(500)
+      .json({ message: "An error occurred while updating the surgery case." });
+  }
+};
+
+exports.getCaseWithPatientById = async (req, res) => {
+  const { surgery_case_id } = req.params;
+
+  try {
+    const caseData = await SurgeryCase.getCaseWithPatientById(surgery_case_id);
+
+    if (!caseData) {
+      return res.status(404).json({ message: "Surgery case not found" });
+    }
+
+    res.status(200).json({
+      message: "Surgery case and patient details fetched successfully",
+      data: caseData,
+    });
+  } catch (error) {
+    console.error("Error in getCaseWithPatientById:", error);
+    res.status(500).json({
+      message: "Failed to retrieve surgery case data",
+      details: error.message,
+    });
+  }
+};
+
 // ฟังก์ชันสำหรับดึงข้อมูลกรณีการผ่าตัดทั้งหมด
 exports.getAllCase = async (req, res) => {
   try {
@@ -18,13 +77,14 @@ exports.getAllCase = async (req, res) => {
       if (lowerSearch) {
         query.andWhere((builder) => {
           builder
-            .whereRaw('LOWER(CAST("surgery_case_id" AS text)) LIKE ?', [
-              `%${lowerSearch}%`,
-            ])
+            .whereRaw(
+              'LOWER(CAST("surgery_case"."surgery_case_id" AS text)) LIKE ?',
+              [`%${lowerSearch}%`]
+            )
             .orWhereRaw("LOWER(patients.firstname) LIKE ?", [
               `%${lowerSearch}%`,
             ])
-            .orWhereRaw("LOWER(patients.hn_code) LIKE ?", [`${lowerSearch}%`])
+            .orWhereRaw("LOWER(patients.hn_code) LIKE ?", [`%${lowerSearch}%`])
             .orWhereRaw("LOWER(operating_room.room_name) LIKE ?", [
               `%${lowerSearch}%`,
             ]);
@@ -48,7 +108,7 @@ exports.getAllCase = async (req, res) => {
         "doctors.lastname as doctor_lastname",
         "operating_room.room_name as room_name",
         "status.status_name as status_name",
-        "surgery_case_links.surgery_case_links_id as active_link_id" // Add the active link ID
+        "surgery_case_links.surgery_case_links_id as active_link_id"
       )
       .leftJoin("patients", "surgery_case.patient_id", "patients.patient_id")
       .leftJoin("doctors", "surgery_case.doctor_id", "doctors.doctor_id")
@@ -71,7 +131,7 @@ exports.getAllCase = async (req, res) => {
     const filteredCountQuery = query.clone();
     const filteredCount = await filteredCountQuery
       .clearSelect()
-      .count("surgery_case.surgery_case_id as count")
+      .count({ count: "surgery_case.surgery_case_id" })
       .first()
       .then((result) => parseInt(result.count));
 
@@ -191,28 +251,28 @@ exports.createSurgeryCase = async (req, res) => {
 };
 
 // ฟังก์ชันสำหรับอัปเดตข้อมูลกรณีการผ่าตัด
-exports.updateSurgeryCase = async (req, res) => {
-  const { id } = req.params;
-  const surgeryCaseData = req.body;
-  try {
-    const updatedSurgeryCase = await SurgeryCase.update(id, surgeryCaseData);
-    if (!updatedSurgeryCase) {
-      return res.status(404).json({
-        message: "Surgery case not found",
-      });
-    }
-    res.status(200).json({
-      message: "Surgery case updated successfully",
-      data: updatedSurgeryCase,
-    });
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({
-      message: "Server error",
-      error: err.message,
-    });
-  }
-};
+// exports.updateSurgeryCase = async (req, res) => {
+//   const { id } = req.params;
+//   const surgeryCaseData = req.body;
+//   try {
+//     const updatedSurgeryCase = await SurgeryCase.update(id, surgeryCaseData);
+//     if (!updatedSurgeryCase) {
+//       return res.status(404).json({
+//         message: "Surgery case not found",
+//       });
+//     }
+//     res.status(200).json({
+//       message: "Surgery case updated successfully",
+//       data: updatedSurgeryCase,
+//     });
+//   } catch (err) {
+//     console.error(err);
+//     res.status(500).json({
+//       message: "Server error",
+//       error: err.message,
+//     });
+//   }
+// };
 
 // ฟังก์ชันสำหรับอัปเดตสถานะของกรณีการผ่าตัดตาม ID
 exports.updateStatusById = async (req, res) => {

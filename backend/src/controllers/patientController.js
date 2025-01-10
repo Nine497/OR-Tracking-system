@@ -79,6 +79,74 @@ exports.validate_link = async (req, res) => {
   }
 };
 
+exports.updatePatient = async (req, res) => {
+  try {
+    const { patient_id } = req.params;
+    const patientData = req.body;
+
+    if (
+      !patientData.hn_code ||
+      !patientData.dob ||
+      !patientData.first_name ||
+      !patientData.last_name
+    ) {
+      return res
+        .status(400)
+        .json({ message: "Please provide all required fields." });
+    }
+
+    const existingPatient = await Patient.getPatientById(patient_id);
+    if (!existingPatient) {
+      return res.status(404).json({ message: "Patient not found." });
+    }
+
+    const updatedPatient = await Patient.update(patient_id, patientData);
+
+    return res.status(200).json({
+      message: "Patient updated successfully",
+      patient: updatedPatient,
+    });
+    โ;
+  } catch (error) {
+    console.error("Error updating patient:", error);
+    return res
+      .status(500)
+      .json({ message: "An error occurred while updating the patient." });
+  }
+};
+
+exports.createPatient = async (req, res) => {
+  try {
+    const patientData = req.body;
+
+    if (
+      !patientData.hn_code ||
+      !patientData.dob ||
+      !patientData.first_name ||
+      !patientData.last_name
+    ) {
+      return res
+        .status(400)
+        .json({ message: "Please provide all required fields." });
+    }
+
+    if (patientData.dob) {
+      patientData.dob = moment(patientData.dob).format("YYYY-MM-DD");
+    }
+
+    const newPatient = await Patient.create(patientData);
+
+    return res
+      .status(201)
+      .json({ message: "Patient created successfully", patient: newPatient });
+  } catch (error) {
+    console.error("Error creating patient:", error);
+    return res
+      .status(500)
+      .json({ message: "An error occurred while creating the patient." });
+  }
+};
+
 exports.login = async (req, res) => {
   const { hn, dob, surgery_case_id, link } = req.body;
 
@@ -191,23 +259,31 @@ exports.getPatientData = async (req, res) => {
   }
 };
 
-exports.getAllStatus = async (req, res) => {
+exports.getAllStatuses = async () => {
   try {
-    const allStatuses = await patientModel.getAllStatuses();
+    const statuses = await db("status")
+      .select(
+        "status.status_id",
+        "status.status_name",
+        "status.description",
+        "translations.translated_name",
+        "translations.translated_des"
+      )
+      .leftJoin("translations", function () {
+        this.on("translations.ref_id", "=", "status.status_id")
+          .andOn("translations.language_code", "=", db.raw("'th'"))
+          .andOn("translations.section", "=", db.raw("'status'"));
+      })
+      .orderBy("status.status_id");
 
-    if (!allStatuses || allStatuses.length === 0) {
-      return res.status(404).json({ message: "No statuses found" });
+    if (!statuses || statuses.length === 0) {
+      return { message: "No statuses found" };
     }
 
-    allStatuses.sort((a, b) => a.status_id - b.status_id);
-
-    res.status(200).json(allStatuses);
+    return statuses;
   } catch (error) {
-    console.error("Error in getAllStatus controller:", error);
-    res.status(500).json({
-      message: "Failed to retrieve statuses",
-      details: error.message,
-    });
+    console.error("Error in getAllStatuses:", error);
+    return { message: "Failed to retrieve statuses", details: error.message };
   }
 };
 

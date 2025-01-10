@@ -195,7 +195,7 @@ const StatusTimeline = ({
             <p className="text-sm sm:text-base lg:text-lg text-gray-700 mb-3 sm:mb-4">
               {t("review.review_prompt")}
             </p>
-            <div className="flex justify-center items-center py-4 sm:py-6 px-3 sm:px-4 bg-gray-50 rounded-lg">
+            <div className="flex justify-center items-center py-4 sm:py-6 px-3 sm:px-4 bg-white rounded-lg">
               <Rate
                 defaultValue={rating}
                 onChange={setRating}

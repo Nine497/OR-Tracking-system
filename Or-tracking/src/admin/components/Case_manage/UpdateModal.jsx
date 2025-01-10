@@ -66,7 +66,7 @@ function UpdateModal({ visible, record, onClose, type }) {
       onCancel={onClose}
       footer={null}
       centered
-      width="35%"
+      width="auto"
       className="rounded-lg"
       styles={{
         body: {

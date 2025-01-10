@@ -126,7 +126,7 @@ const StatusUpdateForm = ({ record, allStatus, onStatusUpdate }) => {
             value={status.status_id}
             className="py-1"
           >
-            {status.status_name}
+            {status.translated_name}
           </Select.Option>
         ))}
       </Select>

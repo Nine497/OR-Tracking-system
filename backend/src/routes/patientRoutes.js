@@ -10,8 +10,21 @@ router.post(
   validateLinkStatus,
   patientController.getPatientData
 );
-router.get("/getAllStatus", patientController.getAllStatus);
-
+router.get("/getAllStatus", async (req, res) => {
+  try {
+    const statuses = await patientController.getAllStatuses();
+    if (statuses.message) {
+      return res.status(404).json(statuses);
+    }
+    res.status(200).json(statuses);
+  } catch (error) {
+    res
+      .status(500)
+      .json({ message: "Failed to retrieve statuses", details: error.message });
+  }
+});
 router.get("/getStatus/:id", patientController.getCaseWithStatusHistory);
+router.post("/", patientController.createPatient);
+router.put("/:patient_id", patientController.updatePatient);
 
 module.exports = router;

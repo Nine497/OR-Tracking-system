@@ -1,4 +1,3 @@
-// Sidebar.jsx
 import React, { useEffect, useState } from "react";
 import { Layout, Menu, Button } from "antd";
 import { useLocation, NavLink } from "react-router-dom";
@@ -97,81 +96,84 @@ const Sidebar = ({ collapsed, setCollapsed, isMobile, user }) => {
       theme="light"
       collapsed={collapsed}
       onCollapse={setCollapsed}
-      collapsible
+      collapsible={!isMobile}
       collapsedWidth={isMobile ? 0 : 80}
       width={240}
-      className="fixed left-0 top-0 bottom-0 h-screen z-20 shadow-lg border-r border-gray-100"
-      trigger={
-        !isMobile && (
-          <CustomTrigger collapsed={collapsed} setCollapsed={setCollapsed} />
-        )
-      }
+      className="fixed left-0 top-0 h-screen z-20 shadow-lg border-r border-gray-200 bg-white"
+      trigger={null}
     >
+      <div className="flex flex-col h-full">
+        {/* Logo and Collapse Trigger Section */}
+        <div className="flex-none h-16 flex items-center justify-between border-b border-gray-100 bg-white/95 px-4">
+          {/* Logo Section */}
+          <img
+            src={Logo}
+            alt="Logo"
+            className={`transition-all duration-300 ease-in-out ${
+              collapsed ? "w-12 hidden" : "w-32"
+            } h-auto object-contain`}
+          />
+          {/* Collapse Trigger for Desktop */}
+          {!isMobile && (
+            <Button
+              type="text"
+              icon={collapsed ? <RightOutlined /> : <LeftOutlined />}
+              onClick={() => setCollapsed(!collapsed)}
+              className="hover:bg-gray-50 w-8 h-8 p-0 flex items-center justify-center rounded-md"
+            />
+          )}
+        </div>
+
+        {/* Menu Section */}
+        <Menu
+          mode="inline"
+          theme="light"
+          selectedKeys={[selectedKey]}
+          items={menuItems}
+          className="border-none bg-transparent"
+        >
+          <style jsx>{`
+            .ant-menu-item {
+              display: flex;
+              justify-content: center;
+              align-items: center;
+              height: 48px;
+            }
+            .ant-menu-item-active {
+              background-color: #e6f7ff;
+              color: #1890ff;
+            }
+            .ant-menu-item-selected {
+              background-color: #bae7ff;
+              color: #1890ff;
+            }
+          `}</style>
+        </Menu>
+
+        {/* Footer Section */}
+        <div
+          className={`flex-none min-h-[4rem] w-full px-4 py-3 mt-auto border-t border-gray-100 text-center bg-white/95 transition-all duration-300 ${
+            collapsed ? "opacity-0" : "opacity-100"
+          }`}
+        >
+          <p className="text-sm font-semibold text-gray-700 mb-0.5">
+            OR-Tracking System
+          </p>
+          <p className="text-xs text-gray-500">Version 0.0.1</p>
+        </div>
+      </div>
+
+      {/* Mobile Toggle Button */}
       {isMobile && (
         <Button
-          type="text"
-          icon={collapsed ? <MenuUnfoldOutlined /> : <MenuFoldOutlined />}
+          type="default"
+          icon={collapsed ? <RightOutlined /> : <LeftOutlined />}
           onClick={() => setCollapsed(!collapsed)}
-          className="absolute -right-12 top-4 shadow-md bg-white"
-          style={{
-            width: "32px",
-            height: "32px",
-            borderRadius: "4px",
-          }}
+          className="absolute -right-12 top-4 shadow-lg bg-white hover:bg-gray-50 border-gray-200 w-8 h-8 p-0 flex items-center justify-center rounded-md"
         />
       )}
-
-      <div className="flex items-center justify-center p-4 h-16 border-b border-gray-100">
-        <img
-          src={Logo}
-          alt="Logo"
-          className={`transition-all duration-300 ${
-            collapsed ? "w-12" : "w-32"
-          } h-auto object-contain`}
-        />
-      </div>
-
-      <Menu
-        mode="inline"
-        theme="light"
-        selectedKeys={[selectedKey]}
-        items={menuItems}
-        className="border-none custom-sidebar-menu bg-transparent [&_.ant-menu-item]:text-base [&_.ant-menu-item_.anticon]:text-xl [&_.ant-menu-item]:py-6"
-      />
-
-      <div
-        className={`
-            absolute bottom-7 w-full p-4 border-t border-gray-100 text-center
-            transition-all duration-300 bg-white
-            ${collapsed ? "opacity-0" : "opacity-100"}
-          `}
-      >
-        <p className="text-sm text-gray-600 font-bold">OR-Tracking System</p>
-        <p className="text-sm text-gray-600">Version 0.0.1</p>
-      </div>
     </Layout.Sider>
   );
 };
-
-const CustomTrigger = ({ collapsed, setCollapsed }) => (
-  <div
-    onClick={() => setCollapsed(!collapsed)}
-    className="absolute -right-6 top-20  bg-white rounded-r-lg border-y border-r border-gray-200 cursor-pointerhover:bg-gray-50 
-      transition-colors 
-      duration-200 
-      flex 
-      items-center 
-      justify-center 
-      w-6 
-      h-12 
-      shadow-md"
-  >
-    {collapsed ? (
-      <RightOutlined className="text-xs text-gray-600" />
-    ) : (
-      <LeftOutlined className="text-xs text-gray-600" />
-    )}
-  </div>
-);
 
 export default Sidebar;

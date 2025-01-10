@@ -5,6 +5,7 @@ import axiosInstance from "../../api/axiosInstance";
 import UpdateModal from "./UpdateModal";
 import StatusUpdateForm from "./Status_update";
 import moment from "moment";
+import { useNavigate } from "react-router-dom";
 
 function CaseTable() {
   const [selectedRecord, setSelectedRecord] = useState(null);
@@ -22,12 +23,16 @@ function CaseTable() {
   const [allStatus, setAllStatus] = useState([]);
   const [dataLastestUpdated, setDataLastestUpdated] = useState(null);
   const BASE_URL = import.meta.env.VITE_BASE_URL;
-  const [fetchedLinks, setFetchedLinks] = useState({});
+  const navigate = useNavigate();
 
   const handleSelectChange = (value) => {
     setDoctorSelectedOption(value);
     setPagination((prev) => ({ ...prev, current: 1 }));
     handleSearch(searchTerm, value);
+  };
+
+  const handleEditRecord = (record) => {
+    navigate(`/admin/case_manage/edit_case?id=${record.surgery_case_id}`);
   };
 
   const copyLink = (linkUrl) => {
@@ -131,6 +136,7 @@ function CaseTable() {
   const closeLinkModal = () => {
     setSelectedRecord(null);
     setIsLinkModalVisible(false);
+    fetchData();
   };
 
   const fetchData = async () => {
@@ -239,6 +245,7 @@ function CaseTable() {
       try {
         const response = await axiosInstance.get("patient/getAllStatus");
         if (response.status === 200 && response.data) {
+          console.log("response.data:", response.data);
           setAllStatus(response.data);
         }
       } catch (err) {
@@ -351,6 +358,14 @@ function CaseTable() {
       align: "center",
       render: (_, record) => (
         <div className="flex flex-wrap items-center justify-between gap-2">
+          <Button
+            type="default"
+            icon={<Icon icon="lucide:settings" />}
+            onClick={() => openLinkModal(record)}
+            className="flex items-center gap-1"
+          >
+            Setting
+          </Button>
           {record.active_link_id ? (
             <Button
               type="default"
@@ -364,20 +379,12 @@ function CaseTable() {
               Copy
             </Button>
           ) : null}
-          <Button
-            type="default"
-            icon={<Icon icon="lucide:settings" />}
-            onClick={() => openLinkModal(record)}
-            className="flex items-center gap-1"
-          >
-            Setting
-          </Button>
         </div>
       ),
     },
     {
       title: <span className="text-base font-bold">Action</span>,
-      key: "status",
+      key: "Action",
       align: "center",
       render: (_, record) => (
         <div className="flex flex-wrap items-center justify-between gap-2">

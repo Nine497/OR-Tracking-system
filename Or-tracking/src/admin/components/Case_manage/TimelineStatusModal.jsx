@@ -41,9 +41,9 @@ const TimelineStatus = ({ record }) => {
         </div>
       ),
       children: (
-        <div className="ml-2 bg-white rounded-lg px-5 py-1 transition-colors duration-200">
+        <div className="ml-2 bg-white rounded-lg px-3 transition-colors duration-200">
           <Text className="text-base font-semibold text-gray-800">
-            {status.status_name}
+            {status.translated_name}
           </Text>
           <div className="mt-2">
             {isPast ? (
@@ -61,7 +61,7 @@ const TimelineStatus = ({ record }) => {
               </div>
             ) : (
               <Text className="text-sm text-gray-600">
-                {status.description}
+                {status.translated_des}
               </Text>
             )}
           </div>
@@ -129,7 +129,8 @@ const TimelineStatus = ({ record }) => {
 
     return allStatus.map((status) => {
       const isPast =
-        passedStatusMap.has(status.status_id) || status.status_id === 0;
+        (passedStatusMap.has(status.status_id) || status.status_id === 0) &&
+        status.status_id <= latestStatus;
       const statusData = passedStatusMap.get(status.status_id);
 
       return createTimelineItem(status, statusData, isPast);

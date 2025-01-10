@@ -1,6 +1,30 @@
 const db = require("../config/database");
 
 const SurgeryCase = {
+  getCaseWithPatientById: (surgeryCaseId) => {
+    return db("surgery_case")
+      .select(
+        "surgery_case.surgery_case_id",
+        "surgery_case.surgery_type_id",
+        "surgery_case.operating_room_id",
+        "surgery_case.status_id",
+        "surgery_case.doctor_id",
+        "surgery_case.patient_id",
+        "surgery_case.estimate_duration",
+        "surgery_case.estimate_start_time",
+        "surgery_case.surgery_date",
+        "patients.firstname as patient_firstname",
+        "patients.lastname as patient_lastname",
+        "patients.hn_code as patient_hn_code",
+        "patients.gender as patient_gender",
+        "patients.dob as patient_dob",
+        "patients.patient_history as patient_history"
+      )
+      .leftJoin("patients", "surgery_case.patient_id", "patients.patient_id")
+      .where("surgery_case.surgery_case_id", surgeryCaseId)
+      .first();
+  },
+
   // ค้นหาข้อมูลกรณีการผ่าตัดตามเงื่อนไข
   findOne: (criteria) => {
     return db("surgery_case").where(criteria).first();

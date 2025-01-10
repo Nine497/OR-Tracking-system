@@ -16,6 +16,7 @@ import Case_manage from "./admin/page/Case_manage";
 import ErrorPage from "./shared/Errorpage";
 import Room_schedule from "./admin/page/RoomSchedule";
 import AddCase from "./admin/components/Case_manage/AddCase";
+import EditCase from "./admin/components/Case_manage/EditCase";
 import PermissionDenied from "./admin/page/permissionDenied";
 import PermissionRoute from "./admin/hooks/PermissionRoute";
 import PatientMain from "./patient-relative/page/PatientMain";
@@ -49,6 +50,7 @@ function App() {
               >
                 <Route path="" element={<Case_manage />} />
                 <Route path="add_case" element={<AddCase />} />
+                <Route path="edit_case" element={<EditCase />} />
               </Route>
 
               <Route path="permissionDenied" element={<PermissionDenied />} />

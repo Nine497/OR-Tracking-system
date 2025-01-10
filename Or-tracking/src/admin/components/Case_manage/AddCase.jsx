@@ -10,6 +10,7 @@ import {
   Col,
   message,
   notification,
+  Modal,
 } from "antd";
 import { Icon } from "@iconify/react";
 import IMask from "imask";
@@ -34,6 +35,7 @@ function AddCase() {
   const [surgeryTypes, setSurgeryTypes] = useState([]);
   const [surgeryTypesLoading, setSurgeryTypesLoading] = useState(false);
   const navigate = useNavigate();
+
   const [patientData, setPatientData] = useState({
     firstName: "",
     lastName: "",
@@ -238,6 +240,16 @@ function AddCase() {
     }
   };
 
+  const handleSaveConfirm = () => {
+    Modal.confirm({
+      title: "Confirm Save",
+      content: "Are you sure you want to save this surgery case?",
+      okText: "Yes, Save",
+      cancelText: "Cancel",
+      onOk: onFinish,
+    });
+  };
+
   useEffect(() => {
     if (hnInputRef.current) {
       IMask(hnInputRef.current.input, {
@@ -281,12 +293,11 @@ function AddCase() {
             title={<span className="text-xl font-normal">Surgery Data</span>}
           />
         </Steps>
-
         <div className="step-content h-full flex flex-col justify-between">
           <Form
             form={form}
             layout="vertical"
-            onFinish={onFinish}
+            onFinish={handleSaveConfirm}
             className="flex-grow space-y-4"
           >
             {currentStep === 0 && (
@@ -547,7 +558,7 @@ function AddCase() {
                     <Form.Item
                       label={
                         <span className="text-base font-normal text-gray-700">
-                          Estimate Duration (in minutes)
+                          Estimate Duration (in hours)
                         </span>
                       }
                       name="estimate_duration"
@@ -556,19 +567,32 @@ function AddCase() {
                           required: true,
                           message: "Please enter the duration!",
                         },
+                        {
+                          validator: (_, value) =>
+                            value > 0
+                              ? Promise.resolve()
+                              : Promise.reject(
+                                  new Error("Duration must be greater than 0")
+                                ),
+                        },
                       ]}
                       className="w-full"
                     >
                       <Input
                         name="estimate_duration"
-                        value={surgeryData.estimate_duration}
-                        onChange={(e) =>
-                          handleSurgeryDataChange(
-                            "estimate_duration",
-                            e.target.value
-                          )
+                        placeholder="Input estimate duration (in hours)"
+                        value={
+                          surgeryData.estimate_duration
+                            ? (surgeryData.estimate_duration / 60).toFixed(2)
+                            : ""
                         }
+                        onChange={(e) => {
+                          const hours = parseFloat(e.target.value) || 0;
+                          const minutes = Math.round(hours * 60);
+                          handleSurgeryDataChange("estimate_duration", minutes);
+                        }}
                         type="number"
+                        step="0.01"
                         className="h-10 w-full text-base border rounded-md border-gray-300 focus:border-blue-400 focus:ring-1 focus:ring-blue-200"
                       />
                     </Form.Item>

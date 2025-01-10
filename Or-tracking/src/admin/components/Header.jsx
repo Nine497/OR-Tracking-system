@@ -54,13 +54,11 @@ function Header() {
     },
   ];
 
-  const firstLetter = user
-    ? user.username.charAt(0).toUpperCase()
-    : "A";
+  const firstLetter = user ? user.username.charAt(0).toUpperCase() : "A";
 
   return (
     <div className="text-gray-700 flex justify-between items-center px-10 pt-2 bg-gray-200">
-      <div className="flex items-center space-x-4">
+      <div className="flex items-center space-x-4 pl-4 lg:pl-0">
         <BreadcrumbComponent />
       </div>
       <div className="flex items-center space-x-4">

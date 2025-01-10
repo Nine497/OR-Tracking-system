@@ -13,7 +13,7 @@ const { Content } = Layout;
 function Admin() {
   const { user } = useAuth();
   const [collapsed, setCollapsed] = useState(false);
-  const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
+  const [isMobile, setIsMobile] = useState(window.innerWidth <= 1024);
 
   useEffect(() => {
     const handleResize = () => {
@@ -29,7 +29,7 @@ function Admin() {
   }, []);
 
   return (
-    <Layout className="min-h-screen">
+    <Layout className="h-screen">
       <Sidebar
         collapsed={collapsed}
         setCollapsed={setCollapsed}
@@ -42,8 +42,8 @@ function Admin() {
         }`}
       >
         <Header />
-        <Content className="p-6 bg-gray-200">
-          <div className="bg-white rounded-lg min-h-[800px] p-6">
+        <Content className="p-6 bg-gray-200 overflow-y-auto">
+          <div className="bg-white rounded-lg min-h-[calc(100vh-theme(spacing.32))] p-6">
             <Outlet />
           </div>
         </Content>
