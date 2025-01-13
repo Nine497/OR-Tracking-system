@@ -107,21 +107,26 @@ const LinkDisplay = ({ link, handleCopyLink, onCancelLink, isActive }) => {
       <div className="flex flex-row lg:items-center justify-between space-y-4 lg:space-y-0">
         {/* Status Section */}
         <div className="flex items-center gap-2">
-          <span className="text-gray-600 font-medium text-sm md:text-base">
-            Link Status:
-          </span>
           {isActive ? (
             <Tag
-              color="success"
-              className="px-3 md:px-4 py-1 md:py-1.5 text-xs md:text-sm rounded-full flex items-center gap-1.5"
+              color="#4BB543"
+              className="mr-4 sm:mr-6 md:mr-8 lg:mr-11 md:px-4 py-1 md:py-1.5 text-xs md:text-sm rounded-full flex items-center gap-1.5"
             >
               <Icon icon="heroicons:check-circle" className="text-base" />
               Active
             </Tag>
           ) : (
+            // <Tag
+            //   color="#ff3333"
+            //   className="mr-3 sm:mr-4 md:mr-5 lg:mr-6 px-3 sm:px-4 md:px-5 py-1 sm:py-1.5 text-xs sm:text-sm md:text-base rounded-full flex items-center gap-1.5"
+            // >
+            //   <Icon icon="heroicons:x-circle" className="text-base" />
+            //   Expired
+            // </Tag>
+
             <Tag
-              color="error"
-              className="px-3 md:px-4 py-1 md:py-1.5 text-xs md:text-sm rounded-full flex items-center gap-1.5"
+              color="#ff3333"
+              className="mr-4 sm:mr-6 md:mr-8 lg:mr-11 md:px-4 py-1 md:py-1.5 text-xs md:text-sm rounded-full flex items-center gap-1.5"
             >
               <Icon icon="heroicons:x-circle" className="text-base" />
               Expired
@@ -142,7 +147,7 @@ const LinkDisplay = ({ link, handleCopyLink, onCancelLink, isActive }) => {
             </Button>
           </Tooltip>
 
-          <Tooltip title="Download QR Code">
+          {/* <Tooltip title="Download QR Code">
             <Button
               type="primary"
               icon={<Icon icon="mdi:download" className="text-lg" />}
@@ -151,10 +156,11 @@ const LinkDisplay = ({ link, handleCopyLink, onCancelLink, isActive }) => {
             >
               <span className="hidden sm:inline">QR Code</span>
             </Button>
-          </Tooltip>
+          </Tooltip> */}
 
           <Tooltip title="Cancel Link">
             <Button
+              type="primary"
               danger
               icon={<Icon icon="bx:bx-x" className="text-lg" />}
               onClick={onCancelLink}
@@ -205,12 +211,13 @@ const InfoItem = ({ label, value, children, isActive, isCount }) => (
     </span>
     {isCount ? (
       <Tag
-        color="blue"
-        className="px-3 py-1.5 text-sm sm:text-base flex items-center gap-2 rounded-full font-medium hover:scale-105 transition-transform"
+        bordered={false}
+        color="magenta"
+        className="px-3 py-1.5 text-sm sm:text-base flex items-center gap-2 font-medium transition-transform"
       >
         <Icon icon="heroicons:user-group" className="text-base sm:text-lg" />
         <span className="font-semibold">{value}</span>
-        <span className="text-blue-600/80">times</span>
+        <span className="text-magenta-600/80">times</span>
       </Tag>
     ) : children ? (
       <div className="flex items-center gap-2 text-sm sm:text-base">
@@ -396,11 +403,24 @@ const ExpiredLinkComponent = ({
       </div>
 
       <div className="space-y-3">
-        <InfoItem
-          label="Expiration At"
-          value={moment(linkData.expiration_time).format("YYYY-MM-DD, HH:mm")}
-          isActive={false}
-        />
+        <div className="flex items-center gap-4">
+          <InfoItem
+            label="Expiration At"
+            value={moment(linkData.expiration_time).format("YYYY-MM-DD, HH:mm")}
+            isActive={false}
+          />
+          <div className="flex gap-2">
+            <Button
+              disabled
+              type="primary"
+              onClick={() => setIsEditing(true)}
+              icon={<Icon icon="mdi:pencil" />}
+              className="flex items-center ml-2"
+            >
+              Edit
+            </Button>
+          </div>
+        </div>
         <InfoItem
           label="Created At"
           value={moment(linkData.created_at).format("YYYY-MM-DD, HH:mm")}

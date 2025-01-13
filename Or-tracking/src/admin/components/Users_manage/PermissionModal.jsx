@@ -1,11 +1,15 @@
 import React, { useState, useEffect } from "react";
 import { Modal, Form, Checkbox, Button, notification } from "antd";
 import axiosInstance from "../../api/axiosInstance";
+import { useAuth } from "../../context/AuthContext";
+import moment from "moment";
 
 function PermissionModal({ visible, staff, onClose }) {
-  const [permissions, setPermissions] = useState([]);
+  const [allPermissions, setAllPermissions] = useState([]);
   const [staffPermissions, setStaffPermissions] = useState([]);
   const [loading, setLoading] = useState(false);
+  const { user } = useAuth();
+  const [form] = Form.useForm();
 
   useEffect(() => {
     const fetchPermissions = async () => {
@@ -19,9 +23,8 @@ function PermissionModal({ visible, staff, onClose }) {
             Authorization: `Bearer ${token}`,
           },
         });
-        setPermissions(response.data.permissions);
-
-        console.log(staff);
+        setAllPermissions(response.data.permissions);
+        console.log(allPermissions);
 
         if (staff) {
           const staffResponse = await axiosInstance.get(
@@ -51,14 +54,71 @@ function PermissionModal({ visible, staff, onClose }) {
     }
   }, [visible, staff]);
 
-  const handleFinish = (values) => {
-    console.log("Updated permissions for:", staff.userName, values);
-    onClose();
+  const handleFinish = async () => {
+    const permissions = staffPermissions.map((p) => p.permission_id);
+
+    if (permissions.length > 0) {
+      console.log("Permissions to be updated:", permissions);
+
+      const currentDateTime = moment().format("YYYY-MM-DD HH:mm:ss.SSS");
+
+      try {
+        const token = localStorage.getItem("jwtToken");
+
+        const response = await axiosInstance.post(
+          `/staff/update_permissions/${staff.staff_id}`,
+          {
+            permission_ids: permissions,
+            gived_by: user.id,
+            gived_at: currentDateTime,
+          },
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
+
+        notification.success({
+          message: "Success",
+          description: "Permissions updated successfully!",
+        });
+
+        onClose();
+      } catch (error) {
+        console.error("Error updating permissions:", error);
+        notification.error({
+          message: "Error",
+          description: "Failed to update permissions.",
+        });
+      }
+    } else {
+      notification.warning({
+        message: "No permissions selected",
+        description: "Please select at least one permission to update.",
+      });
+    }
   };
 
   useEffect(() => {
     console.log("staffPermissions : ", staffPermissions);
   }, [staffPermissions]);
+
+  const handleCheckboxChange = (value, checked) => {
+    console.log("Checkbox value:", value, "Checked:", checked);
+
+    let updatedPermissions = [...staffPermissions];
+
+    if (checked) {
+      updatedPermissions.push({ permission_id: value });
+    } else {
+      updatedPermissions = updatedPermissions.filter(
+        (item) => item.permission_id !== value
+      );
+    }
+
+    setStaffPermissions(updatedPermissions);
+  };
 
   return (
     <Modal
@@ -88,18 +148,22 @@ function PermissionModal({ visible, staff, onClose }) {
               Select Permissions
             </span>
           }
+          valuePropName="value"
+          initialValue={staffPermissions.map((p) => p.permission_id)}
         >
           <div className="grid grid-cols-2 gap-6">
-            {permissions.map((item) => (
+            {allPermissions.map((item) => (
               <CustomCheckbox
                 key={item.permission_id}
                 value={item.permission_id}
                 staff={staffPermissions}
+                onChange={handleCheckboxChange}
                 label={item.permission_name}
               />
             ))}
           </div>
         </Form.Item>
+
         <div className="flex justify-center space-x-4 border-t pt-6 mt-6">
           <Button onClick={onClose} className="px-6 py-2 text-lg">
             Cancel
@@ -117,19 +181,27 @@ function PermissionModal({ visible, staff, onClose }) {
   );
 }
 
-const CustomCheckbox = ({ value, label, staff }) => {
+const CustomCheckbox = ({ value, label, staff, onChange }) => {
   const [isChecked, setIsChecked] = useState(false);
+
   useEffect(() => {
-    setIsChecked(
-      staff.filter((item, i) => item.permission_id === value).length > 0
-    );
-  }, [staff]);
+    // ตรวจสอบว่า permission_id ของ staff ตรงกับค่า value ที่ได้รับจาก checkbox
+    setIsChecked(staff.some((item) => item.permission_id === value));
+  }, [staff, value]); // อัปเดตเมื่อ staff หรือ value เปลี่ยนแปลง
+
+  const handleChange = (e) => {
+    if (e && e.target) {
+      const checked = e.target.checked;
+      setIsChecked(checked);
+      onChange(value, checked);
+    }
+  };
 
   return (
     <Checkbox
-      checked={isChecked}
       value={value}
-      onChange={() => setIsChecked(!isChecked)}
+      checked={isChecked}
+      onChange={handleChange} // เรียกใช้งาน handleChange เมื่อมีการเปลี่ยนแปลง
       className="flex items-center p-3 border rounded-lg hover:bg-blue-50 transition-colors text-base"
     >
       <span className="text-base font-normal">{label}</span>

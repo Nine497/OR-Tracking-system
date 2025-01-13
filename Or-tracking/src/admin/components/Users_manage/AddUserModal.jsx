@@ -1,11 +1,41 @@
 import React from "react";
-import { Modal, Form, Input, Button, Row, Col } from "antd";
+import { Modal, Form, Input, Button, Row, Col, notification } from "antd";
 import { Icon } from "@iconify/react";
+import axiosInstance from "../../api/axiosInstance";
+import { useAuth } from "../../context/AuthContext";
 
 function AddUserModal({ visible, onClose }) {
-  const handleFinish = (values) => {
-    console.log("User details:", values);
-    onClose();
+  const { user } = useAuth();
+
+  const handleFinish = async (values) => {
+    try {
+      console.log("values: ", { ...values, created_by: user.id });
+
+      const token = localStorage.getItem("jwtToken");
+      const response = await axiosInstance.post(
+        "/staff",
+        { ...values, created_by: user.id },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      if (response.status === 200) {
+        notification.success({
+          message: "Success",
+          description: "User details have been saved successfully.",
+        });
+        onClose(); // ปิด modal
+      }
+    } catch (error) {
+      console.error("Error saving user details:", error);
+      notification.error({
+        message: "Error",
+        description: "Failed to save user details. Please try again.",
+      });
+    }
   };
 
   return (
@@ -34,6 +64,7 @@ function AddUserModal({ visible, onClose }) {
     >
       <Form onFinish={handleFinish} layout="vertical" className="space-y-6">
         <Row gutter={[16, 24]}>
+          {/* ฟิลด์ First Name */}
           <Col xs={24} sm={12}>
             <Form.Item
               label={
@@ -41,7 +72,7 @@ function AddUserModal({ visible, onClose }) {
                   First Name
                 </span>
               }
-              name="firstName"
+              name="firstname"
               rules={[
                 { required: true, message: "Please input your first name!" },
               ]}
@@ -54,6 +85,7 @@ function AddUserModal({ visible, onClose }) {
               />
             </Form.Item>
           </Col>
+          {/* ฟิลด์ Last Name */}
           <Col xs={24} sm={12}>
             <Form.Item
               label={
@@ -61,7 +93,7 @@ function AddUserModal({ visible, onClose }) {
                   Last Name
                 </span>
               }
-              name="lastName"
+              name="lastname"
               rules={[
                 { required: true, message: "Please input your last name!" },
               ]}
@@ -74,6 +106,7 @@ function AddUserModal({ visible, onClose }) {
               />
             </Form.Item>
           </Col>
+          {/* ฟิลด์ Username */}
           <Col xs={24} sm={12}>
             <Form.Item
               label={
@@ -94,6 +127,7 @@ function AddUserModal({ visible, onClose }) {
               />
             </Form.Item>
           </Col>
+          {/* ฟิลด์ Password */}
           <Col xs={24} sm={12}>
             <Form.Item
               label={
@@ -110,6 +144,7 @@ function AddUserModal({ visible, onClose }) {
             </Form.Item>
           </Col>
         </Row>
+        {/* ปุ่ม */}
         <div className="flex justify-center space-x-4 border-t pt-6 mt-6">
           <Button onClick={onClose} className="px-6 py-2 text-lg">
             Cancel

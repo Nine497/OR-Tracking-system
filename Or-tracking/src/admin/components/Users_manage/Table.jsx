@@ -56,6 +56,41 @@ function UsersTable() {
     }
   };
 
+  const handleActiveToggle = async (record, checked) => {
+    try {
+      const token = localStorage.getItem("jwtToken");
+
+      const response = await axiosInstance.put(
+        `/staff/isActive/${record.staff_id}`,
+        {
+          isActive: checked,
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      if (response.status === 200) {
+        notification.success({
+          message: "Success",
+          description: `User status updated to ${
+            checked ? "Active" : "Inactive"
+          }`,
+        });
+
+        setReloadTrigger((prev) => !prev);
+      }
+    } catch (error) {
+      console.error("Error updating status:", error);
+      notification.error({
+        message: "Error",
+        description: "Failed to update status.",
+      });
+    }
+  };
+
   useEffect(() => {
     const fetchData = async () => {
       setLoading(true);

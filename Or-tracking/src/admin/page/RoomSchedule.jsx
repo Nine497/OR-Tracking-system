@@ -1,86 +1,36 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { CalendarOutlined } from "@ant-design/icons";
 import RoomCard from "../components/RoomSchedule/RoomCard";
+import axiosInstance from "../api/axiosInstance";
 
 function RoomSchedule() {
-  const roomSchedule = [
-    {
-      room_name: "Room 1",
-      cases: [
-        {
-          case_id: "C001",
-          time: "09:00",
-          status: "Before treatment",
-          procedureType: "Appendectomy",
-        },
-        {
-          case_id: "C002",
-          time: "11:00",
-          status: "Undergoing the procedure",
-          procedureType: "Cholecystectomy",
-        },
-      ],
-    },
-    {
-      room_name: "Room 2",
-      cases: [
-        {
-          case_id: "C003",
-          time: "10:30",
-          status: "Transferred to the operating room",
-          procedureType: "Hernia Repair",
-        },
-      ],
-    },
-    { room_name: "Room 3", cases: [] },
-    {
-      room_name: "Room 4",
-      cases: [
-        {
-          case_id: "C004",
-          time: "08:00",
-          status: "Procedure completed",
-          procedureType: "Knee Replacement",
-        },
-        {
-          case_id: "C005",
-          time: "13:00",
-          status: "Patient returned to the recovery room",
-          procedureType: "Hip Replacement",
-        },
-      ],
-    },
-    { room_name: "Room 5", cases: [] },
-    {
-      room_name: "Room 6",
-      cases: [
-        {
-          case_id: "C006",
-          time: "14:00",
-          status: "Before treatment",
-          procedureType: "Cataract Surgery",
-        },
-      ],
-    },
-    { room_name: "Room 7", cases: [] },
-    {
-      room_name: "Room 8",
-      cases: [
-        {
-          case_id: "C007",
-          time: "07:00",
-          status: "Undergoing the procedure",
-          procedureType: "Coronary Bypass",
-        },
-        {
-          case_id: "C008",
-          time: "16:00",
-          status: "Procedure completed",
-          procedureType: "Liver Transplant",
-        },
-      ],
-    },
-  ];
+  const [roomSchedule, setRoomSchedule] = useState([]);
+
+  useEffect(() => {
+    const fetchRoomSchedule = async () => {
+      try {
+        const token = localStorage.getItem("jwtToken");
+        const response = await axiosInstance.get("/or_room/", {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+        if (response.status === 200) {
+          console.log("or_room", response.data.data);
+          setRoomSchedule(response.data.data || []);
+        } else {
+          throw new Error(
+            `Failed to fetch operating rooms: ${response.statusText}`
+          );
+        }
+      } catch (error) {
+        console.error("Error fetching room schedule:", error);
+        setRoomSchedule([]);
+      }
+    };
+
+    fetchRoomSchedule();
+  }, []);
 
   return (
     <div className="w-full p-2 rounded-xl">
@@ -94,9 +44,13 @@ function RoomSchedule() {
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-        {roomSchedule.map((room, index) => (
-          <RoomCard key={index} room={room} />
-        ))}
+        {roomSchedule && roomSchedule.length > 0 ? (
+          roomSchedule.map((room, index) => (
+            <RoomCard key={index} room={room} />
+          ))
+        ) : (
+          <p>Loading room schedule...</p>
+        )}
       </div>
     </div>
   );

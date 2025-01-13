@@ -104,7 +104,7 @@ const StatusUpdateForm = ({ record, allStatus, onStatusUpdate }) => {
   const hasStatusChanged = tempStatus !== selectedStatus;
 
   return (
-    <div className="flex items-center space-x-2">
+    <div className="flex items-center text-left space-x-2">
       <Select
         loading={loading}
         placeholder="Select a status"

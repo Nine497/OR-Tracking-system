@@ -366,7 +366,9 @@ function CaseTable() {
           >
             Setting
           </Button>
-          {record.active_link_id ? (
+          {record.link_id &&
+          record.link_active === true &&
+          new Date(record.link_expiration) > Date.now() ? (
             <Button
               type="default"
               icon={<Icon icon="bx:bx-copy" />}

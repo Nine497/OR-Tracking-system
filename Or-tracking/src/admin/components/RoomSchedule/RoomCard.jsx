@@ -1,14 +1,51 @@
-import React from "react";
-import { Card } from "antd";
+import React, { useEffect, useState } from "react";
+import { Card, Spin } from "antd";
 import {
   ClockCircleOutlined,
   ExclamationCircleOutlined,
 } from "@ant-design/icons";
-import { formatTime } from "../../lib/TimeFormat";
+import axiosInstance from "../../api/axiosInstance";
+import moment from "moment";
 
 function RoomCard({ room }) {
-  const getStatusClass = (status) => {
-    switch (status) {
+  const [cases, setCases] = useState([]);
+  const [statuses, setStatuses] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchRoomDetails = async () => {
+      setLoading(true);
+      try {
+        const token = localStorage.getItem("jwtToken");
+
+        const casesResponse = await axiosInstance.get(
+          `/surgery_case/getSurgery_case_ByOrID/${room.operating_room_id}`,
+          {
+            headers: { Authorization: `Bearer ${token}` },
+          }
+        );
+
+        const statusResponse = await axiosInstance.get("patient/getAllStatus");
+        if (casesResponse.status === 200 && statusResponse.status === 200) {
+          console.log("casesResponse :", casesResponse.data);
+          console.log("statusResponse : ", statusResponse.data);
+
+          setCases(casesResponse.data);
+          setStatuses(statusResponse.data);
+        }
+      } catch (error) {
+        console.error("Error fetching room details:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchRoomDetails();
+  }, [room.operating_room_id]);
+
+  // ฟังก์ชันในการตั้งค่าคลาสสำหรับสถานะ
+  const getStatusClass = (statusName) => {
+    switch (statusName) {
       case "Before treatment":
         return "text-yellow-600";
       case "Transferred to the operating room":
@@ -46,36 +83,45 @@ function RoomCard({ room }) {
           },
         }}
       >
-        {room.cases.length > 0 ? (
+        {loading ? (
+          <div className="flex justify-center items-center py-6">
+            <Spin size="large" />
+          </div>
+        ) : cases.length > 0 ? (
           <ul className="space-y-3">
-            {room.cases.map((c, caseIndex) => (
+            {cases.map((c, caseIndex) => (
               <li
                 key={caseIndex}
                 className="flex flex-col p-3 bg-indigo-50 rounded-lg hover:bg-indigo-100 transition-colors duration-200 cursor-pointer group"
               >
                 <div className="flex items-center justify-between mb-2">
                   <span className="text-xs font-semibold px-2 py-1 bg-indigo-200 text-indigo-800 rounded-full group-hover:bg-indigo-300 transition-colors">
-                    {c.case_id}
+                    {c.surgery_case_id}
                   </span>
                   <div className="flex items-center space-x-2">
                     <ClockCircleOutlined className="text-indigo-600 group-hover:text-indigo-700 transition-colors" />
                     <span className="text-indigo-900 font-medium group-hover:text-indigo-950 transition-colors">
-                      {formatTime(c.time)}
+                      {moment(c.surgery_time).format("HH:mm A")}
                     </span>
                   </div>
                 </div>
                 <div className="mt-2">
                   <span className="text-sm font-medium text-gray-700">
-                    Des: {c.procedureType}
+                    Patient: {c.patient_firstname} {c.patient_lastname}
+                  </span>
+                </div>
+                <div className="mt-2">
+                  <span className="text-sm font-medium text-gray-700">
+                    Doctor: {c.doctor_firstname} {c.doctor_lastname}
                   </span>
                 </div>
                 <div className="mt-1">
                   <span
                     className={`text-sm font-medium ${getStatusClass(
-                      c.status
+                      c.status_name
                     )}`}
                   >
-                    Status: {c.status}
+                    Status: {c.status_name}
                   </span>
                 </div>
               </li>

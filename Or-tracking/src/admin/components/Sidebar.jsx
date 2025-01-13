@@ -6,8 +6,6 @@ import {
   CalendarOutlined,
   UsergroupAddOutlined,
   FileTextOutlined,
-  MenuFoldOutlined,
-  MenuUnfoldOutlined,
   RightOutlined,
   LeftOutlined,
 } from "@ant-design/icons";
@@ -39,7 +37,7 @@ const items = [
     to: "/admin/case_manage",
     icon: <FileTextOutlined />,
     key: "case_manage",
-    permissionRequired: 5004,
+    permissionRequired: 5003,
   },
 ];
 
@@ -63,6 +61,7 @@ const Sidebar = ({ collapsed, setCollapsed, isMobile, user }) => {
           );
           const permissions = response.data.map((item) => item.permission_id);
           setUserPermissions(permissions);
+          console.log(permissions);
         } catch (error) {
           console.error("Error fetching permissions:", error);
         }
