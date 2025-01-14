@@ -14,30 +14,30 @@ import axiosInstance from "../api/axiosInstance";
 
 const items = [
   {
-    label: "OR-Room",
+    label: "ห้องผ่าตัด",
     to: "/admin/room_schedule",
     icon: <HomeOutlined />,
     key: "room_schedule",
   },
   {
-    label: "Calendar",
+    label: "ปฏิทิน",
     to: "/admin/calendar",
     icon: <CalendarOutlined />,
     key: "calendar",
   },
   {
-    label: "Users",
-    to: "/admin/users_manage",
-    icon: <UsergroupAddOutlined />,
-    key: "users_manage",
-    permissionRequired: 5002,
-  },
-  {
-    label: "Case",
+    label: "เคสผ่าตัด",
     to: "/admin/case_manage",
     icon: <FileTextOutlined />,
     key: "case_manage",
     permissionRequired: 5003,
+  },
+  {
+    label: "ผู้ใช้",
+    to: "/admin/users_manage",
+    icon: <UsergroupAddOutlined />,
+    key: "users_manage",
+    permissionRequired: 5002,
   },
 ];
 

@@ -16,7 +16,7 @@ function BreadcrumbComponent() {
       const sectionName = section.charAt(0).toUpperCase() + section.slice(1);
       return {
         title: (
-          <NavLink className="font-bold" to={path}>
+          <NavLink to={path} className="font-bold">
             {sectionName}
           </NavLink>
         ),

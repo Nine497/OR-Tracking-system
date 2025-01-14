@@ -11,7 +11,7 @@ function Case_Table_Header() {
 
   return (
     <div className="flex flex-row p-4 justify-between">
-      <div className="text-3xl font-semibold">Case management</div>
+      <div className="text-3xl font-semibold">การจัดการเคสผ่าตัด</div>
 
       <Button
         type="primary"
@@ -20,7 +20,7 @@ function Case_Table_Header() {
         className="font-bold flex items-center gap-2"
         size="large"
       >
-        Add
+        เพิ่ม
       </Button>
     </div>
   );

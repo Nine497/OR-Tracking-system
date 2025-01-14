@@ -266,22 +266,22 @@ function CaseTable() {
   }, []);
 
   const columns = [
+    // {
+    //   title: <span className="text-base font-semibold">#</span>,
+    //   dataIndex: "surgery_case_id",
+    //   key: "surgery_case_id",
+    //   align: "center",
+    //   render: (text) => <span className="text-base font-normal">{text}</span>,
+    // },
     {
-      title: <span className="text-base font-bold">#</span>,
-      dataIndex: "surgery_case_id",
-      key: "surgery_case_id",
-      align: "center",
-      render: (text) => <span className="text-base font-normal">{text}</span>,
-    },
-    {
-      title: <span className="text-base font-bold">HN</span>,
+      title: <span className="text-base font-semibold">HN</span>,
       dataIndex: "hn_code",
       key: "hn_code",
       align: "center",
       render: (text) => <span className="text-base font-normal">{text}</span>,
     },
     {
-      title: <span className="text-base font-bold">Patient Name</span>,
+      title: <span className="text-base font-semibold">ชื่อผู้ป่วย</span>,
       dataIndex: "patientName",
       key: "patientName",
       align: "center",
@@ -292,7 +292,7 @@ function CaseTable() {
       ),
     },
     {
-      title: <span className="text-base font-bold">Doctor</span>,
+      title: <span className="text-base font-semibold">แพทย์</span>,
       dataIndex: "doctorName",
       key: "doctorName",
       align: "center",
@@ -304,14 +304,14 @@ function CaseTable() {
       ),
     },
     {
-      title: <span className="text-base font-bold">Room</span>,
+      title: <span className="text-base font-semibold">ห้องผ่าตัด</span>,
       dataIndex: "room_name",
       key: "room_name",
       align: "center",
       render: (text) => <span className="text-base font-normal">{text}</span>,
     },
     {
-      title: <span className="text-base font-bold">Surgery Date</span>,
+      title: <span className="text-base font-semibold">วันที่ผ่าตัด</span>,
       dataIndex: "surgery_date",
       key: "surgery_date",
       align: "center",
@@ -322,7 +322,7 @@ function CaseTable() {
       ),
     },
     {
-      title: <span className="text-base font-bold">Update status</span>,
+      title: <span className="text-base font-bold">อัพเดทสถานะ</span>,
       dataIndex: "status_id",
       key: "status_id",
       align: "center",
@@ -331,7 +331,7 @@ function CaseTable() {
       ),
     },
     {
-      title: <span className="text-base font-bold">Status</span>,
+      title: <span className="text-base font-bold">สถานะ</span>,
       key: "status",
       align: "center",
       render: (_, record) => (
@@ -385,7 +385,7 @@ function CaseTable() {
       ),
     },
     {
-      title: <span className="text-base font-bold">Action</span>,
+      title: <span className="text-base font-bold">จัดการ</span>,
       key: "Action",
       align: "center",
       render: (_, record) => (
@@ -411,7 +411,7 @@ function CaseTable() {
     <div className="flex flex-col p-5 sm:p-7 w-full h-full gap-4">
       <div className="bg-gray-100 w-full rounded-lg flex flex-col sm:flex-row sm:justify-between items-start sm:items-center gap-4 sm:gap-0 px-5 sm:px-10 py-4">
         <Input
-          placeholder="Search by case number, patient name..."
+          placeholder="ค้นหาด้วย HN, ชื่อผู้ป่วย..."
           className="w-full sm:w-1/3 h-10 text-base"
           prefix={<Icon icon="mingcute:search-line" />}
           onChange={handleInputChange}
@@ -420,12 +420,12 @@ function CaseTable() {
 
         <Select
           className="w-full sm:w-1/4 h-10"
-          placeholder="Filter By Doctor"
+          placeholder="กรองตามแพทย์"
           value={doctorSelectedOption}
           onChange={handleSelectChange}
         >
           <Select.Option key="none" value="">
-            None
+            ไม่เลือก
           </Select.Option>
           {doctorsData.map((doctor) => (
             <Select.Option key={doctor.doctor_id} value={doctor.doctor_id}>
@@ -444,13 +444,13 @@ function CaseTable() {
           }}
           className="w-full sm:w-auto"
         >
-          <span className="font-medium ml-2 text-lg">Reload Data</span>
+          <span className="font-medium ml-2 text-lg">อัพเดท</span>
         </Button>
       </div>
 
       <div className="ml-auto text-right">
         <div className="text-gray-500 text-sm">
-          Data Updated on: {dataLastestUpdated}
+          ข้อมูลอัพเดทเมื่อ: {dataLastestUpdated}
         </div>
       </div>
 
@@ -464,7 +464,7 @@ function CaseTable() {
             current: pagination.current,
             total: pagination.total,
             onChange: handlePaginationChange,
-            showTotal: (total) => `Total ${total} items`,
+            showTotal: (total) => `ทั้งหมด ${total} เคส`,
           }}
         />
       </div>

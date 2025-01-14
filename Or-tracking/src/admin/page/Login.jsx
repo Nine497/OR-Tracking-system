@@ -37,7 +37,7 @@ const Login = () => {
 
   return (
     <div className="flex h-screen">
-      <div className="sm:flex-[7] hidden sm:block">
+      <div className="sm:flex-[6] hidden sm:block">
         <img
           src={LoginImg}
           alt="Login Illustration"
@@ -45,13 +45,12 @@ const Login = () => {
         />
       </div>
 
-      <div className="flex-[3] flex justify-center items-center bg-white">
+      <div className="flex-[4] flex justify-center items-center bg-white">
         <Card className="w-full max-w-md md:max-w-lg rounded-xl border-none">
           <div className="text-center mb-8">
             <h1 className="text-4xl font-bold text-blue-600 mb-2">
               OR-Tracking
             </h1>
-            <h2 className="text-2xl font-semibold">Log in</h2>
           </div>
           <Form
             onFinish={handleSubmit}
@@ -93,7 +92,7 @@ const Login = () => {
                 loading={loading}
                 disabled={loading}
               >
-                <span className="font-medium">Log in</span>
+                <span className="font-medium">เข้าสู่ระบบ</span>
               </Button>
             </Form.Item>
           </Form>

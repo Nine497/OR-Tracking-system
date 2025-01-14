@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Card, Spin } from "antd";
+import { Card, Spin, Collapse } from "antd";
 import {
   ClockCircleOutlined,
   ExclamationCircleOutlined,
@@ -11,6 +11,7 @@ function RoomCard({ room }) {
   const [cases, setCases] = useState([]);
   const [statuses, setStatuses] = useState([]);
   const [loading, setLoading] = useState(true);
+  const { Panel } = Collapse;
 
   useEffect(() => {
     const fetchRoomDetails = async () => {
@@ -27,9 +28,6 @@ function RoomCard({ room }) {
 
         const statusResponse = await axiosInstance.get("patient/getAllStatus");
         if (casesResponse.status === 200 && statusResponse.status === 200) {
-          console.log("casesResponse :", casesResponse.data);
-          console.log("statusResponse : ", statusResponse.data);
-
           setCases(casesResponse.data);
           setStatuses(statusResponse.data);
         }
@@ -43,7 +41,6 @@ function RoomCard({ room }) {
     fetchRoomDetails();
   }, [room.operating_room_id]);
 
-  // ฟังก์ชันในการตั้งค่าคลาสสำหรับสถานะ
   const getStatusClass = (statusName) => {
     switch (statusName) {
       case "Before treatment":
@@ -55,19 +52,24 @@ function RoomCard({ room }) {
       case "Procedure completed":
         return "text-green-600";
       case "Patient returned to the recovery room":
-        return "text-gray-600";
+        return "text-purple-600";
       default:
         return "text-gray-500";
     }
   };
 
   return (
-    <div className="transform transition-all duration-300 hover:-translate-y-1">
+    <div className="h-[340px] transform transition-all duration-300 hover:-translate-y-1">
       <Card
         title={
-          <span className="text-xl font-semibold text-white">
-            {room.room_name}
-          </span>
+          <div className="flex justify-between items-center">
+            <span className="text-xl font-semibold text-white">
+              {room.room_name}
+            </span>
+            <span className="text-sm font-medium text-gray-50 bg-indigo-400 px-2 py-1 rounded-full">
+              {cases.length} เคส
+            </span>
+          </div>
         }
         className="h-full hover:shadow-xl transition-shadow duration-300 bg-white border border-indigo-50"
         styles={{
@@ -80,58 +82,95 @@ function RoomCard({ room }) {
           },
           body: {
             padding: "16px",
+            height: "calc(100% - 56px)",
+            overflow: "hidden",
           },
         }}
       >
         {loading ? (
-          <div className="flex justify-center items-center py-6">
+          <div className="flex justify-center items-center h-full">
             <Spin size="large" />
           </div>
         ) : cases.length > 0 ? (
-          <ul className="space-y-3">
-            {cases.map((c, caseIndex) => (
-              <li
-                key={caseIndex}
-                className="flex flex-col p-3 bg-indigo-50 rounded-lg hover:bg-indigo-100 transition-colors duration-200 cursor-pointer group"
-              >
-                <div className="flex items-center justify-between mb-2">
-                  <span className="text-xs font-semibold px-2 py-1 bg-indigo-200 text-indigo-800 rounded-full group-hover:bg-indigo-300 transition-colors">
-                    {c.surgery_case_id}
-                  </span>
-                  <div className="flex items-center space-x-2">
-                    <ClockCircleOutlined className="text-indigo-600 group-hover:text-indigo-700 transition-colors" />
-                    <span className="text-indigo-900 font-medium group-hover:text-indigo-950 transition-colors">
-                      {moment(c.surgery_time).format("HH:mm A")}
-                    </span>
-                  </div>
-                </div>
-                <div className="mt-2">
-                  <span className="text-sm font-medium text-gray-700">
-                    Patient: {c.patient_firstname} {c.patient_lastname}
-                  </span>
-                </div>
-                <div className="mt-2">
-                  <span className="text-sm font-medium text-gray-700">
-                    Doctor: {c.doctor_firstname} {c.doctor_lastname}
-                  </span>
-                </div>
-                <div className="mt-1">
-                  <span
-                    className={`text-sm font-medium ${getStatusClass(
-                      c.status_name
-                    )}`}
+          <div className="h-[240px] bg-white rounded-lg">
+            <Collapse
+              accordion
+              size="small"
+              className="max-h-full overflow-y-auto divide-y divide-indigo-100 scrollbar-thin scrollbar-thumb-indigo-200 scrollbar-track-transparent"
+            >
+              {cases
+                .sort((a, b) =>
+                  moment(a.estimate_start_time, "HH:mm:ss").diff(
+                    moment(b.estimate_start_time, "HH:mm:ss")
+                  )
+                )
+                .map((c, caseIndex) => (
+                  <Panel
+                    key={caseIndex}
+                    header={
+                      <div className="flex items-center justify-between w-full py-1">
+                        {/* Patient HN */}
+                        <span className="inline-flex items-center px-4 py-1.5 text-sm font-semibold text-indigo-700 bg-indigo-50 rounded-full ring-1 ring-indigo-200">
+                          {c.patient_HN}
+                        </span>
+
+                        {/* Time */}
+                        <div className="flex items-center space-x-2 text-gray-600">
+                          <ClockCircleOutlined className="w-4 h-4 text-indigo-500" />
+                          <span className="text-sm font-medium">
+                            {moment(c.estimate_start_time, "HH:mm:ss").format(
+                              "HH:mm"
+                            )}
+                          </span>
+                        </div>
+                      </div>
+                    }
+                    className="transition-all duration-200 ease-in-out hover:bg-indigo-50"
                   >
-                    Status: {c.status_name}
-                  </span>
-                </div>
-              </li>
-            ))}
-          </ul>
+                    <div className="space-y-4 bg-white rounded-lg">
+                      {/* Surgery Type */}
+                      <div className="grid grid-cols-3 gap-x-4 items-start">
+                        <span className="text-sm font-medium text-gray-500">
+                          Type:
+                        </span>
+                        <span className="col-span-2 text-sm text-gray-900 break-words font-medium">
+                          {c.surgery_type_name}
+                        </span>
+                      </div>
+
+                      {/* Operation Name */}
+                      <div className="grid grid-cols-3 gap-x-4 items-start">
+                        <span className="text-sm font-medium text-gray-500 ">
+                          Operation:
+                        </span>
+                        <span className="col-span-2 text-sm text-gray-900 break-words font-medium">
+                          Operation name
+                        </span>
+                      </div>
+
+                      {/* Status */}
+                      <div className="grid grid-cols-3 gap-x-4 items-start">
+                        <span className="text-sm font-medium text-gray-500">
+                          Status:
+                        </span>
+                        <span
+                          className={`col-span-2 text-sm ${getStatusClass(
+                            c.status_name
+                          )} break-words font-medium`}
+                        >
+                          {c.status_name}
+                        </span>
+                      </div>
+                    </div>
+                  </Panel>
+                ))}
+            </Collapse>
+          </div>
         ) : (
-          <div className="flex flex-col items-center justify-center py-6 text-gray-500">
+          <div className="flex flex-col items-center justify-center h-full text-gray-500">
             <ExclamationCircleOutlined className="text-2xl mb-2 text-indigo-400" />
             <p className="text-sm font-medium text-gray-600">
-              No cases scheduled
+              ไม่มีเคสการผ่าตัด
             </p>
           </div>
         )}
