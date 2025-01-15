@@ -5,8 +5,6 @@ import { Outlet, Navigate } from "react-router-dom";
 import Header from "../components/Header";
 import Sidebar from "../components/Sidebar";
 import { useAuth } from "../context/AuthContext";
-import { Spin } from "antd";
-import axiosInstance from "../api/axiosInstance";
 
 const { Content } = Layout;
 

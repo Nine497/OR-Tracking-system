@@ -12,6 +12,19 @@
   box-sizing: border-box;
 }
 
+@keyframes shake {
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+  25% {
+    transform: translateX(-2px);
+  }
+  75% {
+    transform: translateX(2px);
+  }
+}
+
 :root {
   line-height: 1.5;
   font-weight: 400;

@@ -5,7 +5,7 @@ import {
   ExclamationCircleOutlined,
 } from "@ant-design/icons";
 import axiosInstance from "../../api/axiosInstance";
-import moment from "moment";
+import dayjs from "dayjs";
 
 function RoomCard({ room }) {
   const [cases, setCases] = useState([]);
@@ -17,13 +17,8 @@ function RoomCard({ room }) {
     const fetchRoomDetails = async () => {
       setLoading(true);
       try {
-        const token = localStorage.getItem("jwtToken");
-
         const casesResponse = await axiosInstance.get(
-          `/surgery_case/getSurgery_case_ByOrID/${room.operating_room_id}`,
-          {
-            headers: { Authorization: `Bearer ${token}` },
-          }
+          `/surgery_case/getSurgery_case_ByOrID/${room.operating_room_id}`
         );
 
         const statusResponse = await axiosInstance.get("patient/getAllStatus");
@@ -100,8 +95,8 @@ function RoomCard({ room }) {
             >
               {cases
                 .sort((a, b) =>
-                  moment(a.estimate_start_time, "HH:mm:ss").diff(
-                    moment(b.estimate_start_time, "HH:mm:ss")
+                  dayjs(a.estimate_start_time, "HH:mm:ss").diff(
+                    dayjs(b.estimate_start_time, "HH:mm:ss")
                   )
                 )
                 .map((c, caseIndex) => (
@@ -118,7 +113,7 @@ function RoomCard({ room }) {
                         <div className="flex items-center space-x-2 text-gray-600">
                           <ClockCircleOutlined className="w-4 h-4 text-indigo-500" />
                           <span className="text-sm font-medium">
-                            {moment(c.estimate_start_time, "HH:mm:ss").format(
+                            {dayjs(c.estimate_start_time, "HH:mm:ss").format(
                               "HH:mm"
                             )}
                           </span>

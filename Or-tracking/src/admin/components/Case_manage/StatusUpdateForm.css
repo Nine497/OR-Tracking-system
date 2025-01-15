@@ -1,0 +1,6 @@
+/* CustomSelect.css */
+.custom-select .ant-select-selection-item {
+  font-size: 0.9rem;
+  color: #333;
+  padding: 5px 10px;
+}

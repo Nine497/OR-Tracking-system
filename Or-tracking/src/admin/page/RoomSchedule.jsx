@@ -11,12 +11,7 @@ function RoomSchedule() {
   useEffect(() => {
     const fetchRoomSchedule = async () => {
       try {
-        const token = localStorage.getItem("jwtToken");
-        const response = await axiosInstance.get("/or_room/", {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
+        const response = await axiosInstance.get("/or_room/");
         if (response.status === 200) {
           console.log("or_room", response.data.data);
           setRoomSchedule(response.data.data || []);

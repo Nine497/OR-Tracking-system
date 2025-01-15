@@ -1,0 +1,6 @@
+:where(.css-dev-only-do-not-override-1wwf28x).ant-picker
+  .ant-picker-input
+  > input {
+  font-size: 16px;
+  font-weight: 400;
+}

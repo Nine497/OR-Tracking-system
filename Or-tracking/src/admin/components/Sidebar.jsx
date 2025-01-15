@@ -52,12 +52,8 @@ const Sidebar = ({ collapsed, setCollapsed, isMobile, user }) => {
     const fetchPermissions = async () => {
       if (user?.id) {
         try {
-          const token = localStorage.getItem("jwtToken");
           const response = await axiosInstance.get(
-            `staff/permissions/${user.id}`,
-            {
-              headers: { Authorization: `Bearer ${token}` },
-            }
+            `staff/permissions/${user.id}`
           );
           const permissions = response.data.map((item) => item.permission_id);
           setUserPermissions(permissions);

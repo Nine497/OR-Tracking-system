@@ -12,15 +12,10 @@ function AddUserModal({ visible, onClose }) {
       console.log("values: ", { ...values, created_by: user.id });
 
       const token = localStorage.getItem("jwtToken");
-      const response = await axiosInstance.post(
-        "/staff",
-        { ...values, created_by: user.id },
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
+      const response = await axiosInstance.post("/staff", {
+        ...values,
+        created_by: user.id,
+      });
 
       if (response.status === 200) {
         notification.success({

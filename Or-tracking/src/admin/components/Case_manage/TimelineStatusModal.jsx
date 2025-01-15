@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useMemo } from "react";
 import { notification, Spin, Timeline, Typography, Divider } from "antd";
 import { Icon } from "@iconify/react";
-import moment from "moment";
+import dayjs from "dayjs";
 import axiosInstance from "../../api/axiosInstance";
 
 const { Text } = Typography;
@@ -51,7 +51,7 @@ const TimelineStatus = ({ record }) => {
                 <div className="flex items-center text-gray-500">
                   <Icon icon="mdi:clock-outline" className="w-4 h-4 mr-2" />
                   <Text className="text-sm">
-                    {moment(updatedAt).format("DD/MM/YYYY, HH:mm")}
+                    {dayjs(updatedAt).format("DD/MM/YYYY, HH:mm")}
                   </Text>
                 </div>
                 <div className="flex items-center text-gray-500">
@@ -74,12 +74,8 @@ const TimelineStatus = ({ record }) => {
     const fetchSurgeryStatus = async () => {
       setIsLoading(true);
       try {
-        const token = localStorage.getItem("jwtToken");
         const response = await axiosInstance.get(
-          `surgery_case/status/${record.surgery_case_id}`,
-          {
-            headers: { Authorization: `Bearer ${token}` },
-          }
+          `surgery_case/status/${record.surgery_case_id}`
         );
         if (response.status === 200 && response.data) {
           setStatusHistory(response.data.statusHistory);

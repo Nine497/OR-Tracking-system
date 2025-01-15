@@ -1,8 +1,16 @@
 import React, { useState, useEffect } from "react";
-import { Modal, Form, Checkbox, Button, notification } from "antd";
+import {
+  Modal,
+  Form,
+  Checkbox,
+  Button,
+  notification,
+  Spin,
+  Tooltip,
+} from "antd";
 import axiosInstance from "../../api/axiosInstance";
 import { useAuth } from "../../context/AuthContext";
-import moment from "moment";
+import dayjs from "dayjs";
 
 function PermissionModal({ visible, staff, onClose }) {
   const [allPermissions, setAllPermissions] = useState([]);
@@ -10,32 +18,23 @@ function PermissionModal({ visible, staff, onClose }) {
   const [loading, setLoading] = useState(false);
   const { user } = useAuth();
   const [form] = Form.useForm();
+  const [isFullAccessChecked, setIsFullAccessChecked] = useState(false);
 
   useEffect(() => {
     const fetchPermissions = async () => {
       if (!visible) return;
       setLoading(true);
       try {
-        const token = localStorage.getItem("jwtToken");
+        const response = await axiosInstance.get("staff/permissions");
 
-        const response = await axiosInstance.get("staff/permissions", {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
         setAllPermissions(response.data.permissions);
-        console.log(allPermissions);
+        console.log(response.data.permissions);
 
         if (staff) {
           const staffResponse = await axiosInstance.get(
-            `staff/permissions/${staff.staff_id}`,
-            {
-              headers: {
-                Authorization: `Bearer ${token}`,
-              },
-            }
+            `staff/permissions/${staff.staff_id}`
           );
-          console.log("staffResponse : ", staffResponse);
+
           setStaffPermissions(staffResponse?.data);
         }
       } catch (error) {
@@ -58,24 +57,15 @@ function PermissionModal({ visible, staff, onClose }) {
     const permissions = staffPermissions.map((p) => p.permission_id);
 
     if (permissions.length > 0) {
-      console.log("Permissions to be updated:", permissions);
-
-      const currentDateTime = moment().format("YYYY-MM-DD HH:mm:ss.SSS");
+      const currentDateTime = dayjs().format("YYYY-MM-DD HH:mm:ss.SSS");
 
       try {
-        const token = localStorage.getItem("jwtToken");
-
         const response = await axiosInstance.post(
           `/staff/update_permissions/${staff.staff_id}`,
           {
             permission_ids: permissions,
             gived_by: user.id,
             gived_at: currentDateTime,
-          },
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
           }
         );
 
@@ -86,7 +76,6 @@ function PermissionModal({ visible, staff, onClose }) {
 
         onClose();
       } catch (error) {
-        console.error("Error updating permissions:", error);
         notification.error({
           message: "Error",
           description: "Failed to update permissions.",
@@ -100,13 +89,7 @@ function PermissionModal({ visible, staff, onClose }) {
     }
   };
 
-  useEffect(() => {
-    console.log("staffPermissions : ", staffPermissions);
-  }, [staffPermissions]);
-
   const handleCheckboxChange = (value, checked) => {
-    console.log("Checkbox value:", value, "Checked:", checked);
-
     let updatedPermissions = [...staffPermissions];
 
     if (checked) {
@@ -120,12 +103,28 @@ function PermissionModal({ visible, staff, onClose }) {
     setStaffPermissions(updatedPermissions);
   };
 
+  const handleFullAccessChange = (e) => {
+    const checked = e.target.checked;
+    setIsFullAccessChecked(checked);
+
+    if (checked) {
+      const allPermissionIds = allPermissions.map(
+        (permission) => permission.permission_id
+      );
+      setStaffPermissions(
+        allPermissionIds.map((id) => ({ permission_id: id }))
+      );
+    } else {
+      setStaffPermissions([]);
+    }
+  };
+
   return (
     <Modal
       title={
         <div className="flex flex-col items-center justify-center">
           <span className="text-2xl font-semibold text-gray-800">
-            Manage Permissions
+            จัดการสิทธิ์การเข้าถึง
           </span>
           <span className="mt-1 text-lg font-medium text-blue-600">
             #{staff?.staff_id} - {staff?.firstname} {staff?.lastname}
@@ -140,54 +139,66 @@ function PermissionModal({ visible, staff, onClose }) {
       width={800}
       confirmLoading={loading}
     >
-      <Form onFinish={handleFinish} layout="vertical" className="space-y-6">
-        <Form.Item
-          name="permissions"
-          label={
-            <span className="text-lg font-medium text-gray-700">
-              Select Permissions
-            </span>
-          }
-          valuePropName="value"
-          initialValue={staffPermissions.map((p) => p.permission_id)}
-        >
-          <div className="grid grid-cols-2 gap-6">
-            {allPermissions.map((item) => (
-              <CustomCheckbox
-                key={item.permission_id}
-                value={item.permission_id}
-                staff={staffPermissions}
-                onChange={handleCheckboxChange}
-                label={item.permission_name}
-              />
-            ))}
-          </div>
-        </Form.Item>
-
-        <div className="flex justify-center space-x-4 border-t pt-6 mt-6">
-          <Button onClick={onClose} className="px-6 py-2 text-lg">
-            Cancel
-          </Button>
-          <Button
-            type="primary"
-            htmlType="submit"
-            className="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white text-lg"
+      <Spin spinning={loading}>
+        <Form onFinish={handleFinish} layout="vertical" className="space-y-6">
+          <Form.Item
+            name="permissions"
+            label={
+              <span className="text-lg font-medium text-gray-700">
+                เลือกสิทธิ์การเข้าถึง
+              </span>
+            }
+            valuePropName="value"
+            initialValue={staffPermissions.map((p) => p.permission_id)}
           >
-            Confirm
-          </Button>
-        </div>
-      </Form>
+            <div className="flex flex-col gap-6">
+              <Checkbox
+                checked={isFullAccessChecked}
+                onChange={handleFullAccessChange}
+                className="max-w-max flex items-center p-3 border rounded-lg hover:bg-blue-50 transition-colors text-base"
+              >
+                เลือกทั้งหมด
+              </Checkbox>
+
+              <div className="grid grid-cols-2 gap-6">
+                {allPermissions.map((item) => (
+                  <CustomCheckbox
+                    key={item.permission_id}
+                    value={item.permission_id}
+                    staff={staffPermissions}
+                    onChange={handleCheckboxChange}
+                    label={item.permission_name}
+                    des={item.permission_des}
+                  />
+                ))}
+              </div>
+            </div>
+          </Form.Item>
+
+          <div className="flex justify-center space-x-4 border-t pt-6 mt-6">
+            <Button onClick={onClose} className="px-6 py-2 text-lg">
+              ยกเลิก
+            </Button>
+            <Button
+              type="primary"
+              htmlType="submit"
+              className="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white text-lg"
+            >
+              ยืนยัน
+            </Button>
+          </div>
+        </Form>
+      </Spin>
     </Modal>
   );
 }
 
-const CustomCheckbox = ({ value, label, staff, onChange }) => {
+const CustomCheckbox = ({ value, label, staff, onChange, des }) => {
   const [isChecked, setIsChecked] = useState(false);
 
   useEffect(() => {
-    // ตรวจสอบว่า permission_id ของ staff ตรงกับค่า value ที่ได้รับจาก checkbox
     setIsChecked(staff.some((item) => item.permission_id === value));
-  }, [staff, value]); // อัปเดตเมื่อ staff หรือ value เปลี่ยนแปลง
+  }, [staff, value]);
 
   const handleChange = (e) => {
     if (e && e.target) {
@@ -196,16 +207,20 @@ const CustomCheckbox = ({ value, label, staff, onChange }) => {
       onChange(value, checked);
     }
   };
-
   return (
-    <Checkbox
-      value={value}
-      checked={isChecked}
-      onChange={handleChange} // เรียกใช้งาน handleChange เมื่อมีการเปลี่ยนแปลง
-      className="flex items-center p-3 border rounded-lg hover:bg-blue-50 transition-colors text-base"
-    >
-      <span className="text-base font-normal">{label}</span>
-    </Checkbox>
+    <div className="flex flex-col cursor-pointer p-3 border rounded-lg hover:bg-blue-50 transition-colors">
+      <div className="flex items-start space-x-2">
+        <Checkbox
+          value={value}
+          checked={isChecked}
+          onChange={handleChange}
+          className="mt-0.5"
+        >
+          <span className="text-base font-medium text-gray-700">{label}</span>
+        </Checkbox>
+      </div>
+      <p className="text-sm text-gray-500 mt-1.5 ml-6">{des}</p>
+    </div>
   );
 };
 

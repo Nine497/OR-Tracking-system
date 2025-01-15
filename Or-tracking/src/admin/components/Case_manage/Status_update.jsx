@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { Select, notification, Popconfirm, Button } from "antd";
 import axiosInstance from "../../api/axiosInstance";
 import { useAuth } from "../../context/AuthContext";
-
+import "./StatusUpdateForm.css";
 const StatusUpdateForm = ({ record, allStatus, onStatusUpdate }) => {
   const [loading, setLoading] = useState(false);
   const [selectedStatus, setSelectedStatus] = useState(null);
@@ -15,14 +15,8 @@ const StatusUpdateForm = ({ record, allStatus, onStatusUpdate }) => {
 
     const fetchData = async () => {
       try {
-        const token = localStorage.getItem("jwtToken");
         const response = await axiosInstance.get(
-          `surgery_case/status/${record.surgery_case_id}`,
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          }
+          `surgery_case/status/${record.surgery_case_id}`
         );
         if (response.status === 200 && response.data) {
           setSelectedStatus(response.data.latestStatus || 0);
@@ -55,12 +49,7 @@ const StatusUpdateForm = ({ record, allStatus, onStatusUpdate }) => {
       const token = localStorage.getItem("jwtToken");
       const response = await axiosInstance.patch(
         `surgery_case/status/${record.surgery_case_id}`,
-        { status_id: tempStatus, updatedBy: user?.id },
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
+        { status_id: tempStatus, updatedBy: user?.id }
       );
 
       if (response.status === 200) {
@@ -102,22 +91,22 @@ const StatusUpdateForm = ({ record, allStatus, onStatusUpdate }) => {
   console.log("selectedStatus:", selectedStatus);
 
   const hasStatusChanged = tempStatus !== selectedStatus;
-
   return (
     <div className="flex items-center text-left space-x-2">
       <Select
         loading={loading}
         placeholder="Select a status"
-        size="small"
-        className="w-full"
+        size="middle"
+        className="w-full custom-select"
         value={tempStatus}
         onChange={handleStatusChange}
         style={{
-          maxWidth: "170px",
-          minWidth: "170px",
-          overflow: "hidden",
-          textOverflow: "ellipsis",
-          whiteSpace: "nowrap",
+          width: "100%",
+          "& .ant-select-selection-item": {
+            fontSize: "0.8rem",
+            color: "#333",
+            padding: "5px 10px",
+          },
         }}
       >
         {allStatus.map((status) => (

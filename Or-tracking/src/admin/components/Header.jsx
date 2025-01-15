@@ -7,7 +7,7 @@ import BreadcrumbComponent from "../components/Breadcrumb";
 
 function Header() {
   return (
-    <div className="text-gray-700 flex justify-between items-center px-10 pt-2 bg-gray-200">
+    <div className="text-gray-700 flex justify-between items-center px-10 py-2 bg-gray-200">
       <div className="flex items-center space-x-4 pl-4 lg:pl-0">
         <BreadcrumbComponent />
       </div>
@@ -96,15 +96,15 @@ const StyledDropdown = () => {
 
       {/* Dropdown Menu */}
       {isOpen && (
-        <div className="absolute right-0 mt-2 w-40 rounded-lg bg-white shadow-lg border border-gray-100 py-1 z-50">
+        <div className="absolute right-0 mt-1 w-40 rounded-lg bg-white shadow-lg border border-gray-100 py-1 z-50">
           {/* Profile Option */}
           <button
             onClick={() => {
               navigate("/profile");
               setIsOpen(false);
             }}
-            className="w-full px-4 py-2 bg-white text-left hover:bg-gray-50 flex items-center gap-2
-                       text-gray-700 transition-colors duration-150"
+            className="w-full px-4 py-2 bg-white text-left hover:bg-gray-200 flex items-center gap-2
+                       text-gray-700 transition-colors duration-150 rounded-none border-none"
           >
             <Icon icon="mdi:account-circle" className="w-4 h-4" />
             <span>Profile</span>
@@ -116,8 +116,8 @@ const StyledDropdown = () => {
           {/* Logout Option */}
           <button
             onClick={handleLogout}
-            className="w-full px-4 py-2 text-left bg-white hover:bg-red-50 flex items-center gap-2
-                       text-red-600 transition-colors duration-150"
+            className="w-full px-4 py-2 bg-white text-left hover:bg-red-100 flex items-center gap-2
+                       text-red-600 transition-colors duration-150 rounded-none border-none"
           >
             <Icon icon="mdi:logout" className="w-4 h-4" />
             <span>Logout</span>

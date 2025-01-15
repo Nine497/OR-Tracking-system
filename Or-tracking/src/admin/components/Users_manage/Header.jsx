@@ -15,14 +15,15 @@ function Users_Table_Header() {
 
   return (
     <div className="flex flex-row p-4 justify-between">
-      <div className="text-3xl font-semibold">Users management</div>
+      <div className="text-3xl font-semibold">การจัดการผู้ใช้งาน</div>
       <Button
         type="primary"
         icon={<Icon icon="typcn:plus" className="text-lg" />}
         onClick={showModal}
         className="w-full sm:w-auto"
+        size="large"
       >
-        <span className="font-bold">Add</span>
+        <span className="font-semibold tracking-wide">เพิ่มผู้ใช้</span>
       </Button>
 
       <AddUserModal visible={isModalVisible} onClose={handleCancel} />

@@ -4,7 +4,7 @@ import { Icon } from "@iconify/react";
 import axiosInstance from "../../api/axiosInstance";
 import UpdateModal from "./UpdateModal";
 import StatusUpdateForm from "./Status_update";
-import moment from "moment";
+import dayjs from "dayjs";
 import { useNavigate } from "react-router-dom";
 
 function CaseTable() {
@@ -74,9 +74,6 @@ function CaseTable() {
     try {
       const token = localStorage.getItem("jwtToken");
       const response = await axiosInstance.get("/surgery_case/", {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
         params: {
           search: value,
           doctor_id: doctor,
@@ -144,9 +141,6 @@ function CaseTable() {
     try {
       const token = localStorage.getItem("jwtToken");
       const response = await axiosInstance.get("/surgery_case/", {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
         params: {
           search: searchTerm,
           limit: pagination.pageSize,
@@ -166,7 +160,7 @@ function CaseTable() {
         ...pagination,
         total: response.data.totalRecords,
       });
-      setDataLastestUpdated(moment().format("HH:mm A"));
+      setDataLastestUpdated(dayjs().format("HH:mm A"));
     } catch (error) {
       console.error("Error fetching cases:", error);
       notification.error({
@@ -186,12 +180,7 @@ function CaseTable() {
     setLoadingDoctors(true);
     const fetchDoctorsData = async () => {
       try {
-        const token = localStorage.getItem("jwtToken");
-        const response = await axiosInstance.get("doctor/", {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
+        const response = await axiosInstance.get("doctor/");
         if (response.data && Array.isArray(response.data.data)) {
           setDoctorsData(response.data.data);
         } else {
@@ -371,7 +360,7 @@ function CaseTable() {
           new Date(record.link_expiration) > Date.now() ? (
             <Button
               type="default"
-              icon={<Icon icon="bx:bx-copy" />}
+              icon={<Icon icon="bx:bx-link" />}
               onClick={() =>
                 copyLink(`${BASE_URL}ptr?link=${record.active_link_id}`)
               }
@@ -436,15 +425,16 @@ function CaseTable() {
 
         <Button
           type="default"
-          icon={<Icon icon="mdi:reload" className="mr-2 w-4 h-4" />}
+          icon={<Icon icon="mdi:reload" className="w-4 h-4" />}
           onClick={() => {
             setSearchTerm("");
             setPagination({ ...pagination, current: 1 });
             fetchData();
           }}
           className="w-full sm:w-auto"
+          size="large"
         >
-          <span className="font-medium ml-2 text-lg">อัพเดท</span>
+          <span className="font-medium text-lg">อัพเดท</span>
         </Button>
       </div>
 

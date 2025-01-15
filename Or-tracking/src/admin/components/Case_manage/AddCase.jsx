@@ -1,13 +1,10 @@
 import React, { useState, useEffect } from "react";
 import {
-  Steps,
   Form,
   Input,
   Select,
   DatePicker,
   Button,
-  Row,
-  Col,
   message,
   notification,
   Modal,
@@ -16,14 +13,14 @@ import { Icon } from "@iconify/react";
 import IMask from "imask";
 import axiosInstance from "../../api/axiosInstance";
 import { useAuth } from "../../context/AuthContext";
-import moment from "moment";
+import dayjs from "dayjs";
 import { useNavigate } from "react-router-dom";
+import CustomNotification from "../CustomNotification";
+import "./DatePicker.css";
 
-const { Step } = Steps;
 const { Option } = Select;
 
 function AddCase() {
-  const [currentStep, setCurrentStep] = useState(0);
   const [form] = Form.useForm();
   const hnInputRef = React.useRef(null);
   const dobInputRef = React.useRef(null);
@@ -35,14 +32,15 @@ function AddCase() {
   const [surgeryTypes, setSurgeryTypes] = useState([]);
   const [surgeryTypesLoading, setSurgeryTypesLoading] = useState(false);
   const navigate = useNavigate();
+  const [isLoading, setIsLoading] = useState(false);
+  const [buttonStatus, setButtonStatus] = useState("");
 
   const [patientData, setPatientData] = useState({
-    firstName: "",
-    lastName: "",
+    hn_code: "",
+    firstname: "",
+    lastname: "",
     gender: "",
     dob: "",
-    hn_code: "",
-    patient_history: "",
   });
 
   const [surgeryData, setSurgeryData] = useState({
@@ -54,20 +52,15 @@ function AddCase() {
     operating_room_id: "",
     status_id: "0",
     created_by: user.id,
+    patient_history: "",
+    Operation: "",
   });
 
   useEffect(() => {
     const fetchDoctors = async () => {
       try {
         setDoctorsLoading(true);
-
-        const token = localStorage.getItem("jwtToken");
-
-        const response = await axiosInstance.get("/doctor/", {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
+        const response = await axiosInstance.get("/doctor/");
 
         if (response.status === 200) {
           setDoctors(response.data.data);
@@ -91,14 +84,7 @@ function AddCase() {
       try {
         setOperatingRoomsLoading(true);
 
-        const token = localStorage.getItem("jwtToken");
-
-        const response = await axiosInstance.get("/or_room/", {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
-
+        const response = await axiosInstance.get("/or_room/");
         if (response.status === 200) {
           setOperatingRooms(response.data.data);
         } else {
@@ -124,15 +110,8 @@ function AddCase() {
       try {
         setSurgeryTypesLoading(true);
 
-        const token = localStorage.getItem("jwtToken");
-
         const response = await axiosInstance.get(
-          "/surgery_case/all_surgery_types",
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          }
+          "/surgery_case/all_surgery_types"
         );
 
         if (response.status === 200) {
@@ -160,15 +139,6 @@ function AddCase() {
     fetchAllSurgeryTypes();
   }, []);
 
-  const handlePatientDataChange = (e) => {
-    const { name, value } = e.target;
-    setPatientData((prevState) => ({
-      ...prevState,
-      [name]: value,
-    }));
-    console.log("patientData", patientData);
-  };
-
   const handleSurgeryDataChange = (name, value) => {
     setSurgeryData((prevState) => ({
       ...prevState,
@@ -180,21 +150,36 @@ function AddCase() {
   const onFinish = async () => {
     try {
       if (
-        !patientData.firstName ||
-        !patientData.lastName ||
+        !patientData.firstname ||
+        !patientData.lastname ||
         !surgeryData.surgery_date
       ) {
         message.error("Please fill in all required fields.");
         return;
       }
 
-      const token = localStorage.getItem("jwtToken");
+      const patientRequestData = {
+        hn_code: patientData.hn_code,
+        first_name: patientData.firstname,
+        last_name: patientData.lastname,
+        dob: dayjs(patientData.dob).format("YYYY-MM-DD"),
+        gender: patientData.gender,
+      };
+
+      const patientResponse = await axiosInstance.post(
+        "/patient/",
+        patientRequestData
+      );
+
+      if (!patientResponse.data || !patientResponse.data.patient.patient_id) {
+        throw new Error("Failed to create or find patient.");
+      }
+
+      const patientId = patientResponse.data.patient.patient_id;
 
       const surgeryCaseData = {
-        ...patientData,
-        dob: moment(patientData.dob).format("YYYY-MM-DD"),
-        surgery_date: moment(surgeryData.surgery_date).format("YYYY-MM-DD"),
-        estimate_start_time: moment(
+        surgery_date: dayjs(surgeryData.surgery_date).format("YYYY-MM-DD"),
+        estimate_start_time: dayjs(
           surgeryData.estimate_start_time,
           "HH:mm"
         ).format("HH:mm"),
@@ -204,21 +189,18 @@ function AddCase() {
         status_id: surgeryData.status_id,
         created_by: surgeryData.created_by,
         doctor_id: surgeryData.doctor_id,
+        patient_history: surgeryData.patient_history,
+        Operation: surgeryData.Operation,
       };
 
       console.log("Surgery Case Data to be sent:", surgeryCaseData);
 
-      const response = await axiosInstance.post(
-        "/surgery_case/",
-        surgeryCaseData,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
+      const caseResponse = await axiosInstance.post(
+        `/surgery_case/${patientId}`,
+        surgeryCaseData
       );
 
-      if (response.status === 201) {
+      if (caseResponse.status === 201) {
         navigate("/admin/case_manage");
 
         notification.success({
@@ -232,6 +214,7 @@ function AddCase() {
         });
       }
     } catch (error) {
+      console.error("Error during onFinish:", error);
       notification.error({
         message: "An Error Occurred",
         description:
@@ -263,20 +246,82 @@ function AddCase() {
     }
   }, []);
 
-  const next = () => {
-    form
-      .validateFields()
-      .then(() => {
-        setCurrentStep(currentStep + 1);
-      })
-      .catch((error) => {
-        console.log("Validate Failed:", error);
-      });
+  const handlePatientDataChange = (e) => {
+    const { name, value } = e.target;
+    setPatientData((prevState) => ({
+      ...prevState,
+      [name]: value,
+    }));
   };
 
-  const prev = () => {
-    setCurrentStep(currentStep - 1);
+  const handleSeachHNClick = async () => {
+    const hnCode = patientData.hn_code;
+    if (hnCode) {
+      setIsLoading(true);
+      setButtonStatus("loading");
+
+      try {
+        const response = await axiosInstance.get(
+          `/patient/getPatientData/${hnCode}`
+        );
+
+        if (response.data && response.data.data) {
+          const {
+            hn_code = "",
+            firstname = "",
+            lastname = "",
+            gender = "",
+            dob = "",
+            patient_history = "",
+          } = response.data.data;
+
+          setPatientData({
+            hn_code,
+            firstname,
+            lastname,
+            gender,
+            dob: dayjs(dob).format("YYYY-MM-DD"),
+            patient_history,
+          });
+
+          form.setFieldsValue({
+            hn_code,
+            firstname,
+            lastname,
+            gender,
+            dob: dayjs(dob).format("YYYY-MM-DD"),
+            patient_history,
+          });
+          setButtonStatus("success");
+          CustomNotification.success("ค้นหาสำเร็จ", "พบข้อมูลผู้ป่วยในระบบ");
+        } else {
+          setButtonStatus("error");
+          CustomNotification.error("ไม่พบข้อมูล", "ไม่พบข้อมูลผู้ป่วยในระบบ");
+        }
+      } catch (error) {
+        console.error("Error fetching patient data:", error);
+        form.setFieldsValue({
+          hn_code: "",
+          firstname: "",
+          lastname: "",
+          gender: null,
+          dob: "",
+          patient_history: "",
+        });
+        setButtonStatus("error");
+        CustomNotification.error("ไม่พบข้อมูล", "ไม่พบข้อมูลผู้ป่วยในระบบ");
+      } finally {
+        setIsLoading(false);
+      }
+    } else {
+      setButtonStatus("error");
+      setIsLoading(false);
+    }
   };
+
+  useEffect(() => {
+    console.log("Updated patientData:", patientData);
+  }, [patientData]);
 
   return (
     <>
@@ -285,440 +330,408 @@ function AddCase() {
       </div>
       <hr />
       <div className="p-6 rounded-base min-h-full">
-        <Steps current={currentStep} size="default" className="mb-8 ">
-          <Step
-            title={<span className="text-xl font-normal">Patient Data</span>}
-          />
-          <Step
-            title={<span className="text-xl font-normal">Surgery Data</span>}
-          />
-        </Steps>
-        <div className="step-content h-full flex flex-col justify-between">
+        <div className="w-3/4 mx-auto">
           <Form
             form={form}
             layout="vertical"
             onFinish={handleSaveConfirm}
-            className="flex-grow space-y-4"
+            className="space-y-8"
           >
-            {currentStep === 0 && (
-              <>
-                <Row gutter={[16, 16]}>
-                  <Col xs={24} sm={12}>
-                    <Form.Item
-                      label={
-                        <span className="text-base font-normal text-gray-700">
-                          First Name
-                        </span>
-                      }
-                      name="firstName"
-                      rules={[
-                        {
-                          required: true,
-                          message: "Please enter the first name!",
-                        },
-                      ]}
-                      className="w-full"
-                    >
-                      <Input
-                        name="firstName"
-                        value={patientData.firstName}
-                        onChange={handlePatientDataChange}
-                        className=" h-10 w-full text-base font-normal li border rounded-md border-gray-300 "
-                        prefix={
-                          <Icon
-                            icon="lucide:user"
-                            className="mr-2 text-blue-500 h-4 w-4"
-                          />
-                        }
-                      />
-                    </Form.Item>
-                  </Col>
-                  <Col xs={24} sm={12}>
-                    <Form.Item
-                      label={
-                        <span className="text-base font-normal text-gray-700">
-                          Last Name
-                        </span>
-                      }
-                      name="lastName"
-                      rules={[
-                        {
-                          required: true,
-                          message: "Please enter the last name!",
-                        },
-                      ]}
-                      className="w-full"
-                    >
-                      <Input
-                        name="lastName"
-                        value={patientData.lastName}
-                        onChange={handlePatientDataChange}
-                        className="h-10 w-full text-base font-normal border rounded-md border-gray-300"
-                        prefix={
-                          <Icon
-                            icon="lucide:user"
-                            className="mr-2 text-blue-500 h-4 w-4"
-                          />
-                        }
-                      />
-                    </Form.Item>
-                  </Col>
-                </Row>
-
-                <Row gutter={[16, 16]}>
-                  <Col xs={24} sm={12}>
-                    <Form.Item
-                      label={
-                        <span className="text-base font-normal text-gray-700">
-                          Gender
-                        </span>
-                      }
-                      name="gender"
-                      rules={[
-                        { required: true, message: "Please select gender!" },
-                      ]}
-                      className="w-full"
-                    >
-                      <Select
-                        value={patientData.gender}
-                        onChange={(value) =>
-                          handlePatientDataChange({
-                            target: { name: "gender", value },
-                          })
-                        }
-                        className="h-10 w-full text-base font-normal"
-                        placeholder="Select gender"
-                      >
-                        <Option value="male">Male</Option>
-                        <Option value="female">Female</Option>
-                      </Select>
-                    </Form.Item>
-                  </Col>
-                  <Col xs={24} sm={12}>
-                    <Form.Item
-                      label={
-                        <span className="text-base font-normal text-gray-700">
-                          Date of Birth
-                        </span>
-                      }
-                      name="dob"
-                      rules={[
-                        { required: true, message: "Please pick a date!" },
-                      ]}
-                      className="w-full"
-                    >
-                      <Input
-                        name="dob"
-                        value={patientData.dob}
-                        onChange={handlePatientDataChange}
-                        placeholder="YYYY/MM/DD"
-                        ref={dobInputRef}
-                        className="h-10 w-full text-base font-normal border rounded-md border-gray-300 focus:border-blue-400 focus:ring-1 focus:ring-blue-200"
-                      />
-                    </Form.Item>
-                  </Col>
-                </Row>
-
-                <Form.Item
-                  label={
-                    <span className="text-base font-normal text-gray-700">
-                      Hospital Number Code
-                    </span>
-                  }
-                  name="hn_code"
-                  rules={[
-                    {
-                      required: true,
-                      message: "Please enter the hospital number code!",
-                    },
-                  ]}
-                  className="w-full"
-                >
+            {/* Personal Information Section */}
+            <section className="bg-white">
+              <div className="flex items-center space-x-3 mb-6">
+                <div className="w-2 h-8 bg-green-600 rounded-full" />
+                <h2 className="text-xl font-semibold text-gray-800">
+                  Patient Information
+                </h2>
+              </div>
+              <Form.Item
+                label={
+                  <span className="text-base font-medium text-gray-700">
+                    Hospital Number Code
+                  </span>
+                }
+                name="hn_code"
+                rules={[
+                  {
+                    required: true,
+                    message: "Please enter the hospital number code!",
+                  },
+                ]}
+              >
+                <div className="flex space-x-2 max-w-md">
                   <Input
                     name="hn_code"
                     value={patientData.hn_code}
                     onChange={handlePatientDataChange}
                     ref={hnInputRef}
-                    placeholder="hn_code"
-                    className="h-10 w-full text-base font-normal border rounded-md border-gray-300 focus:border-blue-400 focus:ring-1 focus:ring-blue-200"
+                    placeholder="Enter HN code"
+                    className="h-11 text-base border rounded-lg"
+                  />
+                  <Button
+                    loading={isLoading}
+                    onClick={handleSeachHNClick}
+                    className="h-11 w-1/4 flex items-center justify-center gap-2"
+                    type="primary"
+                  >
+                    <Icon icon="mdi:magnify" className="text-lg" />
+                    ค้นหา
+                  </Button>
+                </div>
+              </Form.Item>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <Form.Item
+                  label={
+                    <span className="text-base font-medium text-gray-700">
+                      First Name
+                    </span>
+                  }
+                  name="firstname"
+                  rules={[
+                    { required: true, message: "Please enter the first name!" },
+                  ]}
+                >
+                  <Input
+                    name="firstname"
+                    value={patientData.firstname}
+                    onChange={handlePatientDataChange}
+                    className="h-11 text-base rounded-lg"
+                    placeholder="Enter First Name"
                   />
                 </Form.Item>
 
                 <Form.Item
                   label={
-                    <span className="text-base font-normal text-gray-700">
-                      Patient History
+                    <span className="text-base font-medium text-gray-700">
+                      Last Name
                     </span>
                   }
-                  name="patient_history"
-                  className="w-full"
+                  name="lastname"
+                  rules={[
+                    { required: true, message: "Please enter the last name!" },
+                  ]}
                 >
-                  <Input.TextArea
-                    name="patient_history"
-                    value={patientData.patient_history}
+                  <Input
+                    name="lastname"
+                    value={patientData.lastname}
                     onChange={handlePatientDataChange}
-                    rows={4}
-                    className="w-full text-base font-normal border rounded-md border-gray-300 focus:border-blue-400 focus:ring-1 focus:ring-blue-200"
+                    className="h-11 text-base rounded-lg"
+                    placeholder="Enter Last Name"
                   />
                 </Form.Item>
-              </>
-            )}
 
-            {currentStep === 1 && (
-              <>
-                <Row gutter={[16, 16]}>
-                  <Col xs={24} sm={12}>
-                    <Form.Item
-                      label={
-                        <span className="text-base font-normal text-gray-700">
-                          Select Doctor
-                        </span>
-                      }
-                      name="doctor_id"
-                      rules={[
-                        { required: true, message: "Please select a doctor!" },
-                      ]}
-                      className="w-full"
-                    >
-                      <Select
-                        value={surgeryData.doctor_id}
-                        onChange={(value) =>
-                          handleSurgeryDataChange("doctor_id", value)
-                        }
-                        className="h-10 w-full text-base font-normal"
-                        loading={doctorsLoading}
-                        placeholder="Select a doctor"
-                      >
-                        {doctors.map((doctor) => (
-                          <Option
-                            key={doctor.doctor_id}
-                            value={doctor.doctor_id}
-                          >
-                            {doctor.prefix} {doctor.firstname} {doctor.lastname}
-                          </Option>
-                        ))}
-                      </Select>
-                    </Form.Item>
-                  </Col>
-                  <Col xs={24} sm={12}>
-                    <Form.Item
-                      label={
-                        <span className="text-base font-normal text-gray-700">
-                          Surgery Date
-                        </span>
-                      }
-                      name="surgery_date"
-                      rules={[
-                        { required: true, message: "Please pick a date!" },
-                      ]}
-                      className="w-full"
-                    >
-                      <DatePicker
-                        format="YYYY-MM-DD"
-                        value={moment(surgeryData.surgery_date)}
-                        onChange={(date, dateString) =>
-                          handleSurgeryDataChange("surgery_date", dateString)
-                        }
-                        className="h-10 w-full text-base border rounded-md border-gray-300 focus:border-blue-400"
-                      />
-                    </Form.Item>
-                  </Col>
-                </Row>
+                <Form.Item
+                  label={
+                    <span className="text-base font-medium text-gray-700">
+                      Gender
+                    </span>
+                  }
+                  name="gender"
+                  rules={[{ required: true, message: "Please select gender!" }]}
+                >
+                  <Select
+                    value={patientData.gender}
+                    onChange={(value) =>
+                      handlePatientDataChange({
+                        target: { name: "gender", value },
+                      })
+                    }
+                    className="h-11 text-base"
+                    placeholder="Select gender"
+                  >
+                    <Option value="male">Male</Option>
+                    <Option value="female">Female</Option>
+                  </Select>
+                </Form.Item>
 
-                <Row gutter={[16, 16]}>
-                  <Col xs={24} sm={12}>
-                    <Form.Item
-                      label={
-                        <span className="text-base font-normal text-gray-700">
-                          Estimate Start Time
-                        </span>
-                      }
-                      name="estimate_start_time"
-                      rules={[
-                        { required: true, message: "Please pick a time!" },
-                      ]}
-                      className="w-full"
-                    >
-                      <DatePicker.TimePicker
-                        name="estimate_start_time"
-                        value={
-                          surgeryData.estimate_start_time
-                            ? moment(surgeryData.estimate_start_time, "HH:mm")
-                            : null
-                        }
-                        onChange={(value) =>
-                          handleSurgeryDataChange("estimate_start_time", value)
-                        }
-                        format="HH:mm"
-                        className="h-10 w-full text-base border rounded-md border-gray-300 focus:border-blue-400"
-                      />
-                    </Form.Item>
-                  </Col>
-                  <Col xs={24} sm={12}>
-                    <Form.Item
-                      label={
-                        <span className="text-base font-normal text-gray-700">
-                          Estimate Duration (in hours)
-                        </span>
-                      }
-                      name="estimate_duration"
-                      rules={[
-                        {
-                          required: true,
-                          message: "Please enter the duration!",
-                        },
-                        {
-                          validator: (_, value) =>
-                            value > 0
-                              ? Promise.resolve()
-                              : Promise.reject(
-                                  new Error("Duration must be greater than 0")
-                                ),
-                        },
-                      ]}
-                      className="w-full"
-                    >
-                      <Input
-                        name="estimate_duration"
-                        placeholder="Input estimate duration (in hours)"
-                        value={
-                          surgeryData.estimate_duration
-                            ? (surgeryData.estimate_duration / 60).toFixed(2)
-                            : ""
-                        }
-                        onChange={(e) => {
-                          const hours = parseFloat(e.target.value) || 0;
-                          const minutes = Math.round(hours * 60);
-                          handleSurgeryDataChange("estimate_duration", minutes);
-                        }}
-                        type="number"
-                        step="0.01"
-                        className="h-10 w-full text-base border rounded-md border-gray-300 focus:border-blue-400 focus:ring-1 focus:ring-blue-200"
-                      />
-                    </Form.Item>
-                  </Col>
-                </Row>
-                <Row gutter={[16, 16]}>
-                  <Col xs={24} sm={12}>
-                    <Form.Item
-                      label={
-                        <span className="text-base font-normal text-gray-700">
-                          Surgery Type
-                        </span>
-                      }
-                      name="surgery_type_id"
-                      rules={[
-                        {
-                          required: true,
-                          message: "Please select surgery type!",
-                        },
-                      ]}
-                      className="w-full"
-                    >
-                      <Select
-                        value={surgeryData.surgery_type_id}
-                        onChange={(value) =>
-                          handleSurgeryDataChange("surgery_type_id", value)
-                        }
-                        className="h-10 w-full text-base font-normal"
-                        placeholder="Select a surgery type"
-                        loading={surgeryTypesLoading}
-                        optionLabelProp="label"
-                      >
-                        {surgeryTypes.map((type) => (
-                          <Option
-                            key={type.surgery_type_id}
-                            value={type.surgery_type_id}
-                            label={type.surgery_type_name}
-                          >
-                            <div>
-                              <span className="font-semibold">
-                                {type.surgery_type_name}
-                              </span>
-                              <br />
-                              <span className="text-gray-500 text-sm">
-                                {type.description}
-                              </span>
-                            </div>
-                          </Option>
-                        ))}
-                      </Select>
-                    </Form.Item>
-                  </Col>
-                  <Col xs={24} sm={12}>
-                    <Form.Item
-                      label={
-                        <span className="text-base font-normal text-gray-700">
-                          OR-Room
-                        </span>
-                      }
-                      name="operating_room_id"
-                      rules={[
-                        {
-                          required: true,
-                          message: "Please select OR-Room!",
-                        },
-                      ]}
-                      className="w-full"
-                    >
-                      <Select
-                        value={surgeryData.operating_room_id}
-                        onChange={(value) =>
-                          handleSurgeryDataChange("operating_room_id", value)
-                        }
-                        className="h-10 w-full text-base font-normal"
-                        loading={operatingRoomsLoading}
-                        placeholder="Select an OR-Room"
-                      >
-                        {operatingRooms.map((room) => (
-                          <Option
-                            key={room.operating_room_id}
-                            value={room.operating_room_id}
-                          >
-                            {room.room_name} ({room.location})
-                          </Option>
-                        ))}
-                      </Select>
-                    </Form.Item>
-                  </Col>
-                </Row>
-              </>
-            )}
-            {currentStep > 0 ? (
-              <div className="w-full flex justify-between items-center border-t pt-4 mt-auto bottom-0 bg-white">
-                <Button
-                  onClick={prev}
-                  className="h-10 px-6 text-base font-normal flex items-center mr-10"
+                <Form.Item
+                  label={
+                    <span className="text-base font-medium text-gray-700">
+                      Date of Birth
+                    </span>
+                  }
+                  name="dob"
+                  rules={[{ required: true, message: "Please pick a date!" }]}
                 >
-                  <Icon icon="mdi:arrow-left" className="mr-2" />
-                  Previous
-                </Button>
-                <Button
-                  type="primary"
-                  htmlType="submit"
-                  className="h-10 px-6 bg-blue-600 hover:bg-blue-700 text-white text-base font-normal flex items-center"
-                >
-                  Submit
-                  <Icon icon="mdi:check-circle" className="ml-2" />
-                </Button>
+                  <Input
+                    name="dob"
+                    value={patientData.dob}
+                    onChange={handlePatientDataChange}
+                    placeholder="YYYY/MM/DD"
+                    ref={dobInputRef}
+                    className="h-11 text-base rounded-lg"
+                  />
+                </Form.Item>
               </div>
-            ) : (
-              <div className="w-full flex justify-end items-center border-t pt-4 mt-auto bottom-0 bg-white">
-                <Button
-                  type="primary"
-                  onClick={next}
-                  className="h-10 px-6 bg-blue-600 hover:bg-blue-700 text-white text-base font-normal flex items-center"
-                >
-                  Next
-                  <Icon icon="mdi:arrow-right" className="ml-2" />
-                </Button>
+            </section>
+
+            {/* Surgery Details Section */}
+            <section className="bg-white">
+              <div className="flex items-center space-x-3 mb-6">
+                <div className="w-2 h-8 bg-purple-600 rounded-full" />
+                <h2 className="text-xl font-semibold text-gray-800">
+                  Surgery Details
+                </h2>
               </div>
-            )}
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <Form.Item
+                  label={
+                    <span className="text-base font-medium text-gray-700">
+                      Select Doctor
+                    </span>
+                  }
+                  name="doctor_id"
+                  rules={[
+                    { required: true, message: "Please select a doctor!" },
+                  ]}
+                >
+                  <Select
+                    value={surgeryData.doctor_id}
+                    onChange={(value) =>
+                      handleSurgeryDataChange("doctor_id", value)
+                    }
+                    className="h-11 text-base"
+                    loading={doctorsLoading}
+                    placeholder="Select a doctor"
+                  >
+                    {doctors.map((doctor) => (
+                      <Option key={doctor.doctor_id} value={doctor.doctor_id}>
+                        {doctor.prefix} {doctor.firstname} {doctor.lastname}
+                      </Option>
+                    ))}
+                  </Select>
+                </Form.Item>
+                <Form.Item
+                  label={
+                    <span className="text-base font-medium text-gray-700">
+                      Operation
+                    </span>
+                  }
+                  name="Operation"
+                  rules={[
+                    { required: true, message: "Please enter the Operation!" },
+                  ]}
+                >
+                  <Input
+                    name="Operation"
+                    value={surgeryData.Operation}
+                    onChange={(e) =>
+                      handleSurgeryDataChange("Operation", e.target.value)
+                    }
+                    className="h-11 text-base rounded-lg"
+                    placeholder="Enter Operation"
+                  />
+                </Form.Item>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <Form.Item
+                  label={
+                    <span className="text-base font-normal text-gray-700">
+                      Surgery Type
+                    </span>
+                  }
+                  name="surgery_type_id"
+                  rules={[
+                    {
+                      required: true,
+                      message: "Please select surgery type!",
+                    },
+                  ]}
+                  className="w-full"
+                >
+                  <Select
+                    value={surgeryData.surgery_type_id}
+                    onChange={(value) =>
+                      handleSurgeryDataChange("surgery_type_id", value)
+                    }
+                    className="h-10 w-full text-base font-normal"
+                    placeholder="Select a surgery type"
+                    loading={surgeryTypesLoading}
+                    optionLabelProp="label"
+                  >
+                    {surgeryTypes.map((type) => (
+                      <Option
+                        key={type.surgery_type_id}
+                        value={type.surgery_type_id}
+                        label={type.surgery_type_name}
+                      >
+                        <div>
+                          <span className="font-medium">
+                            {type.surgery_type_name}
+                          </span>
+                          <br />
+                          <span className="text-gray-500 text-sm">
+                            {type.description}
+                          </span>
+                        </div>
+                      </Option>
+                    ))}
+                  </Select>
+                </Form.Item>
+
+                <Form.Item
+                  label={
+                    <span className="text-base font-normal text-gray-700">
+                      OR-Room
+                    </span>
+                  }
+                  name="operating_room_id"
+                  rules={[
+                    {
+                      required: true,
+                      message: "Please select OR-Room!",
+                    },
+                  ]}
+                  className="w-full"
+                >
+                  <Select
+                    value={surgeryData.operating_room_id}
+                    onChange={(value) =>
+                      handleSurgeryDataChange("operating_room_id", value)
+                    }
+                    className="h-10 w-full text-base font-normal"
+                    loading={operatingRoomsLoading}
+                    placeholder="Select an OR-Room"
+                  >
+                    {operatingRooms.map((room) => (
+                      <Option
+                        key={room.operating_room_id}
+                        value={room.operating_room_id}
+                      >
+                        {room.room_name} ({room.location})
+                      </Option>
+                    ))}
+                  </Select>
+                </Form.Item>
+              </div>
+              <div className="grid grid-cols-3 gap-6">
+                <Form.Item
+                  label={
+                    <span className="text-base font-medium text-gray-700">
+                      Surgery Date
+                    </span>
+                  }
+                  name="surgery_date"
+                  rules={[{ required: true, message: "Please pick a date!" }]}
+                >
+                  <DatePicker
+                    format="YYYY-MM-DD"
+                    value={dayjs(surgeryData.surgery_date)}
+                    onChange={(date, dateString) =>
+                      handleSurgeryDataChange("surgery_date", dateString)
+                    }
+                    className="h-11 text-base rounded-lg w-full"
+                  />
+                </Form.Item>
+
+                <Form.Item
+                  label={
+                    <span className="text-base font-medium text-gray-700">
+                      Estimate Start Time
+                    </span>
+                  }
+                  name="estimate_start_time"
+                  rules={[{ required: true, message: "Please pick a time!" }]}
+                >
+                  <DatePicker.TimePicker
+                    name="estimate_start_time"
+                    value={
+                      surgeryData.estimate_start_time
+                        ? dayjs(surgeryData.estimate_start_time, "HH:mm")
+                        : null
+                    }
+                    onChange={(value) =>
+                      handleSurgeryDataChange("estimate_start_time", value)
+                    }
+                    format="HH:mm"
+                    className="h-11 text-base rounded-lg w-full"
+                  />
+                </Form.Item>
+
+                <Form.Item
+                  label={
+                    <span className="text-base font-medium text-gray-700">
+                      Estimate Duration (in hours)
+                    </span>
+                  }
+                  name="estimate_duration"
+                  rules={[
+                    { required: true, message: "Please enter the duration!" },
+                    {
+                      validator: (_, value) =>
+                        value > 0
+                          ? Promise.resolve()
+                          : Promise.reject(
+                              new Error("Duration must be greater than 0")
+                            ),
+                    },
+                  ]}
+                >
+                  <Input
+                    name="estimate_duration"
+                    placeholder="Input estimate duration (in hours)"
+                    value={
+                      surgeryData.estimate_duration
+                        ? (surgeryData.estimate_duration / 60).toFixed(2)
+                        : ""
+                    }
+                    onChange={(e) => {
+                      const hours = parseFloat(e.target.value) || 0;
+                      const minutes = Math.round(hours * 60);
+                      handleSurgeryDataChange("estimate_duration", minutes);
+                    }}
+                    type="number"
+                    step="0.01"
+                    className="h-11 text-base rounded-lg w-full"
+                  />
+                </Form.Item>
+              </div>
+              <Form.Item
+                label={
+                  <span className="text-base font-medium text-gray-700">
+                    Patient History
+                  </span>
+                }
+                name="patient_history"
+                className="mt-4"
+              >
+                <Input.TextArea
+                  name="patient_history"
+                  value={surgeryData.patient_history}
+                  onChange={(e) =>
+                    handleSurgeryDataChange("patient_history", e.target.value)
+                  }
+                  rows={4}
+                  className="text-base rounded-lg"
+                  placeholder="Enter patient's medical history..."
+                />
+              </Form.Item>
+            </section>
+
+            {/* Bottom Action Buttons */}
+            <div className="flex justify-center space-x-4 pt-6 border-t w-full">
+              <Button
+                type="primary"
+                htmlType="submit"
+                className="text-lg h-11 px-8 bg-blue-600 hover:bg-blue-700 flex items-center justify-center w-full"
+              >
+                Submit
+                <Icon icon="mdi:check-circle" className="ml-2" />
+              </Button>
+            </div>
           </Form>
         </div>
       </div>
     </>
   );
 }
+<style jsx>{`
+  :where(.css-dev-only-do-not-override-1wwf28x).ant-picker
+    .ant-picker-input
+    > input {
+    font-size: 20px;
+  }
+`}</style>;
 
 export default AddCase;

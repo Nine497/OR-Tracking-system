@@ -2,7 +2,7 @@ import React, { useMemo, useEffect, useState } from "react";
 import { Modal, Timeline, Tag, Typography, Rate, Input } from "antd";
 import { FrownOutlined, MehOutlined, SmileOutlined } from "@ant-design/icons";
 import axiosInstance from "../../admin/api/axiosInstance";
-import moment from "moment";
+import dayjs from "dayjs";
 import { Icon } from "@iconify/react";
 
 const { Text } = Typography;
@@ -110,7 +110,7 @@ const StatusTimeline = ({
           <div className="flex flex-col">
             {historyEntry && (
               <Text className="font-semibold text-sm md:text-base text-gray-600 bg-gray-50 px-2 md:px-3 py-1 rounded-md w-fit mb-4">
-                {moment(historyEntry.updated_at).format("HH:mm DD/MM/YYYY")}
+                {dayjs(historyEntry.updated_at).format("HH:mm DD/MM/YYYY")}
               </Text>
             )}
             <div className="flex flex-row items-center gap-2 md:gap-6">

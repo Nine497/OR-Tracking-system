@@ -20,7 +20,7 @@ function Case_Table_Header() {
         className="font-bold flex items-center gap-2"
         size="large"
       >
-        เพิ่ม
+        <span className="font-semibold tracking-wide">เพิ่มเคส</span>
       </Button>
     </div>
   );

@@ -13,7 +13,7 @@ import {
   Badge,
   QRCode,
 } from "antd";
-import moment from "moment";
+import dayjs from "dayjs";
 import { useAuth } from "../../context/AuthContext";
 import axiosInstance from "../../api/axiosInstance";
 import { Icon } from "@iconify/react";
@@ -64,11 +64,14 @@ const NoLinkComponent = ({ onGenerateLink }) => {
           placeholder="Select expiration date and time"
           onChange={(date) => setSelectedDate(date)}
           disabledDate={(current) =>
-            current && current < moment().startOf("day")
+            current && current < dayjs().startOf("day")
           }
           showNow={false}
+          defaultValue={dayjs().add(1, "day")}
         />
-
+        <span className="text-sm text-gray-500">
+          * ค่าเริ่มต้นคือ +24 ชั่วโมง จากเวลาปัจจุบัน
+        </span>
         <Button
           type="primary"
           onClick={() => onGenerateLink(selectedDate)}
@@ -250,7 +253,7 @@ const ActiveLinkComponent = ({
   const [isEditing, setIsEditing] = useState(false);
   const [newExpirationTime, setNewExpirationTime] = useState(null);
   const [expirationTime, setExpirationTime] = useState(
-    moment(linkData.expiration_time)
+    dayjs(linkData.expiration_time)
   );
   const handleExpirationChange = (date) => {
     setNewExpirationTime(date);
@@ -304,7 +307,7 @@ const ActiveLinkComponent = ({
               value={
                 isEditing
                   ? newExpirationTime
-                  : moment(linkData.expiration_time).format("YYYY-MM-DD, HH:mm")
+                  : dayjs(linkData.expiration_time).format("YYYY-MM-DD, HH:mm")
               }
               isActive={true}
             >
@@ -316,7 +319,7 @@ const ActiveLinkComponent = ({
                   format="YYYY-MM-DD HH:mm"
                   onChange={(date) => handleExpirationChange(date)}
                   disabledDate={(current) =>
-                    current && current < moment().startOf("day")
+                    current && current < dayjs().startOf("day")
                   }
                   showNow={false}
                   placeholder="Select new date and time"
@@ -359,14 +362,14 @@ const ActiveLinkComponent = ({
         <div className="space-y-3">
           <InfoItem
             label="Created At"
-            value={moment(linkData.created_at).format("YYYY-MM-DD, HH:mm")}
+            value={dayjs(linkData.created_at).format("YYYY-MM-DD, HH:mm")}
           />
           <InfoItem label="Created By" value={linkData.staff_fullname} />
           <InfoItem
             label="Last Accessed"
             value={
               linkData.last_accessed
-                ? moment(linkData.last_accessed).format("YYYY-MM-DD, HH:mm")
+                ? dayjs(linkData.last_accessed).format("YYYY-MM-DD, HH:mm")
                 : "N/A"
             }
           />
@@ -406,7 +409,7 @@ const ExpiredLinkComponent = ({
         <div className="flex items-center gap-4">
           <InfoItem
             label="Expiration At"
-            value={moment(linkData.expiration_time).format("YYYY-MM-DD, HH:mm")}
+            value={dayjs(linkData.expiration_time).format("YYYY-MM-DD, HH:mm")}
             isActive={false}
           />
           <div className="flex gap-2">
@@ -423,14 +426,14 @@ const ExpiredLinkComponent = ({
         </div>
         <InfoItem
           label="Created At"
-          value={moment(linkData.created_at).format("YYYY-MM-DD, HH:mm")}
+          value={dayjs(linkData.created_at).format("YYYY-MM-DD, HH:mm")}
         />
         <InfoItem label="Created By" value={linkData.staff_fullname} />
         <InfoItem
           label="Last Accessed"
           value={
             linkData.last_accessed
-              ? moment(linkData.last_accessed).format("YYYY-MM-DD, HH:mm")
+              ? dayjs(linkData.last_accessed).format("YYYY-MM-DD, HH:mm")
               : "N/A"
           }
         />
@@ -457,12 +460,8 @@ const LinkForm = ({ formLink, onClose, handleCopyLink, record }) => {
     const fetchData = async () => {
       setLoading(true);
       try {
-        const token = localStorage.getItem("jwtToken");
         const response = await axiosInstance.get(
-          `link_cases/getLast/${record.surgery_case_id}`,
-          {
-            headers: { Authorization: `Bearer ${token}` },
-          }
+          `link_cases/getLast/${record.surgery_case_id}`
         );
 
         if (response.status === 200 && response.data) {
@@ -497,9 +496,7 @@ const LinkForm = ({ formLink, onClose, handleCopyLink, record }) => {
     setLoading(true);
     try {
       const token = localStorage.getItem("jwtToken");
-      const response = await axiosInstance.post("/link_cases/", linkData, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const response = await axiosInstance.post("/link_cases/", linkData);
       if (response.data) {
         setLinkData(response.data);
         notification.success({
@@ -545,16 +542,10 @@ const LinkForm = ({ formLink, onClose, handleCopyLink, record }) => {
   const handleCancelLink = async () => {
     try {
       const token = localStorage.getItem("jwtToken");
-      const response = await axiosInstance.patch(
-        "/link_cases/update_status",
-        {
-          surgery_case_links_id: linkData.surgery_case_links_id,
-          isactive: false,
-        },
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        }
-      );
+      const response = await axiosInstance.patch("/link_cases/update_status", {
+        surgery_case_links_id: linkData.surgery_case_links_id,
+        isactive: false,
+      });
 
       if (response.status === 200) {
         notification.success({
@@ -588,7 +579,7 @@ const LinkForm = ({ formLink, onClose, handleCopyLink, record }) => {
     <Form form={formLink} layout="vertical" className="w-full">
       <div className="space-y-6">
         {linkData?.expiration_time ? (
-          moment(linkData.expiration_time).isBefore(moment()) ? (
+          dayjs(linkData.expiration_time).isBefore(dayjs()) ? (
             <ExpiredLinkComponent
               link={linkUrl}
               linkData={linkData}

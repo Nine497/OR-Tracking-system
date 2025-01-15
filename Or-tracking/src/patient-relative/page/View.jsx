@@ -13,7 +13,7 @@ import ManAvatar from "../assets/Man Avatar.png";
 import WomanAvatar from "../assets/Woman Avatar.png";
 import AccessLinkError from "./accessLinkError";
 import { Icon } from "@iconify/react";
-import moment from "moment";
+import dayjs from "dayjs";
 import LogoutButton from "../components/LogoutButton";
 import { motion, time } from "framer-motion";
 import StatusTimeline from "../components/TimeLine";
@@ -34,7 +34,7 @@ const View = () => {
   const [patient_currentStatus, setPatient_currentStatus] = useState([]);
   const { isLoading, startLoading, exitLoading } = useLoading();
   const [TimelineLoading, setTimelineLoading] = useState(false);
-  const [lastUpdated, setLastUpdated] = useState(moment().format("HH:mm A"));
+  const [lastUpdated, setLastUpdated] = useState(dayjs().format("HH:mm A"));
 
   const fetchPatientData = async ({ surgery_case_id, patient_link }) => {
     try {
@@ -196,14 +196,14 @@ const View = () => {
     return null;
   }
 
-  const startTime = moment(
-    `${moment().format("YYYY-MM-DD")} ${patientData.estimate_start_time}`,
+  const startTime = dayjs(
+    `${dayjs().format("YYYY-MM-DD")} ${patientData.estimate_start_time}`,
     "YYYY-MM-DD HH:mm:ss"
   );
   const endTime = startTime
     .clone()
     .add(patientData.estimate_duration, "minutes");
-  const formattedDate = moment(patientData.surgery_date).format("DD/MM/YYYY");
+  const formattedDate = dayjs(patientData.surgery_date).format("DD/MM/YYYY");
 
   const handleRefresh = async () => {
     try {
@@ -219,7 +219,7 @@ const View = () => {
       setPatientData(patientData);
       setStatusData(statusData);
       setStatusHistory(statusHistory);
-      setLastUpdated(moment().format("HH:mm A"));
+      setLastUpdated(dayjs().format("HH:mm A"));
     } catch (error) {
       setErrorMessage(t("error.FAILED_TO_LOAD"));
     } finally {
