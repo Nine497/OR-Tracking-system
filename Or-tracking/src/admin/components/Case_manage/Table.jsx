@@ -333,7 +333,7 @@ function CaseTable() {
                 onClick={() => openStatusModal(record)}
                 className="flex items-center gap-2"
               >
-                View
+                ประวัติ
               </Button>
             </div>
           </Tooltip>
@@ -353,7 +353,7 @@ function CaseTable() {
             onClick={() => openLinkModal(record)}
             className="flex items-center gap-1"
           >
-            Setting
+            ตั้งค่า
           </Button>
           {record.link_id &&
           record.link_active === true &&
@@ -361,13 +361,11 @@ function CaseTable() {
             <Button
               type="default"
               icon={<Icon icon="bx:bx-link" />}
-              onClick={() =>
-                copyLink(`${BASE_URL}ptr?link=${record.active_link_id}`)
-              }
+              onClick={() => copyLink(`${BASE_URL}ptr?link=${record.link_id}`)}
               className="flex items-center gap-1"
               loading={copyLoading}
             >
-              Copy
+              คัดลอก
             </Button>
           ) : null}
         </div>
@@ -387,7 +385,7 @@ function CaseTable() {
                 onClick={() => handleEditRecord(record)}
                 className="flex items-center gap-2"
               >
-                <span className="font-medium text-base">Edit</span>
+                <span className="font-medium text-base">แก้ไข</span>
               </Button>
             </div>
           </Tooltip>

@@ -1,6 +1,134 @@
 const SurgeryCase = require("../models/caseModel");
 const db = require("../config/database");
-const patient = require("../models/caseModel");
+
+exports.getCalendar = async (req, res) => {
+  try {
+    const caseCalendar = await db("surgery_case")
+      .select("surgery_case.*", "operating_room.*", "patients.hn_code")
+      .join(
+        "operating_room",
+        "surgery_case.operating_room_id",
+        "operating_room.operating_room_id"
+      )
+      .join("patients", "surgery_case.patient_id", "patients.patient_id");
+
+    if (!caseCalendar || caseCalendar.length === 0) {
+      return res.status(404).json({
+        message: "No surgery cases found",
+      });
+    }
+
+    return res.status(200).json({
+      message: "Fetched successfully",
+      data: caseCalendar,
+    });
+  } catch (error) {
+    console.error("Error fetching surgery cases:", error);
+
+    return res.status(500).json({
+      message: "An error occurred while fetching surgery cases",
+      error: error.message || "Unknown error",
+    });
+  }
+};
+
+exports.createOperation = async (req, res) => {
+  try {
+    const { operation_name, surgery_case_id } = req.body;
+
+    if (!operation_name || !surgery_case_id) {
+      return res.status(400).json({
+        message: "Missing required fields: operation_name or surgery_case_id",
+      });
+    }
+    console.log("operation_name ", operation_name);
+    console.log("surgery_case_id", surgery_case_id);
+
+    const surgeryCase = await db("surgery_case")
+      .select("surgery_case_id")
+      .where("surgery_case_id", surgery_case_id)
+      .first();
+
+    if (!surgeryCase) {
+      return res.status(404).json({
+        message: "Surgery Case not found with the given ID",
+      });
+    }
+
+    const existingOperation = await db("operation")
+      .select("operation_id")
+      .where("surgery_case_id", surgery_case_id)
+      .first();
+
+    if (existingOperation) {
+      const updatedOperation = await db("operation")
+        .where("surgery_case_id", surgery_case_id)
+        .update({
+          operation_name,
+        });
+
+      if (updatedOperation) {
+        return res.status(200).json({
+          message: "Operation updated successfully",
+          data: {
+            operation_name,
+            surgery_case_id,
+          },
+        });
+      } else {
+        return res.status(500).json({
+          message: "Failed to update operation",
+        });
+      }
+    } else {
+      const newOperation = await db("operation").insert({
+        operation_name,
+        surgery_case_id,
+      });
+
+      if (newOperation) {
+        return res.status(201).json({
+          message: "Operation created successfully",
+          data: {
+            operation_name,
+            surgery_case_id,
+          },
+        });
+      } else {
+        return res.status(500).json({
+          message: "Failed to create operation",
+        });
+      }
+    }
+  } catch (error) {
+    console.error("Error creating or updating operation:", error);
+    return res.status(500).json({
+      message: "An error occurred while creating or updating operation",
+      error: error.message,
+    });
+  }
+};
+
+exports.getCaseByOrID = async (req, res) => {
+  const { operating_room_id } = req.params;
+
+  try {
+    const cases = await SurgeryCase.getAllByOrID(operating_room_id);
+
+    if (cases.length === 0) {
+      return res
+        .status(404)
+        .json({ message: "No surgery cases found in this room." });
+    }
+
+    return res.status(200).json(cases);
+  } catch (error) {
+    console.error("Error fetching cases for operating room:", error);
+    return res
+      .status(500)
+      .json({ message: "An error occurred while fetching surgery cases." });
+  }
+};
 
 exports.updateSurgeryCase = async (req, res) => {
   try {
@@ -10,12 +138,18 @@ exports.updateSurgeryCase = async (req, res) => {
     if (
       !surgeryCaseData ||
       !surgeryCaseData.surgery_type_id ||
-      !surgeryCaseData.operating_room_id
+      !surgeryCaseData.doctor_id ||
+      !surgeryCaseData.surgery_date ||
+      !surgeryCaseData.estimate_start_time ||
+      !surgeryCaseData.estimate_duration ||
+      !surgeryCaseData.operating_room_id ||
+      !surgeryCaseData.patient_history
     ) {
       return res
         .status(400)
         .json({ message: "Please provide all required fields." });
     }
+
     console.log("surgeryCaseData : ", surgeryCaseData);
 
     const updatedCase = await SurgeryCase.update(
@@ -108,7 +242,9 @@ exports.getAllCase = async (req, res) => {
         "doctors.lastname as doctor_lastname",
         "operating_room.room_name as room_name",
         "status.status_name as status_name",
-        "surgery_case_links.surgery_case_links_id as active_link_id"
+        "surgery_case_links.surgery_case_links_id as link_id",
+        "surgery_case_links.isactive as link_active",
+        "surgery_case_links.expiration_time as link_expiration"
       )
       .leftJoin("patients", "surgery_case.patient_id", "patients.patient_id")
       .leftJoin("doctors", "surgery_case.doctor_id", "doctors.doctor_id")
@@ -175,44 +311,21 @@ exports.getCaseById = async (req, res) => {
 };
 
 exports.createSurgeryCase = async (req, res) => {
+  const { patient_id } = req.params;
   const surgeryCaseData = req.body;
 
-  const patientData = {
-    hn_code: surgeryCaseData.hn_code,
-    firstname: surgeryCaseData.firstName,
-    lastname: surgeryCaseData.lastName,
-    dob: surgeryCaseData.dob,
-    gender: surgeryCaseData.gender,
-    patient_history: surgeryCaseData.patient_history,
-  };
-
   try {
-    if (
-      !patientData.hn_code ||
-      !patientData.firstname ||
-      !patientData.lastname
-    ) {
+    const parsedPatientId = parseInt(patient_id, 10);
+    if (!parsedPatientId || isNaN(parsedPatientId)) {
+      return res.status(400).json({ message: "Invalid patient ID" });
+    }
+
+    if (!surgeryCaseData) {
       return res
         .status(400)
-        .json({ message: "Missing required patient details" });
+        .json({ message: "Missing required surgery details" });
     }
 
-    // Check if patient exists
-    let existingPatient = await db("patients")
-      .where("hn_code", patientData.hn_code)
-      .first();
-
-    if (!existingPatient) {
-      const newPatient = await db("patients")
-        .insert(patientData)
-        .returning("*")
-        .then((newPatient) => newPatient[0]);
-      surgeryCaseData.patient_id = newPatient.patient_id;
-    } else {
-      surgeryCaseData.patient_id = existingPatient.patient_id;
-    }
-
-    // Create new surgery case
     const newSurgeryCase = await db("surgery_case")
       .insert({
         doctor_id: surgeryCaseData.doctor_id,
@@ -223,13 +336,18 @@ exports.createSurgeryCase = async (req, res) => {
         operating_room_id: surgeryCaseData.operating_room_id,
         status_id: surgeryCaseData.status_id,
         created_by: surgeryCaseData.created_by,
-        patient_id: surgeryCaseData.patient_id,
+        patient_id: parsedPatientId,
         created_at: new Date().toISOString(),
+        patient_history: surgeryCaseData.patient_history,
       })
       .returning("*")
       .then((newSurgeryCase) => newSurgeryCase[0]);
 
-    // Add initial status (status_id = 0) to surgery_case_status_history
+    await db("operation").insert({
+      surgery_case_id: newSurgeryCase.surgery_case_id,
+      operation_name: surgeryCaseData.Operation,
+    });
+
     await db("surgery_case_status_history").insert({
       surgery_case_id: newSurgeryCase.surgery_case_id,
       status_id: 0,

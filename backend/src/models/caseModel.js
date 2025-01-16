@@ -13,14 +13,21 @@ const SurgeryCase = {
         "surgery_case.estimate_duration",
         "surgery_case.estimate_start_time",
         "surgery_case.surgery_date",
+        "surgery_case.patient_history as patient_history",
         "patients.firstname as patient_firstname",
         "patients.lastname as patient_lastname",
         "patients.hn_code as patient_hn_code",
         "patients.gender as patient_gender",
         "patients.dob as patient_dob",
-        "patients.patient_history as patient_history"
+        "operation.operation_id",
+        "operation.operation_name"
       )
       .leftJoin("patients", "surgery_case.patient_id", "patients.patient_id")
+      .leftJoin(
+        "operation",
+        "surgery_case.surgery_case_id",
+        "operation.surgery_case_id"
+      )
       .where("surgery_case.surgery_case_id", surgeryCaseId)
       .first();
   },
@@ -52,6 +59,43 @@ const SurgeryCase = {
       .leftJoin("status", "surgery_case.status_id", "status.status_id");
   },
 
+  getAllByOrID: (operating_room_id) => {
+    return db("surgery_case")
+      .select(
+        "surgery_case.surgery_case_id",
+        "surgery_case.operating_room_id as case_operating_room_id",
+        "surgery_case.patient_id",
+        "surgery_case.doctor_id",
+        "surgery_case.status_id",
+        "surgery_case.estimate_duration",
+        "surgery_case.estimate_start_time",
+        "surgery_case.surgery_date",
+        "surgery_case.surgery_type_id",
+        "patients.firstname as patient_firstname",
+        "patients.lastname as patient_lastname",
+        "patients.hn_code as patient_HN",
+        "doctors.firstname as doctor_firstname",
+        "doctors.lastname as doctor_lastname",
+        "operating_room.room_name as room_name",
+        "status.status_name as status_name",
+        "surgery_type.surgery_type_name as surgery_type_name"
+      )
+      .leftJoin("patients", "surgery_case.patient_id", "patients.patient_id")
+      .leftJoin("doctors", "surgery_case.doctor_id", "doctors.doctor_id")
+      .leftJoin(
+        "operating_room",
+        "surgery_case.operating_room_id",
+        "operating_room.operating_room_id"
+      )
+      .leftJoin("status", "surgery_case.status_id", "status.status_id")
+      .leftJoin(
+        "surgery_type",
+        "surgery_case.surgery_type_id",
+        "surgery_type.surgery_type_id"
+      )
+      .where("surgery_case.operating_room_id", operating_room_id);
+  },
+
   // เพิ่มกรณีการผ่าตัดใหม่
   create: (surgeryCaseData) => {
     return db("surgery_case")
@@ -61,9 +105,9 @@ const SurgeryCase = {
   },
 
   // อัปเดตข้อมูลกรณีการผ่าตัดตาม id
-  update: (id, surgeryCaseData) => {
+  update: (surgery_case_id, surgeryCaseData) => {
     return db("surgery_case")
-      .where("surgery_case_id", id)
+      .where("surgery_case_id", surgery_case_id)
       .update(surgeryCaseData)
       .returning("*")
       .then((updatedSurgeryCase) => updatedSurgeryCase[0]);

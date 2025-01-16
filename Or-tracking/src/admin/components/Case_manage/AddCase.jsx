@@ -16,7 +16,7 @@ import { useAuth } from "../../context/AuthContext";
 import dayjs from "dayjs";
 import { useNavigate } from "react-router-dom";
 import CustomNotification from "../CustomNotification";
-import "./DatePicker.css";
+import "./Form.css";
 
 const { Option } = Select;
 
@@ -33,7 +33,6 @@ function AddCase() {
   const [surgeryTypesLoading, setSurgeryTypesLoading] = useState(false);
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
-  const [buttonStatus, setButtonStatus] = useState("");
 
   const [patientData, setPatientData] = useState({
     hn_code: "",
@@ -258,7 +257,6 @@ function AddCase() {
     const hnCode = patientData.hn_code;
     if (hnCode) {
       setIsLoading(true);
-      setButtonStatus("loading");
 
       try {
         const response = await axiosInstance.get(
@@ -292,10 +290,8 @@ function AddCase() {
             dob: dayjs(dob).format("YYYY-MM-DD"),
             patient_history,
           });
-          setButtonStatus("success");
           CustomNotification.success("ค้นหาสำเร็จ", "พบข้อมูลผู้ป่วยในระบบ");
         } else {
-          setButtonStatus("error");
           CustomNotification.error("ไม่พบข้อมูล", "ไม่พบข้อมูลผู้ป่วยในระบบ");
         }
       } catch (error) {
@@ -308,13 +304,11 @@ function AddCase() {
           dob: "",
           patient_history: "",
         });
-        setButtonStatus("error");
         CustomNotification.error("ไม่พบข้อมูล", "ไม่พบข้อมูลผู้ป่วยในระบบ");
       } finally {
         setIsLoading(false);
       }
     } else {
-      setButtonStatus("error");
       setIsLoading(false);
     }
   };
@@ -325,7 +319,7 @@ function AddCase() {
 
   return (
     <>
-      <div className="p-5">
+      <div className="pb-5">
         <div className="text-3xl font-normal">Add Case</div>
       </div>
       <hr />
@@ -527,7 +521,7 @@ function AddCase() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <Form.Item
                   label={
-                    <span className="text-base font-normal text-gray-700">
+                    <span className="text-base font-medium text-gray-700">
                       Surgery Type
                     </span>
                   }
@@ -572,7 +566,7 @@ function AddCase() {
 
                 <Form.Item
                   label={
-                    <span className="text-base font-normal text-gray-700">
+                    <span className="text-base font-medium text-gray-700">
                       OR-Room
                     </span>
                   }

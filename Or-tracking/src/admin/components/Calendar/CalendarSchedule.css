@@ -1,3 +1,7 @@
 .ant-picker-calendar-date-content {
   scrollbar-width: none;
 }
+
+.calendar-hidden-header .ant-picker-calendar-mode-switch {
+  display: none;
+}

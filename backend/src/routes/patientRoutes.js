@@ -26,5 +26,6 @@ router.get("/getAllStatus", async (req, res) => {
 router.get("/getStatus/:id", patientController.getCaseWithStatusHistory);
 router.post("/", patientController.createPatient);
 router.put("/:patient_id", patientController.updatePatient);
+router.get("/getPatientData/:hn_code", patientController.getPatientDataWithHN)
 
 module.exports = router;

@@ -1,17 +1,14 @@
 import React, { useState, useEffect, useRef } from "react";
 import {
-  Steps,
   Form,
   Input,
   Select,
   DatePicker,
   Button,
-  Row,
-  Col,
-  message,
   notification,
   Modal,
   Spin,
+  TimePicker,
 } from "antd";
 import { Icon } from "@iconify/react";
 import IMask from "imask";
@@ -20,12 +17,11 @@ import { useAuth } from "../../context/AuthContext";
 import dayjs from "dayjs";
 import { useNavigate, useLocation } from "react-router-dom";
 import CustomNotification from "../CustomNotification";
+import "./Form.css";
 
-const { Step } = Steps;
 const { Option } = Select;
 
 function EditCase() {
-  const [currentStep, setCurrentStep] = useState(0);
   const [form] = Form.useForm();
   const hnInputRef = useRef(null);
   const dobInputRef = useRef(null);
@@ -43,6 +39,7 @@ function EditCase() {
   const [surgery_case_id, setSurgery_case_id] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   const [hn, setHN] = useState(null);
+  const [searchIsLoading, setSearchIsLoading] = useState(false);
 
   useEffect(() => {
     const queryParams = new URLSearchParams(location.search);
@@ -50,26 +47,13 @@ function EditCase() {
     setSurgery_case_id(id);
   }, [location]);
 
-  const [patientData, setPatientData] = useState({
-    patient_id: "",
-    firstname: "",
-    lastname: "",
-    gender: "",
-    dob: "",
-    hn_code: "",
-    patient_history: "",
-  });
+  const [surgeryData, setSurgeryData] = useState(null);
 
-  const [surgeryData, setSurgeryData] = useState({
-    doctor_id: "",
-    surgery_date: "",
-    estimate_start_time: "",
-    estimate_duration: "",
-    surgery_type_id: "",
-    operating_room_id: "",
-    status_id: "",
-    created_by: user.id,
-  });
+  const [patientData, setPatientData] = useState(null);
+
+  useEffect(() => {
+    console.log("Fetched surgeryData:", surgeryData);
+  }, [surgeryData]);
 
   useEffect(() => {
     setIsLoading(true);
@@ -81,30 +65,48 @@ function EditCase() {
         );
 
         const surgeryCase = response.data.data;
-        console.log(response.data);
-        setHN(surgeryCase.patient_hn_code);
+        console.log(response.data, "dadadada");
 
-        setPatientData({
-          patient_id: surgeryCase.patient_id,
-          firstname: surgeryCase.patient_firstname,
-          lastname: surgeryCase.patient_lastname,
-          gender: surgeryCase.patient_gender,
-          dob: surgeryCase.patient_dob,
-          hn_code: surgeryCase.patient_hn_code,
-          patient_history: surgeryCase.patient_history || "",
-        });
+        if (!surgeryCase) {
+          throw new Error("No surgery case data found");
+        }
 
-        setSurgeryData({
-          doctor_id: surgeryCase.doctor_id,
-          surgery_date: surgeryCase.surgery_date,
-          estimate_start_time: surgeryCase.estimate_start_time || "",
-          estimate_duration: surgeryCase.estimate_duration || "",
-          surgery_type_id: surgeryCase.surgery_type_id,
-          operating_room_id: surgeryCase.operating_room_id,
-          status_id: surgeryCase.status_id.toString(),
-          created_by: user.id,
-        });
-        console.log("surgeryCase:", surgeryCase);
+        const transformedSurgeryData = {
+          surgery_case_id: surgeryCase.surgery_case_id,
+          surgery_date: surgeryCase?.surgery_date
+            ? dayjs(surgeryCase.surgery_date)
+            : null,
+          estimate_start_time: surgeryCase?.estimate_start_time
+            ? dayjs(surgeryCase.estimate_start_time, "HH:mm")
+            : null,
+          estimate_duration: surgeryCase?.estimate_duration || null,
+          surgery_type_id: surgeryCase?.surgery_type_id || null,
+          operating_room_id: surgeryCase?.operating_room_id || null,
+          status_id: surgeryCase?.status_id || null,
+          operation_id: surgeryCase?.operation_id || null,
+          operation_name: surgeryCase?.operation_name || null,
+        };
+
+        const transformedPatientData = {
+          patient_hn_code: surgeryCase?.patient_hn_code || "",
+          patient_firstname: surgeryCase?.patient_firstname || "",
+          patient_lastname: surgeryCase?.patient_lastname || "",
+          patient_gender: surgeryCase?.patient_gender || "",
+          patient_dob: surgeryCase?.patient_dob
+            ? dayjs(surgeryCase.patient_dob).format("YYYY-MM-DD")
+            : null,
+        };
+
+        // Log ข้อมูลที่แยกออกมา
+        console.log("Transformed surgeryData:", transformedSurgeryData);
+        console.log("Transformed patientData:", transformedPatientData);
+
+        // อัปเดต state ด้วยข้อมูลที่แยกออกมา
+        setSurgeryData(transformedSurgeryData);
+        setPatientData(transformedPatientData); // ตั้งค่า state ของข้อมูลผู้ป่วย
+
+        // Setting HN code
+        setHN(surgeryCase?.patient_hn_code || "");
       } catch (error) {
         console.error("Error fetching surgery case data:", error);
       }
@@ -197,14 +199,6 @@ function EditCase() {
     }
   }, [surgery_case_id, user.id]);
 
-  const handlePatientDataChange = (e) => {
-    const { name, value } = e.target;
-    setPatientData((prevState) => ({
-      ...prevState,
-      [name]: value,
-    }));
-  };
-
   const handleSurgeryDataChange = (name, value) => {
     setSurgeryData((prevState) => ({
       ...prevState,
@@ -214,17 +208,12 @@ function EditCase() {
 
   const onFinish = async () => {
     try {
-      console.log("Starting onFinish...");
-      console.log("Patient Data:", patientData);
-      console.log("Surgery Data:", surgeryData);
-
       const patientDataToSend = {
-        hn_code: patientData.hn_code,
-        dob: dayjs(patientData.dob).format("YYYY-MM-DD"),
-        firstname: patientData.firstname,
-        lastname: patientData.lastname,
-        gender: patientData.gender,
-        patient_history: patientData.patient_history,
+        hn_code: patientData.patient_hn_code,
+        dob: dayjs(patientData.patient_dob).format("YYYY-MM-DD"),
+        firstname: patientData.patient_firstname,
+        lastname: patientData.patient_lastname,
+        gender: patientData.patient_gender,
       };
       console.log("Patient Data to Send:", patientDataToSend);
 
@@ -238,45 +227,55 @@ function EditCase() {
         ).format("HH:mm"),
         estimate_duration: surgeryData.estimate_duration,
         operating_room_id: surgeryData.operating_room_id,
-        created_by: surgeryData.created_by,
+        patient_history: surgeryData.patient_history,
+      };
+
+      const OperationDataToSend = {
+        operation_name: surgeryData.operation_name,
+        surgery_case_id: surgery_case_id,
       };
       console.log("Surgery Case Data to Send:", surgeryCaseDataToSend);
+      console.log("Patient Case Data to Send:", patientDataToSend);
+      console.log("Operation Data to Send:", OperationDataToSend);
 
-      const token = localStorage.getItem("jwtToken");
-      if (!token) {
-        console.error("JWT Token not found");
-        notification.error({
-          message: "Authorization Error",
-          description: "JWT Token is missing. Please log in again.",
-        });
-        return;
-      }
-
+      // Update Surgery Case
       const surgeryCaseResponse = await axiosInstance.put(
         `/surgery_case/${surgery_case_id}`,
-        surgeryCaseDataToSend,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
+        surgeryCaseDataToSend
       );
       console.log("Surgery Case Response:", surgeryCaseResponse.data);
 
       if (surgeryCaseResponse.status === 200) {
+        // Update Patient Data
         const patientResponse = await axiosInstance.put(
-          `/patient/${patientData.patient_id}`,
+          `/patient/${surgeryData.patient_id}`,
           patientDataToSend
         );
-
         console.log("Patient Response:", patientResponse.data);
 
         if (patientResponse.status === 200) {
-          navigate("/admin/case_manage");
-          notification.success({
-            message: "Update Successful",
-            description: "Patient and Surgery Case updated successfully!",
-          });
+          // Add Operation Data
+          const operationResponse = await axiosInstance.post(
+            `/surgery_case/operation/`,
+            OperationDataToSend
+          );
+          console.log("Operation Response:", operationResponse.data);
+
+          if (
+            operationResponse.status === 200 ||
+            operationResponse.status === 201
+          ) {
+            navigate("/admin/case_manage");
+            notification.success({
+              message: "Update Successful",
+              description: "Patient and Surgery Case updated successfully!",
+            });
+          } else {
+            notification.error({
+              message: "Failed to Add Operation Data",
+              description: "There was an issue adding the operation data.",
+            });
+          }
         } else {
           notification.error({
             message: "Failed to Update Patient",
@@ -337,72 +336,68 @@ function EditCase() {
   }, []);
 
   const handleSeachHNClick = async () => {
-    const hnCode = patientData.hn_code;
+    const hnCode = patientData.patient_hn_code;
     if (hnCode) {
-      setIsLoading(true);
-      setButtonStatus("loading");
+      setSearchIsLoading(true);
 
       try {
         const response = await axiosInstance.get(
           `/patient/getPatientData/${hnCode}`
         );
 
-        if (response.data && response.data.data) {
+        if (response.data) {
           const {
-            hn_code = "",
-            firstname = "",
-            lastname = "",
-            gender = "",
-            dob = "",
-            patient_history = "",
-          } = response.data.data;
+            patient_hn_code = "",
+            patient_firstname = "",
+            patient_lastname = "",
+            patient_gender = "",
+            patient_dob = "",
+          } = response.data;
 
           setPatientData({
-            hn_code,
-            firstname,
-            lastname,
-            gender,
-            dob: dayjs(dob).format("YYYY-MM-DD"),
-            patient_history,
+            patient_hn_code,
+            patient_firstname,
+            patient_lastname,
+            patient_gender,
+            patient_dob: dayjs(patient_dob).format("YYYY-MM-DD"), // ใช้ dayjs แปลงวันที่
           });
 
+          // อัปเดตฟอร์ม
           form.setFieldsValue({
-            hn_code,
-            firstname,
-            lastname,
-            gender,
-            dob: dayjs(dob).format("YYYY-MM-DD"),
-            patient_history,
+            patient_hn_code,
+            patient_firstname,
+            patient_lastname,
+            patient_gender,
+            patient_dob: dayjs(patient_dob).format("YYYY-MM-DD"),
           });
-          setButtonStatus("success");
-          CustomNotification.success("ค้นหาสำเร็จ", "พบข้อมูลผู้ป่วยในระบบ");
+
+          // แจ้งเตือนสำเร็จ
+          message.success("ค้นหาสำเร็จ: พบข้อมูลผู้ป่วยในระบบ");
         } else {
-          setButtonStatus("error");
-          CustomNotification.error("ไม่พบข้อมูล", "ไม่พบข้อมูลผู้ป่วยในระบบ");
+          // แจ้งเตือนกรณีไม่พบข้อมูล
+          message.error("ไม่พบข้อมูล: ไม่พบข้อมูลผู้ป่วยในระบบ");
         }
       } catch (error) {
         console.error("Error fetching patient data:", error);
         form.setFieldsValue({
-          hn_code: "",
-          firstname: "",
-          lastname: "",
-          gender: null,
-          dob: "",
-          patient_history: "",
+          patient_hn_code: "",
+          patient_firstname: "",
+          patient_lastname: "",
+          patient_gender: null,
+          patient_dob: null,
         });
-        setButtonStatus("error");
-        CustomNotification.error("ไม่พบข้อมูล", "ไม่พบข้อมูลผู้ป่วยในระบบ");
+        message.error("ไม่พบข้อมูล: ไม่พบข้อมูลผู้ป่วยในระบบ");
       } finally {
-        setIsLoading(false);
+        setSearchIsLoading(false);
       }
     } else {
-      setButtonStatus("error");
-      setIsLoading(false);
+      setSearchIsLoading(false);
     }
   };
 
   return (
-    surgeryData.status_id && (
+    surgeryData &&
+    patientData && (
       <div>
         {isLoading ? (
           <div
@@ -416,8 +411,8 @@ function EditCase() {
             <Spin size="large" />
           </div>
         ) : (
-          <div className="p-5">
-            <div className="text-3xl font-normal flex flex-row">
+          <>
+            <div className="text-3xl font-normal flex flex-row pb-5">
               <p className="text-black">Edit Case</p>
               <p className="text-blue-600 ml-2">#{hn}</p>
             </div>
@@ -429,6 +424,7 @@ function EditCase() {
                   layout="vertical"
                   onFinish={handleSaveConfirm}
                   className="space-y-8"
+                  initialValues={surgeryData}
                 >
                   {/* Personal Information Section */}
                   <section className="bg-white">
@@ -444,7 +440,7 @@ function EditCase() {
                           Hospital Number Code
                         </span>
                       }
-                      name="hn_code"
+                      name="patient_hn_code"
                       rules={[
                         {
                           required: true,
@@ -454,15 +450,20 @@ function EditCase() {
                     >
                       <div className="flex space-x-2 max-w-md">
                         <Input
-                          name="hn_code"
-                          value={patientData.hn_code}
-                          onChange={handlePatientDataChange}
+                          name="patient_hn_code"
+                          value={patientData.patient_hn_code || ""}
+                          onChange={(event) =>
+                            handleSurgeryDataChange(
+                              "patient_hn_code",
+                              event.target.value
+                            )
+                          }
                           ref={hnInputRef}
                           placeholder="Enter HN code"
                           className="h-11 text-base border rounded-lg"
                         />
                         <Button
-                          loading={isLoading}
+                          loading={searchIsLoading}
                           onClick={handleSeachHNClick}
                           className="h-11 w-1/4 flex items-center justify-center gap-2"
                           type="primary"
@@ -479,7 +480,7 @@ function EditCase() {
                             First Name
                           </span>
                         }
-                        name="firstname"
+                        name="patient_firstname"
                         rules={[
                           {
                             required: true,
@@ -488,9 +489,14 @@ function EditCase() {
                         ]}
                       >
                         <Input
-                          name="firstname"
-                          value={patientData.firstname}
-                          onChange={handlePatientDataChange}
+                          name="patient_firstname"
+                          value={patientData.patient_firstname || ""}
+                          onChange={(event) =>
+                            handleSurgeryDataChange(
+                              "patient_firstname",
+                              event.target.value
+                            )
+                          }
                           className="h-11 text-base rounded-lg"
                           placeholder="Enter First Name"
                         />
@@ -502,7 +508,7 @@ function EditCase() {
                             Last Name
                           </span>
                         }
-                        name="lastname"
+                        name="patient_lastname"
                         rules={[
                           {
                             required: true,
@@ -511,9 +517,11 @@ function EditCase() {
                         ]}
                       >
                         <Input
-                          name="lastname"
-                          value={patientData.lastname}
-                          onChange={handlePatientDataChange}
+                          name="patient_lastname"
+                          value={patientData.patient_lastname}
+                          onChange={(value) =>
+                            handleSurgeryDataChange("patient_lastname", value)
+                          }
                           className="h-11 text-base rounded-lg"
                           placeholder="Enter Last Name"
                         />
@@ -525,17 +533,15 @@ function EditCase() {
                             Gender
                           </span>
                         }
-                        name="gender"
+                        name="patient_gender"
                         rules={[
                           { required: true, message: "Please select gender!" },
                         ]}
                       >
                         <Select
-                          value={patientData.gender}
+                          value={patientData.patient_gender}
                           onChange={(value) =>
-                            handlePatientDataChange({
-                              target: { name: "gender", value },
-                            })
+                            handleSurgeryDataChange("patient_gender", value)
                           }
                           className="h-11 text-base"
                           placeholder="Select gender"
@@ -551,15 +557,20 @@ function EditCase() {
                             Date of Birth
                           </span>
                         }
-                        name="dob"
+                        name="patient_dob"
                         rules={[
                           { required: true, message: "Please pick a date!" },
                         ]}
                       >
                         <Input
-                          name="dob"
-                          value={patientData.dob}
-                          onChange={handlePatientDataChange}
+                          name="patient_dob"
+                          value={patientData.patient_dob}
+                          onChange={(event) =>
+                            handleSurgeryDataChange(
+                              "patient_dob",
+                              event.target.value
+                            )
+                          }
                           placeholder="YYYY/MM/DD"
                           ref={dobInputRef}
                           className="h-11 text-base rounded-lg"
@@ -618,7 +629,7 @@ function EditCase() {
                             Operation
                           </span>
                         }
-                        name="Operation"
+                        name="operation_name"
                         rules={[
                           {
                             required: true,
@@ -627,10 +638,13 @@ function EditCase() {
                         ]}
                       >
                         <Input
-                          name="Operation"
-                          value={surgeryData.Operation}
+                          name="operation_name"
+                          value={surgeryData.operation_name}
                           onChange={(e) =>
-                            handleSurgeryDataChange("Operation", e.target.value)
+                            handleSurgeryDataChange(
+                              "operation_name",
+                              e.target.value
+                            )
                           }
                           className="h-11 text-base rounded-lg"
                           placeholder="Enter Operation"
@@ -640,7 +654,7 @@ function EditCase() {
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                       <Form.Item
                         label={
-                          <span className="text-base font-normal text-gray-700">
+                          <span className="text-base font-medium text-gray-700">
                             Surgery Type
                           </span>
                         }
@@ -685,7 +699,7 @@ function EditCase() {
 
                       <Form.Item
                         label={
-                          <span className="text-base font-normal text-gray-700">
+                          <span className="text-base font-medium text-gray-700">
                             OR-Room
                           </span>
                         }
@@ -730,14 +744,7 @@ function EditCase() {
                           { required: true, message: "Please pick a date!" },
                         ]}
                       >
-                        <DatePicker
-                          format="YYYY-MM-DD"
-                          value={dayjs(surgeryData.surgery_date)}
-                          onChange={(date, dateString) =>
-                            handleSurgeryDataChange("surgery_date", dateString)
-                          }
-                          className="h-11 text-base rounded-lg w-full"
-                        />
+                        <DatePicker className="h-11 text-base rounded-lg w-full" />
                       </Form.Item>
 
                       <Form.Item
@@ -751,17 +758,13 @@ function EditCase() {
                           { required: true, message: "Please pick a time!" },
                         ]}
                       >
-                        <DatePicker.TimePicker
+                        <TimePicker
                           name="estimate_start_time"
-                          value={
-                            surgeryData.estimate_start_time
-                              ? dayjs(surgeryData.estimate_start_time, "HH:mm")
-                              : null
-                          }
-                          onChange={(value) =>
+                          value={surgeryData.estimate_start_time}
+                          onChange={(time) =>
                             handleSurgeryDataChange(
                               "estimate_start_time",
-                              value
+                              time ? time.format("HH:mm") : null
                             )
                           }
                           format="HH:mm"
@@ -852,7 +855,7 @@ function EditCase() {
                 </Form>
               </div>
             </div>
-          </div>
+          </>
         )}
       </div>
     )

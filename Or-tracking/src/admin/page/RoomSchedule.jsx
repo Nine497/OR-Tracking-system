@@ -35,10 +35,7 @@ function RoomSchedule() {
     <div className="w-full p-2 rounded-xl">
       <div className="flex items-center justify-between mb-8">
         <div className="flex items-center space-x-3">
-          <CalendarOutlined className="text-2xl text-blue-600" />
-          <h2 className="text-xl font-semibold text-gray-900">
-            ตารางห้องผ่าตัดวันนี้
-          </h2>
+          <h2 className="text-3xl font-semibold">ตารางห้องผ่าตัดวันนี้</h2>
         </div>
       </div>
 

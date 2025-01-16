@@ -53,6 +53,17 @@ function PermissionModal({ visible, staff, onClose }) {
     }
   }, [visible, staff]);
 
+  useEffect(() => {
+    if (
+      allPermissions.length > 0 &&
+      staffPermissions.length === allPermissions.length
+    ) {
+      setIsFullAccessChecked(true);
+    } else {
+      setIsFullAccessChecked(false);
+    }
+  }, [allPermissions, staffPermissions]);
+
   const handleFinish = async () => {
     const permissions = staffPermissions.map((p) => p.permission_id);
 
@@ -101,6 +112,15 @@ function PermissionModal({ visible, staff, onClose }) {
     }
 
     setStaffPermissions(updatedPermissions);
+
+    const allPermissionIds = allPermissions.map(
+      (permission) => permission.permission_id
+    );
+    if (updatedPermissions.length === allPermissionIds.length) {
+      setIsFullAccessChecked(true);
+    } else {
+      setIsFullAccessChecked(false);
+    }
   };
 
   const handleFullAccessChange = (e) => {
@@ -200,24 +220,27 @@ const CustomCheckbox = ({ value, label, staff, onChange, des }) => {
     setIsChecked(staff.some((item) => item.permission_id === value));
   }, [staff, value]);
 
-  const handleChange = (e) => {
-    if (e && e.target) {
-      const checked = e.target.checked;
-      setIsChecked(checked);
-      onChange(value, checked);
-    }
+  const handleClick = () => {
+    const newCheckedState = !isChecked;
+    setIsChecked(newCheckedState);
+    onChange(value, newCheckedState);
   };
+
   return (
-    <div className="flex flex-col cursor-pointer p-3 border rounded-lg hover:bg-blue-50 transition-colors">
-      <div className="flex items-start space-x-2">
-        <Checkbox
-          value={value}
+    <div
+      className="flex flex-col cursor-pointer p-3 border rounded-lg hover:bg-blue-50 transition-colors"
+      onClick={handleClick}
+    >
+      <div className="flex items-center space-x-2">
+        <input
+          type="checkbox"
           checked={isChecked}
-          onChange={handleChange}
-          className="mt-0.5"
-        >
-          <span className="text-base font-medium text-gray-700">{label}</span>
-        </Checkbox>
+          onChange={() => {}}
+          className="w-4 h-4"
+        />
+        <span className="text-base font-medium text-gray-700 ml-2">
+          {label}
+        </span>
       </div>
       <p className="text-sm text-gray-500 mt-1.5 ml-6">{des}</p>
     </div>

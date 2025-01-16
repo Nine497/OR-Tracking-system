@@ -1,11 +1,22 @@
 const db = require("../config/database");
 
 const patient = {
+  getPatientById: (patient_id) => {
+    return db("patients")
+      .select("patient_id", "hn_code", "dob", "firstname", "lastname", "gender")
+      .where("patient_id", patient_id)
+      .first();
+  },
+
   getPatientIdByCaseId: (surgery_case_id) => {
     return db("surgery_case")
       .select("patient_id")
       .where("surgery_case_id", surgery_case_id)
       .first();
+  },
+
+  getPatientDataByHN: (hn_code) => {
+    return db("patients").select("*").where("hn_code", hn_code).first();
   },
 
   getPatientDetailsByCaseId: (surgery_case_id, hn, dob) => {
@@ -44,6 +55,13 @@ const patient = {
       .insert(patientData)
       .returning("*")
       .then((newPatient) => newPatient[0]);
+  },
+
+  update: (patient_id, patientData) => {
+    return db("patients")
+      .where("patient_id", patient_id)
+      .update(patientData, "*")
+      .then((updatedPatient) => updatedPatient[0]);
   },
 };
 

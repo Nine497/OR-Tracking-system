@@ -1,8 +1,8 @@
 const db = require("../config/database");
 
 const Staff = {
-  findOne: (criteria) => {
-    return db("staff").where(criteria).first();
+  findOne: (username) => {
+    return db("staff").where(username).first();
   },
 
   getAll: () => {
@@ -48,21 +48,30 @@ const Staff = {
   },
 
   getAllPermissions: () => {
-    return db("permissions").select("permission_id", "permission_name");
+    return db("permissions").select("*");
   },
 
-  updatePermissions: (staffId, permissionIds) => {
+  updatePermissions: (staff_id, permission_ids, gived_by, gived_at) => {
     return db.transaction(async (trx) => {
       try {
-        await trx("staff_permission").where("staff_id", staffId).del();
+        if (!staff_id) {
+          throw new Error("Staff ID is required");
+        }
 
-        const permissions = permissionIds.map((permissionId) => ({
-          staff_id: staffId,
-          permission_id: permissionId,
-        }));
+        await trx("staff_permission").where("staff_id", staff_id).del();
 
-        await trx("staff_permission").insert(permissions);
+        if (Array.isArray(permission_ids) && permission_ids.length > 0) {
+          const permissions = permission_ids.map((permissionId) => ({
+            staff_id: staff_id,
+            permission_id: permissionId,
+            gived_by: gived_by,
+            gived_at: gived_at,
+          }));
+
+          await trx("staff_permission").insert(permissions);
+        }
       } catch (error) {
+        console.error("Error during permission update:", error);
         throw error;
       }
     });

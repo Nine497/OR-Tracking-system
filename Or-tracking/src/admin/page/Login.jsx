@@ -1,11 +1,11 @@
 import React, { useState } from "react";
-import { Form, Input, Button, Card, notification } from "antd";
-import { LockOutlined, UserOutlined } from "@ant-design/icons";
+import { Form, Input, Button, notification } from "antd";
 import { useAuth } from "../context/AuthContext";
 import { useNavigate } from "react-router-dom";
 import axiosInstance from "../api/axiosInstance";
 import LoginImg from "../assets/Login.jpg";
-
+import { Icon } from "@iconify/react";
+import Logo from "../assets/Logo.png";
 const Login = () => {
   const { login } = useAuth();
   const navigate = useNavigate();
@@ -36,54 +36,78 @@ const Login = () => {
   };
 
   return (
-    <div className="flex h-screen">
-      <div className="sm:flex-[6] hidden sm:block">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex">
+      {/* Left side - Image */}
+      <div className="hidden lg:flex lg:w-2/3 relative overflow-hidden">
+        <div className="absolute inset-0 bg-blue-600/10 backdrop-blur-sm z-10" />
         <img
           src={LoginImg}
           alt="Login Illustration"
-          className="w-full h-full object-cover filter brightness-75"
+          className="w-full h-full object-cover"
         />
+        <div className="absolute bottom-0 left-0 right-0 p-8 text-white z-20 bg-gradient-to-t from-black/50">
+          <h2 className="text-3xl font-bold mb-2">OR-Tracking System</h2>
+          <p className="text-lg opacity-90">ระบบจัดการและติดตามการผ่าตัด</p>
+        </div>
       </div>
 
-      <div className="flex-[4] flex justify-center items-center bg-white">
-        <Card className="w-full max-w-md md:max-w-lg rounded-xl border-none">
-          <div className="text-center mb-8">
-            <h1 className="text-4xl font-bold text-blue-600 mb-2">
-              OR-Tracking
-            </h1>
+      {/* Right side - Login Form */}
+      <div className="w-full lg:w-1/3 flex items-center justify-center p-8">
+        <div className="w-full max-w-md space-y-8">
+          {/* Logo and Title */}
+          <div className="text-center">
+            <div className="inline-block p-2 bg-blue-600 rounded-lg mb-4">
+              <h1 className="text-3xl font-bold text-white">OR-Tracking</h1>
+            </div>
+            <h2 className="text-2xl font-bold text-gray-800">
+              ยินดีต้อนรับกลับ
+            </h2>
+            <p className="mt-2 text-gray-600">
+              กรุณาเข้าสู่ระบบเพื่อดำเนินการต่อ
+            </p>
           </div>
-          <Form
-            onFinish={handleSubmit}
-            layout="vertical"
-            className="space-y-5 px-7"
-          >
+
+          {/* Login Form */}
+          <Form onFinish={handleSubmit} layout="vertical" className="space-y-6">
             <Form.Item
               name="username"
-              rules={[
-                { required: true, message: "Please enter your username" },
-              ]}
+              rules={[{ required: true, message: "กรุณากรอกชื่อผู้ใช้" }]}
             >
               <Input
-                prefix={<UserOutlined />}
+                prefix={
+                  <Icon icon="solar:user-linear" className="text-gray-400" />
+                }
                 size="large"
-                placeholder="Username"
+                placeholder="ชื่อผู้ใช้"
+                className="rounded-lg h-12"
                 autoComplete="username"
               />
             </Form.Item>
+
             <Form.Item
               name="password"
-              rules={[
-                { required: true, message: "Please enter your password" },
-              ]}
+              rules={[{ required: true, message: "กรุณากรอกรหัสผ่าน" }]}
             >
               <Input.Password
-                prefix={<LockOutlined />}
+                prefix={
+                  <Icon icon="mdi:password-outline" className="text-gray-400" />
+                }
                 size="large"
-                placeholder="Password"
+                placeholder="รหัสผ่าน"
+                className="rounded-lg h-12"
                 autoComplete="current-password"
               />
             </Form.Item>
-            <Form.Item className="pt-5">
+
+            <div className="flex items-center justify-between">
+              <Form.Item name="remember" valuePropName="checked">
+                <a className="text-sm text-blue-600 hover:text-blue-800">
+                  ลืมรหัสผ่าน?
+                </a>
+              </Form.Item>
+            </div>
+
+            <Form.Item>
               <Button
                 type="primary"
                 htmlType="submit"
@@ -91,12 +115,14 @@ const Login = () => {
                 size="large"
                 loading={loading}
                 disabled={loading}
+                className="h-12 rounded-lg bg-blue-600 hover:bg-blue-700 flex items-center justify-center"
+                icon={<Icon icon="material-symbols:login" />}
               >
-                <span className="font-medium">เข้าสู่ระบบ</span>
+                <span className="font-medium text-base">เข้าสู่ระบบ</span>
               </Button>
             </Form.Item>
           </Form>
-        </Card>
+        </div>
       </div>
     </div>
   );

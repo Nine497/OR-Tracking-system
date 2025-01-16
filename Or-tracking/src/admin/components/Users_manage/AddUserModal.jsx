@@ -38,7 +38,7 @@ function AddUserModal({ visible, onClose }) {
       title={
         <div className="flex flex-col items-center justify-center ">
           <span className="text-2xl font-semibold text-gray-800">
-            Create User Profile
+            สร้างบัญชีผู้ใช้
           </span>
         </div>
       }
@@ -63,20 +63,17 @@ function AddUserModal({ visible, onClose }) {
           <Col xs={24} sm={12}>
             <Form.Item
               label={
-                <span className="text-lg font-medium text-gray-700">
-                  First Name
-                </span>
+                <span className="text-lg font-medium text-gray-700">ชื่อ</span>
               }
               name="firstname"
-              rules={[
-                { required: true, message: "Please input your first name!" },
-              ]}
+              rules={[{ required: true, message: "กรุณากรอกชื่อจริงของคุณ!" }]}
             >
               <Input
                 className="p-3 text-base border rounded-lg border-gray-300 focus:border-blue-400 focus:ring focus:ring-blue-200 focus:ring-opacity-50"
                 prefix={
                   <Icon icon="lucide:user" className="mr-2 text-blue-500" />
                 }
+                placeholder="กรุณากรอกชื่อจริง"
               />
             </Form.Item>
           </Col>
@@ -85,19 +82,18 @@ function AddUserModal({ visible, onClose }) {
             <Form.Item
               label={
                 <span className="text-lg font-medium text-gray-700">
-                  Last Name
+                  นามสกุล
                 </span>
               }
               name="lastname"
-              rules={[
-                { required: true, message: "Please input your last name!" },
-              ]}
+              rules={[{ required: true, message: "กรุณากรอกนามสกุลของคุณ!" }]}
             >
               <Input
                 className="p-3 text-base border rounded-lg border-gray-300 focus:border-blue-400 focus:ring focus:ring-blue-200 focus:ring-opacity-50"
                 prefix={
                   <Icon icon="lucide:user" className="mr-2 text-blue-500" />
                 }
+                placeholder="กรุณากรอกนามสกุล"
               />
             </Form.Item>
           </Col>
@@ -106,19 +102,18 @@ function AddUserModal({ visible, onClose }) {
             <Form.Item
               label={
                 <span className="text-lg font-medium text-gray-700">
-                  Username
+                  ชื่อผู้ใช้
                 </span>
               }
               name="username"
-              rules={[
-                { required: true, message: "Please input your username!" },
-              ]}
+              rules={[{ required: true, message: "กรุณากรอกชื่อผู้ใช้!" }]}
             >
               <Input
                 className="p-3 text-base border rounded-lg border-gray-300 focus:border-blue-400 focus:ring focus:ring-blue-200 focus:ring-opacity-50"
                 prefix={
                   <Icon icon="lucide:mail" className="mr-2 text-blue-500" />
                 }
+                placeholder="กรุณากรอกชื่อผู้ใช้"
               />
             </Form.Item>
           </Col>
@@ -127,29 +122,30 @@ function AddUserModal({ visible, onClose }) {
             <Form.Item
               label={
                 <span className="text-lg font-medium text-gray-700">
-                  Password
+                  รหัสผ่าน
                 </span>
               }
               name="password"
-              rules={[
-                { required: true, message: "Please input your password!" },
-              ]}
+              rules={[{ required: true, message: "กรุณากรอกรหัสผ่าน!" }]}
             >
-              <Input.Password className="p-3 text-base border rounded-lg border-gray-300 focus:border-blue-400 focus:ring focus:ring-blue-200 focus:ring-opacity-50" />
+              <Input.Password
+                className="p-3 text-base border rounded-lg border-gray-300 focus:border-blue-400 focus:ring focus:ring-blue-200 focus:ring-opacity-50"
+                placeholder="กรุณากรอกรหัสผ่าน"
+              />
             </Form.Item>
           </Col>
         </Row>
         {/* ปุ่ม */}
         <div className="flex justify-center space-x-4 border-t pt-6 mt-6">
           <Button onClick={onClose} className="px-6 py-2 text-lg">
-            Cancel
+            ยกเลิก
           </Button>
           <Button
             type="primary"
             htmlType="submit"
             className="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white text-lg"
           >
-            Confirm
+            ยืนยัน
           </Button>
         </div>
       </Form>

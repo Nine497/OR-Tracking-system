@@ -64,21 +64,31 @@ const StyledDropdown = () => {
       {/* Trigger Button */}
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="flex items-center gap-2 px-4 py-2 rounded-lg bg-white border border-gray-200 hover:bg-gray-50 
-                   transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500"
+        className="flex items-center gap-2 px-4 py-2.5 rounded-xl
+                   bg-gradient-to-r from-indigo-50 to-purple-50
+                   hover:from-indigo-100 hover:to-purple-100
+                   border border-indigo-100/50
+                   transition-all duration-300 ease-out
+                   focus:outline-none focus:ring-2 focus:ring-purple-200"
         aria-expanded={isOpen}
         aria-haspopup="true"
       >
-        <span className="flex items-center gap-2">
-          <div className="w-8 h-8 rounded-full bg-blue-500 flex items-center justify-center">
-            <span className="text-white font-medium">
-              {user.username.charAt(0).toUpperCase()}
-            </span>
+        <span className="flex items-center gap-2.5">
+          <div
+            className="w-8 h-8 rounded-full bg-gradient-to-r from-indigo-500 to-purple-500 
+                         flex items-center justify-center text-white shadow-sm"
+          >
+            <Icon icon="carbon:user-profile" width="16" height="16" />
           </div>
-          <span className="font-medium text-gray-700">{user.username}</span>
+          <span
+            className="font-medium bg-gradient-to-r from-indigo-600 to-purple-600 
+                         bg-clip-text text-transparent"
+          >
+            {user.username}
+          </span>
         </span>
         <svg
-          className={`w-4 h-4 transition-transform duration-200 ${
+          className={`w-4 h-4 text-indigo-500 transition-transform duration-300 ${
             isOpen ? "rotate-180" : ""
           }`}
           fill="none"
@@ -96,31 +106,57 @@ const StyledDropdown = () => {
 
       {/* Dropdown Menu */}
       {isOpen && (
-        <div className="absolute right-0 mt-1 w-40 rounded-lg bg-white shadow-lg border border-gray-100 py-1 z-50">
+        <div
+          className="absolute right-0 w-48 rounded-xl bg-white shadow-lg 
+                      border border-indigo-100/50 z-50
+                      backdrop-blur-sm bg-white/95
+                      animate-in fade-in slide-in-from-top-2 duration-200"
+        >
           {/* Profile Option */}
           <button
             onClick={() => {
               navigate("/profile");
               setIsOpen(false);
             }}
-            className="w-full px-4 py-2 bg-white text-left hover:bg-gray-200 flex items-center gap-2
-                       text-gray-700 transition-colors duration-150 rounded-none border-none"
+            className="w-full px-4 py-2.5 text-left bg-white
+                     hover:bg-gradient-to-r hover:from-indigo-50 hover:to-purple-50
+                     flex items-center gap-3 group
+                     transition-colors duration-200"
           >
-            <Icon icon="mdi:account-circle" className="w-4 h-4" />
-            <span>Profile</span>
+            <div
+              className="w-6 h-6 rounded-full bg-indigo-100 flex items-center justify-center
+                          group-hover:bg-indigo-200 transition-colors duration-200"
+            >
+              <Icon
+                icon="mdi:account-circle"
+                className="w-4 h-4 text-indigo-600"
+              />
+            </div>
+            <span className="text-gray-700 font-medium group-hover:text-indigo-700">
+              Profile
+            </span>
           </button>
 
           {/* Divider */}
-          <div className="my-1 border-t border-gray-100" />
+          <div className="my-1.5 border-t border-indigo-100/50" />
 
           {/* Logout Option */}
           <button
             onClick={handleLogout}
-            className="w-full px-4 py-2 bg-white text-left hover:bg-red-100 flex items-center gap-2
-                       text-red-600 transition-colors duration-150 rounded-none border-none"
+            className="w-full px-4 py-2.5 text-left bg-white
+                     hover:bg-gradient-to-r hover:from-rose-50 hover:to-red-50
+                     flex items-center gap-3 group
+                     transition-colors duration-200 hover:border-rose-400 rounded-xl"
           >
-            <Icon icon="mdi:logout" className="w-4 h-4" />
-            <span>Logout</span>
+            <div
+              className="w-6 h-6 rounded-full bg-rose-100 flex items-center justify-center
+                          group-hover:bg-rose-200 transition-colors duration-200"
+            >
+              <Icon icon="mdi:logout" className="w-4 h-4 text-rose-600" />
+            </div>
+            <span className="text-rose-600 font-medium group-hover:text-rose-700">
+              Logout
+            </span>
           </button>
         </div>
       )}

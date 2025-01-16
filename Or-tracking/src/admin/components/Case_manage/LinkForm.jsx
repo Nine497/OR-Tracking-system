@@ -50,7 +50,7 @@ const CancelLinkModal = ({ visible, onCancel, onConfirm }) => (
 );
 
 const NoLinkComponent = ({ onGenerateLink }) => {
-  const [selectedDate, setSelectedDate] = useState(null);
+  const [selectedDate, setSelectedDate] = useState(dayjs().add(1, "day"));
 
   return (
     <LinkContainer>
@@ -109,32 +109,27 @@ const LinkDisplay = ({ link, handleCopyLink, onCancelLink, isActive }) => {
       {/* Header Section */}
       <div className="flex flex-row lg:items-center justify-between space-y-4 lg:space-y-0">
         {/* Status Section */}
-        <div className="flex items-center gap-2">
-          {isActive ? (
-            <Tag
-              color="#4BB543"
-              className="mr-4 sm:mr-6 md:mr-8 lg:mr-11 md:px-4 py-1 md:py-1.5 text-xs md:text-sm rounded-full flex items-center gap-1.5"
-            >
-              <Icon icon="heroicons:check-circle" className="text-base" />
-              Active
-            </Tag>
-          ) : (
-            // <Tag
-            //   color="#ff3333"
-            //   className="mr-3 sm:mr-4 md:mr-5 lg:mr-6 px-3 sm:px-4 md:px-5 py-1 sm:py-1.5 text-xs sm:text-sm md:text-base rounded-full flex items-center gap-1.5"
-            // >
-            //   <Icon icon="heroicons:x-circle" className="text-base" />
-            //   Expired
-            // </Tag>
-
-            <Tag
-              color="#ff3333"
-              className="mr-4 sm:mr-6 md:mr-8 lg:mr-11 md:px-4 py-1 md:py-1.5 text-xs md:text-sm rounded-full flex items-center gap-1.5"
-            >
-              <Icon icon="heroicons:x-circle" className="text-base" />
-              Expired
-            </Tag>
-          )}
+        <div
+          className={`
+        inline-flex items-center gap-1.5 
+        px-3 py-0.5
+        text-sm
+        rounded-full
+        ${
+          isActive
+            ? "bg-green-50/50 text-green-600 ring-1 ring-green-200/60"
+            : "bg-red-50/50 text-red-600 ring-1 ring-red-200/60"
+        }
+      `}
+        >
+          <span
+            className={`
+          w-1.5 h-1.5 
+          rounded-full
+          ${isActive ? "bg-green-500" : "bg-red-500"}
+        `}
+          />
+          <span className="font-medium">{isActive ? "Active" : "Expired"}</span>
         </div>
 
         {/* Action Buttons */}
@@ -365,19 +360,6 @@ const ActiveLinkComponent = ({
             value={dayjs(linkData.created_at).format("YYYY-MM-DD, HH:mm")}
           />
           <InfoItem label="Created By" value={linkData.staff_fullname} />
-          <InfoItem
-            label="Last Accessed"
-            value={
-              linkData.last_accessed
-                ? dayjs(linkData.last_accessed).format("YYYY-MM-DD, HH:mm")
-                : "N/A"
-            }
-          />
-          <InfoItem
-            label="Logged In Count"
-            value={linkData.loggedInCount ?? "0"}
-            isCount={true}
-          />
         </div>
       </div>
     </LinkContainer>

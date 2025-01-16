@@ -87,26 +87,28 @@ exports.updatePatient = async (req, res) => {
     if (
       !patientData.hn_code ||
       !patientData.dob ||
-      !patientData.first_name ||
-      !patientData.last_name
+      !patientData.firstname ||
+      !patientData.lastname ||
+      !patientData.gender
     ) {
       return res
         .status(400)
         .json({ message: "Please provide all required fields." });
     }
 
-    const existingPatient = await Patient.getPatientById(patient_id);
+    console.log(patientData);
+
+    const existingPatient = await patientModel.getPatientById(patient_id);
     if (!existingPatient) {
       return res.status(404).json({ message: "Patient not found." });
     }
 
-    const updatedPatient = await Patient.update(patient_id, patientData);
+    const updatedPatient = await patientModel.update(patient_id, patientData);
 
     return res.status(200).json({
       message: "Patient updated successfully",
       patient: updatedPatient,
     });
-    โ;
   } catch (error) {
     console.error("Error updating patient:", error);
     return res
@@ -130,20 +132,37 @@ exports.createPatient = async (req, res) => {
         .json({ message: "Please provide all required fields." });
     }
 
-    if (patientData.dob) {
-      patientData.dob = moment(patientData.dob).format("YYYY-MM-DD");
+    const existingPatient = await db("patients")
+      .where("hn_code", patientData.hn_code)
+      .first();
+
+    if (existingPatient) {
+      return res.status(200).json({
+        message: "Patient already exists",
+        patient: existingPatient,
+      });
     }
 
-    const newPatient = await Patient.create(patientData);
+    const newPatient = await db("patients")
+      .insert({
+        hn_code: patientData.hn_code,
+        dob: patientData.dob,
+        firstname: patientData.first_name,
+        lastname: patientData.last_name,
+        gender: patientData.gender,
+      })
+      .returning("*")
+      .then((patients) => patients[0]);
 
-    return res
-      .status(201)
-      .json({ message: "Patient created successfully", patient: newPatient });
+    return res.status(201).json({
+      message: "Patient created successfully",
+      patient: newPatient,
+    });
   } catch (error) {
-    console.error("Error creating patient:", error);
-    return res
-      .status(500)
-      .json({ message: "An error occurred while creating the patient." });
+    console.error("Error creating or finding patient:", error);
+    return res.status(500).json({
+      message: "An error occurred while processing the patient data.",
+    });
   }
 };
 
@@ -201,6 +220,39 @@ exports.login = async (req, res) => {
       valid: false,
       error: "SERVER_ERROR",
       message: "An error occurred while checking patient details",
+    });
+  }
+};
+
+exports.getPatientDataWithHN = async (req, res) => {
+  const { hn_code } = req.params;
+
+  if (!hn_code) {
+    return res.status(400).json({
+      success: false,
+      message: "กรุณาระบุ hn_code",
+    });
+  }
+
+  try {
+    const patientData = await patientModel.getPatientDataByHN(hn_code);
+
+    if (!patientData) {
+      return res.status(404).json({
+        success: false,
+        message: `ไม่พบข้อมูลผู้ป่วยที่มี hn_code: ${hn_code}`,
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      data: patientData,
+    });
+  } catch (error) {
+    console.error("Error fetching patient data:", error);
+    return res.status(500).json({
+      success: false,
+      message: "เกิดข้อผิดพลาดในการดึงข้อมูลผู้ป่วย",
     });
   }
 };
