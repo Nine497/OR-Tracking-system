@@ -40,8 +40,8 @@ function Admin() {
         }`}
       >
         <Header />
-        <Content className="p-6 bg-gray-200 overflow-y-auto">
-          <div className="bg-white rounded-lg min-h-[calc(100vh-theme(spacing.32))] p-6">
+        <Content className="px-6 bg-gray-200 overflow-y-auto">
+          <div className="bg-white rounded-lg min-h-[calc(106vh-theme(spacing.32))] p-6">
             <Outlet />
           </div>
         </Content>

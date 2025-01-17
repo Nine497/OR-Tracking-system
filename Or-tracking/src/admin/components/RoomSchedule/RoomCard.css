@@ -1,0 +1,31 @@
+.CollapseCustom .ant-collapse {
+  background-color: #FBFBFB;
+}
+
+.custom-scrollbar::-webkit-scrollbar {
+  width: 8px;
+  border: none;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: rgb(243 244 246);
+  border: none;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: rgb(199 210 254);
+  border-radius: 8px;
+  border: none;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: rgb(165 180 252);
+  border: none;
+}
+
+/* Firefox */
+.custom-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: rgb(199 210 254) rgb(243 244 246);
+  border: none;
+}

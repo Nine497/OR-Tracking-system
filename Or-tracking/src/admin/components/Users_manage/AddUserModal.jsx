@@ -19,16 +19,22 @@ function AddUserModal({ visible, onClose }) {
 
       if (response.status === 200) {
         notification.success({
-          message: "Success",
-          description: "User details have been saved successfully.",
+          message: "ข้อมูลผู้ใช้ได้ถูกบันทึกสำเร็จแล้ว",
+          showProgress: true,
+          placement: "topRight",
+          pauseOnHover: true,
+          duration: 2,
         });
-        onClose(); // ปิด modal
+        onClose();
       }
     } catch (error) {
       console.error("Error saving user details:", error);
       notification.error({
-        message: "Error",
-        description: "Failed to save user details. Please try again.",
+        message: "ไม่สามารถบันทึกข้อมูลผู้ใช้ได้ กรุณาลองใหม่อีกครั้ง",
+        showProgress: true,
+        placement: "topRight",
+        pauseOnHover: true,
+        duration: 2,
       });
     }
   };

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Input, Table, notification, Tooltip, Switch } from "antd";
+import { Input, Table, Tooltip, Switch, notification } from "antd";
 import { Icon } from "@iconify/react";
 import axiosInstance from "../../api/axiosInstance";
 import { Spin } from "antd";
@@ -11,7 +11,7 @@ function UsersTable() {
   const [filteredData, setFilteredData] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [loading, setLoading] = useState(false);
-  const [pagination, setPagination] = useState({ pageSize: 6, current: 1 });
+  const [pagination, setPagination] = useState({ pageSize: 7, current: 1 });
   const [reloadTrigger, setReloadTrigger] = useState(false);
   const [modalVisible, setModalVisible] = useState(false);
   const [selectedUser, setSelectedUser] = useState(null);
@@ -23,7 +23,6 @@ function UsersTable() {
     setLoading(true);
 
     try {
-      const token = localStorage.getItem("jwtToken");
       const response = await axiosInstance.get("/staff", {
         params: {
           search: value,
@@ -47,8 +46,11 @@ function UsersTable() {
     } catch (error) {
       console.error("Error searching users:", error);
       notification.error({
-        message: "Error searching users",
-        description: error.message,
+        message: "ไม่สามารถค้นหาผู้ใช้ได้ กรุณาลองใหม่อีกครั้ง",
+        showProgress: true,
+        placement: "topRight",
+        pauseOnHover: true,
+        duration: 2,
       });
     } finally {
       setLoading(false);
@@ -57,8 +59,6 @@ function UsersTable() {
 
   const handleActiveToggle = async (record, checked) => {
     try {
-      const token = localStorage.getItem("jwtToken");
-
       const response = await axiosInstance.put(
         `/staff/isActive/${record.staff_id}`,
         {
@@ -68,10 +68,11 @@ function UsersTable() {
 
       if (response.status === 200) {
         notification.success({
-          message: "Success",
-          description: `User status updated to ${
-            checked ? "Active" : "Inactive"
-          }`,
+          message: "สถานะผู้ใช้ถูกอัปเดตแล้ว",
+          showProgress: true,
+          placement: "topRight",
+          pauseOnHover: true,
+          duration: 2,
         });
 
         setReloadTrigger((prev) => !prev);
@@ -79,8 +80,11 @@ function UsersTable() {
     } catch (error) {
       console.error("Error updating status:", error);
       notification.error({
-        message: "Error",
-        description: "Failed to update status.",
+        message: "ไม่สามารถอัปเดตสถานะได้ กรุณาลองใหม่อีกครั้ง",
+        showProgress: true,
+        placement: "topRight",
+        pauseOnHover: true,
+        duration: 2,
       });
     }
   };
@@ -113,8 +117,11 @@ function UsersTable() {
       } catch (error) {
         console.error("Error fetching users:", error);
         notification.error({
-          message: "Error fetching users",
-          description: error.message,
+          message: "ข้อผิดพลาดในการดึงข้อมูลผู้ใช้ กรุณาลองใหม่อีกครั้ง",
+          showProgress: true,
+          placement: "topRight",
+          pauseOnHover: true,
+          duration: 2,
         });
       } finally {
         setDataLastestUpdated(dayjs().format("HH:mm A"));
@@ -187,7 +194,10 @@ function UsersTable() {
               <Button
                 type="primary"
                 icon={
-                  <Icon icon="solar:user-outline" className="mr-2 w-4 h-4" />
+                  <Icon
+                    icon="weui:setting-filled"
+                    className="mr-1 w-4 h-4 text-white"
+                  />
                 }
                 onClick={() => handlePermission(record)}
                 className="w-full sm:w-auto"
@@ -225,8 +235,8 @@ function UsersTable() {
     <div className="flex flex-col p-7 w-full h-full gap-4">
       <div className="bg-gray-100 w-full rounded-lg flex flex-col sm:flex-row sm:justify-between items-start sm:items-center gap-4 sm:gap-0 px-5 sm:px-10 py-4">
         <Input
-          placeholder="Search by user number, user name, full name..."
-          className="w-full sm:w-1/3 h-10 text-base"
+          placeholder="ค้นหาด้วยหมายเลขผู้ใช้, ชื่อผู้ใช้, ชื่อ-นามสกุล..."
+          className="w-1/3 sm:w-1/3 h-10 text-base"
           prefix={<Icon icon="mingcute:search-line" className="mr-2 w-4 h-4" />}
           onChange={(e) => handleSearch(e.target.value)}
           value={searchTerm}

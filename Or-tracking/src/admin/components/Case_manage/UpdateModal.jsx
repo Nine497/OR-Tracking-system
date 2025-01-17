@@ -18,13 +18,19 @@ function UpdateModal({ visible, record, onClose, type }) {
         textArea.select();
         document.execCommand("copy");
         notification.success({
-          message: "Copied!",
-          description: "The link has been copied to your clipboard.",
+          message: "ลิงก์ได้ถูกคัดลอกไปยังคลิปบอร์ดของคุณแล้ว",
+          showProgress: true,
+          placement: "topRight",
+          pauseOnHover: true,
+          duration: 2,
         });
       } catch (err) {
         notification.error({
-          message: "Copy Failed",
-          description: "Unable to copy the link. Please copy manually.",
+          message: "ไม่สามารถคัดลอกลิงก์ได้",
+          showProgress: true,
+          placement: "topRight",
+          pauseOnHover: true,
+          duration: 2,
         });
       }
 
@@ -36,8 +42,11 @@ function UpdateModal({ visible, record, onClose, type }) {
         .writeText(link)
         .then(() => {
           notification.success({
-            message: "Copied!",
-            description: "The link has been copied to your clipboard.",
+            message: "ลิงก์ได้ถูกคัดลอกไปยังคลิปบอร์ดของคุณแล้ว",
+            showProgress: true,
+            placement: "topRight",
+            pauseOnHover: true,
+            duration: 2,
           });
         })
         .catch(fallbackCopy);

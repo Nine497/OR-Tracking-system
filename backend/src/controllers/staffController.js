@@ -195,7 +195,18 @@ exports.updatePermissions = async (req, res) => {
   const { permission_ids, gived_by, gived_at } = req.body;
   try {
     console.log(staff_id);
-    await Staff.updatePermissions(staff_id, permission_ids, gived_by, gived_at);
+
+    if (!permission_ids || permission_ids.length === 0) {
+      await Staff.updatePermissions(staff_id, [], gived_by, gived_at);
+    } else {
+      await Staff.updatePermissions(
+        staff_id,
+        permission_ids,
+        gived_by,
+        gived_at
+      );
+    }
+
     res.json({ message: "Permissions updated successfully" });
   } catch (error) {
     console.error("Error updating permissions:", error);

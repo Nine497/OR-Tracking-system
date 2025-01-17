@@ -1,8 +1,9 @@
 import React, { useEffect, useState } from "react";
-import { Select, notification, Popconfirm, Button } from "antd";
+import { Select, Popconfirm, Button, notification } from "antd";
 import axiosInstance from "../../api/axiosInstance";
 import { useAuth } from "../../context/AuthContext";
 import "./StatusUpdateForm.css";
+
 const StatusUpdateForm = ({ record, allStatus, onStatusUpdate }) => {
   const [loading, setLoading] = useState(false);
   const [selectedStatus, setSelectedStatus] = useState(null);
@@ -24,12 +25,11 @@ const StatusUpdateForm = ({ record, allStatus, onStatusUpdate }) => {
         }
       } catch (err) {
         notification.error({
-          message: "Error Fetching Data",
-          description: err.response
-            ? `Server responded with status ${err.response.status}: ${
-                err.response.data.message || "Unknown error"
-              }`
-            : "Unable to fetch status data. Please check your connection and try again.",
+          message: "ไม่สามารถดึงข้อมูลสถานะได้ กรุณาลองใหม่อีกครั้ง",
+          showProgress: true,
+          placement: "topRight",
+          pauseOnHover: true,
+          duration: 2,
         });
       }
     };
@@ -55,8 +55,11 @@ const StatusUpdateForm = ({ record, allStatus, onStatusUpdate }) => {
       if (response.status === 200) {
         setSelectedStatus(tempStatus);
         notification.success({
-          message: "Status Updated",
-          description: "The status has been updated successfully.",
+          message: "สถานะถูกอัปเดตเรียบร้อยแล้ว",
+          showProgress: true,
+          placement: "topRight",
+          pauseOnHover: true,
+          duration: 2,
         });
         if (onStatusUpdate) {
           onStatusUpdate(tempStatus);
@@ -65,12 +68,11 @@ const StatusUpdateForm = ({ record, allStatus, onStatusUpdate }) => {
     } catch (err) {
       setTempStatus(selectedStatus);
       notification.error({
-        message: "Error Updating Status",
-        description: err.response
-          ? `Server responded with status ${err.response.status}: ${
-              err.response.data.message || "Unknown error"
-            }`
-          : "Unable to update status. Please try again later.",
+        message: "ไม่สามารถดึงข้อมูลสถานะได้ กรุณาลองใหม่อีกครั้ง",
+        showProgress: true,
+        placement: "topRight",
+        pauseOnHover: true,
+        duration: 2,
       });
     } finally {
       setLoading(false);
@@ -91,6 +93,12 @@ const StatusUpdateForm = ({ record, allStatus, onStatusUpdate }) => {
   console.log("selectedStatus:", selectedStatus);
 
   const hasStatusChanged = tempStatus !== selectedStatus;
+
+  // กรองสถานะที่สามารถเลือกได้ โดยเฉพาะสถานะที่ current_status_id < (current_status_id + 1)
+  const filteredStatus = allStatus.filter(
+    (status) => status.status_id <= selectedStatus + 1
+  );
+
   return (
     <div className="flex items-center text-left space-x-2">
       <Select
@@ -113,6 +121,7 @@ const StatusUpdateForm = ({ record, allStatus, onStatusUpdate }) => {
           <Select.Option
             key={status.status_id}
             value={status.status_id}
+            disabled={status.status_id > selectedStatus + 1} // Disable option if the status_id is greater than selectedStatus + 1
             className="py-1"
           >
             {status.translated_name}
@@ -121,12 +130,12 @@ const StatusUpdateForm = ({ record, allStatus, onStatusUpdate }) => {
       </Select>
 
       <Popconfirm
-        title="Confirm Status Update ?"
+        title="ยืนยันการอัพเดตสถานะ ?"
         open={showPopconfirm}
         onConfirm={handleConfirmStatusUpdate}
         onCancel={handleCancel}
-        okText="Yes"
-        cancelText="No"
+        okText="ยืนยัน"
+        cancelText="ยกเลิก"
       >
         <Button
           type="primary"

@@ -5,7 +5,8 @@ import { useNavigate } from "react-router-dom";
 import axiosInstance from "../api/axiosInstance";
 import LoginImg from "../assets/Login.jpg";
 import { Icon } from "@iconify/react";
-import Logo from "../assets/Logo.png";
+import { toast } from "react-toastify";
+
 const Login = () => {
   const { login } = useAuth();
   const navigate = useNavigate();
@@ -20,16 +21,41 @@ const Login = () => {
         username,
         password,
       });
+
       if (data.token) {
         login(data.token);
+        toast.success("เข้าสู่ระบบสำเร็จ", {
+          position: "top-right",
+          autoClose: 3000,
+        });
+        navigate("/admin/room_schedule");
       }
-      notification.success({ message: "Login successful" });
-      navigate("/admin/room_schedule");
     } catch (error) {
-      console.error("Login error:", error);
-      notification.error({
-        message: error.response?.data?.message || "Login failed.",
-      });
+      console.error("ข้อผิดพลาดในการเข้าสู่ระบบ:", error);
+
+      if (error.response) {
+        if (error.response.status === 401) {
+          toast.error("ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง", {
+            position: "top-right",
+            autoClose: 3000,
+          });
+        } else if (error.response.status === 403) {
+          toast.error("บัญชีของคุณถูกระงับการใช้งาน", {
+            position: "top-right",
+            autoClose: 3000,
+          });
+        } else {
+          toast.error("ไม่สามารถเข้าสู่ระบบได้", {
+            position: "top-right",
+            autoClose: 3000,
+          });
+        }
+      } else {
+        toast.error("ไม่สามารถเชื่อมต่อกับเซิร์ฟเวอร์", {
+          position: "top-right",
+          autoClose: 3000,
+        });
+      }
     } finally {
       setLoading(false);
     }

@@ -10,7 +10,6 @@ import {
   Tooltip,
   Input,
   Typography,
-  Badge,
   QRCode,
 } from "antd";
 import dayjs from "dayjs";
@@ -411,19 +410,6 @@ const ExpiredLinkComponent = ({
           value={dayjs(linkData.created_at).format("YYYY-MM-DD, HH:mm")}
         />
         <InfoItem label="Created By" value={linkData.staff_fullname} />
-        <InfoItem
-          label="Last Accessed"
-          value={
-            linkData.last_accessed
-              ? dayjs(linkData.last_accessed).format("YYYY-MM-DD, HH:mm")
-              : "N/A"
-          }
-        />
-        <InfoItem
-          label="Logged In Count"
-          value={linkData.loggedInCount ?? "0"}
-          isCount={true}
-        />
       </div>
     </div>
   </LinkContainer>
@@ -452,8 +438,12 @@ const LinkForm = ({ formLink, onClose, handleCopyLink, record }) => {
           setLinkData(response.data);
         } else {
           notification.warning({
-            message: "No Data Found",
-            description: "No data available for the specified surgery case.",
+            message:
+              "ไม่มีข้อมูลสำหรับเคสการผ่าตัดที่ระบุไว้ กรุณาลองใหม่อีกครั้ง",
+            showProgress: true,
+            placement: "topRight",
+            pauseOnHover: true,
+            duration: 2,
           });
           setLinkData(null);
         }
@@ -462,8 +452,11 @@ const LinkForm = ({ formLink, onClose, handleCopyLink, record }) => {
           setLinkData(null);
         } else {
           notification.error({
-            message: "Error Fetching Data",
-            description: "Unable to fetch surgery case data. Please try again.",
+            message: "ไม่สามารถดึงข้อมูลเคสการผ่าตัดได้ กรุณาลองใหม่อีกครั้ง",
+            showProgress: true,
+            placement: "topRight",
+            pauseOnHover: true,
+            duration: 2,
           });
         }
       } finally {
@@ -482,14 +475,20 @@ const LinkForm = ({ formLink, onClose, handleCopyLink, record }) => {
       if (response.data) {
         setLinkData(response.data);
         notification.success({
-          message: "Link Generated",
-          description: "New link has been successfully created.",
+          message: "ลิงก์ใหม่ถูกสร้างสำเร็จเรียบร้อยแล้ว",
+          showProgress: true,
+          placement: "topRight",
+          pauseOnHover: true,
+          duration: 2,
         });
       }
     } catch (err) {
       notification.error({
-        message: "Error Creating Link",
-        description: "Unable to create the link. Please try again.",
+        message: "ไม่สามารถสร้างลิงก์ได้ โปรดลองใหม่อีกครั้ง",
+        showProgress: true,
+        placement: "topRight",
+        pauseOnHover: true,
+        duration: 2,
       });
     } finally {
       setLoading(false);
@@ -498,18 +497,23 @@ const LinkForm = ({ formLink, onClose, handleCopyLink, record }) => {
 
   const handleGenerateLink = (date) => {
     if (!date) {
-      notification.error({
-        message: "Expiration Time Required",
-        description:
-          "Please select an expiration time before generating the link.",
+      notification.warning({
+        message: "กรุณาเลือกเวลาหมดอายุก่อนสร้างลิงก์",
+        showProgress: true,
+        placement: "topRight",
+        pauseOnHover: true,
+        duration: 2,
       });
       return;
     }
 
     if (!user?.id) {
-      notification.error({
-        message: "Authentication Required",
-        description: "Please log in to generate a link.",
+      notification.warning({
+        message: "กรุณาเข้าสู่ระบบเพื่อสร้างลิงก์",
+        showProgress: true,
+        placement: "topRight",
+        pauseOnHover: true,
+        duration: 2,
       });
       return;
     }
@@ -523,7 +527,6 @@ const LinkForm = ({ formLink, onClose, handleCopyLink, record }) => {
 
   const handleCancelLink = async () => {
     try {
-      const token = localStorage.getItem("jwtToken");
       const response = await axiosInstance.patch("/link_cases/update_status", {
         surgery_case_links_id: linkData.surgery_case_links_id,
         isactive: false,
@@ -531,16 +534,22 @@ const LinkForm = ({ formLink, onClose, handleCopyLink, record }) => {
 
       if (response.status === 200) {
         notification.success({
-          message: "Link Cancelled",
-          description: "The link has been successfully cancelled.",
+          message: "ลิงก์ถูกยกเลิกเรียบร้อยแล้ว",
+          showProgress: true,
+          placement: "topRight",
+          pauseOnHover: true,
+          duration: 2,
         });
         setLinkData(null);
         setIsModalVisible(false);
       }
     } catch (error) {
       notification.error({
-        message: "Error Cancelling Link",
-        description: "Unable to cancel the link. Please try again.",
+        message: "ไม่สามารถยกเลิกลิงก์ได้ กรุณาลองอีกครั้ง",
+        showProgress: true,
+        placement: "topRight",
+        pauseOnHover: true,
+        duration: 2,
       });
     }
   };

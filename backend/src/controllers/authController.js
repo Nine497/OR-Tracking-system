@@ -10,13 +10,14 @@ exports.login = async (req, res) => {
     username = username.replace(/[A-Za-z]/g, (match) => match.toLowerCase());
 
     const staff = await Staff.findOne({ username });
+
     if (!staff) {
-      return res.status(404).json({ message: "Staff not found" });
+      return res.status(401).json({ message: "Invalid username or password" });
     }
 
     const isPasswordValid = await bcrypt.compare(password, staff.password);
     if (!isPasswordValid) {
-      return res.status(401).json({ message: "Invalid password" });
+      return res.status(401).json({ message: "Invalid username or password" });
     }
 
     if (!staff.isActive) {

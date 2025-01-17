@@ -9,6 +9,8 @@ import {
   RightOutlined,
   LeftOutlined,
 } from "@ant-design/icons";
+import { Icon } from "@iconify/react";
+
 import Logo from "../assets/Logo.png";
 import axiosInstance from "../api/axiosInstance";
 
@@ -16,26 +18,26 @@ const items = [
   {
     label: "ห้องผ่าตัด",
     to: "/admin/room_schedule",
-    icon: <HomeOutlined />,
+    icon: <Icon icon="ic:baseline-home" className="text-lg" />,
     key: "room_schedule",
   },
   {
     label: "ปฏิทิน",
     to: "/admin/calendar",
-    icon: <CalendarOutlined />,
+    icon: <Icon icon="ic:baseline-calendar-today" className="text-lg" />,
     key: "calendar",
   },
   {
     label: "เคสผ่าตัด",
     to: "/admin/case_manage",
-    icon: <FileTextOutlined />,
+    icon: <Icon icon="ic:outline-description" className="text-lg" />,
     key: "case_manage",
     permissionRequired: 5003,
   },
   {
     label: "ผู้ใช้",
     to: "/admin/users_manage",
-    icon: <UsergroupAddOutlined />,
+    icon: <Icon icon="ic:baseline-group-add" className="text-lg" />,
     key: "users_manage",
     permissionRequired: 5002,
   },
@@ -98,9 +100,7 @@ const Sidebar = ({ collapsed, setCollapsed, isMobile, user }) => {
       trigger={null}
     >
       <div className="flex flex-col h-full">
-        {/* Logo and Collapse Trigger Section */}
         <div className="flex-none h-16 flex items-center justify-between border-b border-gray-100 bg-white/95 px-4">
-          {/* Logo Section */}
           <img
             src={Logo}
             alt="Logo"
@@ -108,7 +108,6 @@ const Sidebar = ({ collapsed, setCollapsed, isMobile, user }) => {
               collapsed ? "w-12 hidden" : "w-32"
             } h-auto object-contain`}
           />
-          {/* Collapse Trigger for Desktop */}
           {!isMobile && (
             <Button
               type="text"
@@ -119,7 +118,6 @@ const Sidebar = ({ collapsed, setCollapsed, isMobile, user }) => {
           )}
         </div>
 
-        {/* Menu Section */}
         <Menu
           mode="inline"
           theme="light"
@@ -164,7 +162,7 @@ const Sidebar = ({ collapsed, setCollapsed, isMobile, user }) => {
           type="default"
           icon={collapsed ? <RightOutlined /> : <LeftOutlined />}
           onClick={() => setCollapsed(!collapsed)}
-          className="absolute -right-12 top-4 shadow-lg bg-white hover:bg-gray-50 border-gray-200 w-8 h-8 p-0 flex items-center justify-center rounded-md"
+          className="border-none absolute -right-6 top-4 bg-white hover:bg-gray-50 border-gray-200 w-8 h-8 p-0 flex items-center justify-center rounded-md"
         />
       )}
     </Layout.Sider>

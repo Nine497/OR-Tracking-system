@@ -35,6 +35,7 @@ exports.getCalendar = async (req, res) => {
 exports.createOperation = async (req, res) => {
   try {
     const { operation_name, surgery_case_id } = req.body;
+    console.log("operation_name : ", operation_name);
 
     if (!operation_name || !surgery_case_id) {
       return res.status(400).json({
@@ -65,15 +66,13 @@ exports.createOperation = async (req, res) => {
         .where("surgery_case_id", surgery_case_id)
         .update({
           operation_name,
-        });
+        })
+        .returning(["operation_id", "operation_name", "surgery_case_id"]);
 
-      if (updatedOperation) {
+      if (updatedOperation.length > 0) {
         return res.status(200).json({
           message: "Operation updated successfully",
-          data: {
-            operation_name,
-            surgery_case_id,
-          },
+          data: updatedOperation[0],
         });
       } else {
         return res.status(500).json({
@@ -81,18 +80,17 @@ exports.createOperation = async (req, res) => {
         });
       }
     } else {
-      const newOperation = await db("operation").insert({
-        operation_name,
-        surgery_case_id,
-      });
+      const newOperation = await db("operation")
+        .insert({
+          operation_name,
+          surgery_case_id,
+        })
+        .returning(["operation_id", "operation_name", "surgery_case_id"]);
 
-      if (newOperation) {
+      if (newOperation.length > 0) {
         return res.status(201).json({
           message: "Operation created successfully",
-          data: {
-            operation_name,
-            surgery_case_id,
-          },
+          data: newOperation[0],
         });
       } else {
         return res.status(500).json({
@@ -134,16 +132,15 @@ exports.updateSurgeryCase = async (req, res) => {
   try {
     const { surgery_case_id } = req.params;
     const surgeryCaseData = req.body;
+    console.log("surgeryCaseData", surgeryCaseData);
 
     if (
-      !surgeryCaseData ||
       !surgeryCaseData.surgery_type_id ||
       !surgeryCaseData.doctor_id ||
       !surgeryCaseData.surgery_date ||
       !surgeryCaseData.estimate_start_time ||
       !surgeryCaseData.estimate_duration ||
-      !surgeryCaseData.operating_room_id ||
-      !surgeryCaseData.patient_history
+      !surgeryCaseData.operating_room_id
     ) {
       return res
         .status(400)

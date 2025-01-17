@@ -1,9 +1,8 @@
 import React, { useEffect } from "react";
 import { useNavigate, Outlet } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
-import { notification } from "antd";
 import { jwtDecode } from "jwt-decode";
-import { Spin } from "antd";
+import { Spin, notification } from "antd";
 
 const PrivateRoute = () => {
   const { setUser, loading } = useAuth();
@@ -22,15 +21,23 @@ const PrivateRoute = () => {
           } else {
             localStorage.removeItem("jwtToken");
             notification.warning({
-              message: "Session expired. Please login again.",
+              message: "Session ของคุณหมดอายุ กรุณาล็อกอินอีกครั้ง",
+              showProgress: true,
+              placement: "topRight",
+              pauseOnHover: true,
+              duration: 2,
             });
             navigate("/");
           }
         } catch (error) {
           console.error("Invalid token:", error);
           localStorage.removeItem("jwtToken");
-          notification.warning({
-            message: "Invalid token. Please login again.",
+          notification.error({
+            message: "Token ของคุณไม่ถูกต้อง กรุณาล็อกอินอีกครั้ง",
+            showProgress: true,
+            placement: "topRight",
+            pauseOnHover: true,
+            duration: 2,
           });
           navigate("/");
         }

@@ -6,6 +6,7 @@ import {
 } from "@ant-design/icons";
 import axiosInstance from "../../api/axiosInstance";
 import dayjs from "dayjs";
+import "./RoomCard.css";
 
 function RoomCard({ room }) {
   const [cases, setCases] = useState([]);
@@ -54,31 +55,44 @@ function RoomCard({ room }) {
   };
 
   return (
-    <div className="h-[340px] transform transition-all duration-300 hover:-translate-y-1">
+    <div
+      className="max-h-[330px] min-h-[330px] w-full 
+                    transform transition-all duration-300 hover:-translate-y-1"
+    >
       <Card
         title={
-          <div className="flex justify-between items-center">
-            <span className="text-xl font-semibold text-white">
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 sm:gap-0">
+            <span className="text-lg sm:text-xl font-semibold text-white">
               {room.room_name}
             </span>
-            <span className="text-sm font-medium text-gray-50 bg-indigo-400 px-2 py-1 rounded-full">
+            <span
+              className="text-xs sm:text-sm font-medium text-gray-50 
+                           bg-indigo-400/80 px-2.5 py-1 rounded-full"
+            >
               {cases.length} เคส
             </span>
           </div>
         }
-        className="h-full hover:shadow-xl transition-shadow duration-300 bg-white border border-indigo-50"
+        className="h-full hover:shadow-xl transition-shadow duration-300 
+                   bg-[#FBFBFB] border border-indigo-50"
         styles={{
           header: {
             background: "linear-gradient(135deg, #4A6CF7 0%, #3658E0 100%)",
             borderBottom: "1px solid rgba(230, 240, 255, 0.2)",
             borderRadius: "12px 12px 0 0",
-            fontWeight: "600",
-            color: "#FFFFFF",
+            padding: "12px 16px",
+            "@media (min-width: 640px)": {
+              padding: "16px 20px",
+            },
           },
           body: {
-            padding: "16px",
-            height: "calc(100% - 56px)",
+            padding: "12px",
+            height: "calc(100% - 52px)",
             overflow: "hidden",
+            "@media (min-width: 640px)": {
+              padding: "16px",
+              height: "calc(100% - 56px)",
+            },
           },
         }}
       >
@@ -87,11 +101,12 @@ function RoomCard({ room }) {
             <Spin size="large" />
           </div>
         ) : cases.length > 0 ? (
-          <div className="h-[240px] bg-white rounded-lg">
+          <div className="h-[calc(100%-16px)] bg-[#FBFBFB] border-none CollapseCustom">
             <Collapse
               accordion
               size="small"
-              className="max-h-full overflow-y-auto divide-y divide-indigo-100 scrollbar-thin scrollbar-thumb-indigo-200 scrollbar-track-transparent"
+              className="max-h-full overflow-y-auto custom-scrollbar 
+                       px-2 sm:px-3 md:px-4 py-1 sm:py-2"
             >
               {cases
                 .sort((a, b) =>
@@ -103,16 +118,28 @@ function RoomCard({ room }) {
                   <Panel
                     key={caseIndex}
                     header={
-                      <div className="flex items-center justify-between w-full py-1">
-                        {/* Patient HN */}
-                        <span className="inline-flex items-center px-4 py-1.5 text-sm font-semibold text-indigo-700 bg-indigo-50 rounded-full ring-1 ring-indigo-200">
+                      <div
+                        className="flex flex-row xs:flex-row justify-between 
+                                  items-start xs:items-center gap-2 xs:gap-0 
+                                  w-full py-1.5 px-1"
+                      >
+                        <span
+                          className="inline-flex items-center px-2.5 xs:px-3 py-1 
+                                     text-xs sm:text-sm font-semibold 
+                                     bg-gradient-to-r from-indigo-50 to-violet-50
+                                     text-indigo-700 rounded-full 
+                                     ring-1 ring-indigo-200/50"
+                        >
                           {c.patient_HN}
                         </span>
-
-                        {/* Time */}
-                        <div className="flex items-center space-x-2 text-gray-600">
-                          <ClockCircleOutlined className="w-4 h-4 text-indigo-500" />
-                          <span className="text-sm font-medium">
+                        <div className="flex items-center gap-2">
+                          <div
+                            className="w-5 h-5 rounded-full bg-indigo-50 
+                                      flex items-center justify-center"
+                          >
+                            <ClockCircleOutlined className="text-indigo-500 text-xs" />
+                          </div>
+                          <span className="text-xs sm:text-sm text-gray-600 font-medium">
                             {dayjs(c.estimate_start_time, "HH:mm:ss").format(
                               "HH:mm"
                             )}
@@ -120,51 +147,45 @@ function RoomCard({ room }) {
                         </div>
                       </div>
                     }
-                    className="transition-all duration-200 ease-in-out hover:bg-indigo-50"
+                    className="bg-white hover:bg-gradient-to-r hover:from-indigo-50/30 
+                            hover:to-violet-50/30 transition-all duration-300
+                            shadow-sm hover:shadow rounded-lg mb-2"
                   >
-                    <div className="space-y-4 bg-white rounded-lg">
-                      {/* Surgery Type */}
-                      <div className="grid grid-cols-3 gap-x-4 items-start">
-                        <span className="text-sm font-medium text-gray-500">
-                          Type:
-                        </span>
-                        <span className="col-span-2 text-sm text-gray-900 break-words font-medium">
-                          {c.surgery_type_name}
-                        </span>
-                      </div>
-
-                      {/* Operation Name */}
-                      <div className="grid grid-cols-3 gap-x-4 items-start">
-                        <span className="text-sm font-medium text-gray-500 ">
-                          Operation:
-                        </span>
-                        <span className="col-span-2 text-sm text-gray-900 break-words font-medium">
-                          Operation name
-                        </span>
-                      </div>
-
-                      {/* Status */}
-                      <div className="grid grid-cols-3 gap-x-4 items-start">
-                        <span className="text-sm font-medium text-gray-500">
-                          Status:
-                        </span>
-                        <span
-                          className={`col-span-2 text-sm ${getStatusClass(
-                            c.status_name
-                          )} break-words font-medium`}
+                    <div className="space-y-2 sm:space-y-3 p-2 sm:p-3">
+                      {["Type", "Operation", "Status"].map((field, index) => (
+                        <div
+                          key={field}
+                          className="grid grid-cols-[80px,1fr] xs:grid-cols-[100px,1fr] 
+                                                items-start gap-2 sm:gap-3"
                         >
-                          {c.status_name}
-                        </span>
-                      </div>
+                          <span className="text-xs sm:text-sm font-medium text-gray-500">
+                            {field}:
+                          </span>
+                          <span
+                            className={`text-xs sm:text-sm font-medium
+                          ${
+                            field === "Status"
+                              ? getStatusClass(c.status_name)
+                              : "text-gray-900"
+                          }`}
+                          >
+                            {field === "Type"
+                              ? c.surgery_type_name
+                              : field === "Operation"
+                              ? "Operation name"
+                              : c.status_name}
+                          </span>
+                        </div>
+                      ))}
                     </div>
                   </Panel>
                 ))}
             </Collapse>
           </div>
         ) : (
-          <div className="flex flex-col items-center justify-center h-full text-gray-500">
-            <ExclamationCircleOutlined className="text-2xl mb-2 text-indigo-400" />
-            <p className="text-sm font-medium text-gray-600">
+          <div className="flex flex-col items-center justify-center h-full space-y-2">
+            <ExclamationCircleOutlined className="text-xl sm:text-2xl text-indigo-400" />
+            <p className="text-xs sm:text-sm font-medium text-gray-600">
               ไม่มีเคสการผ่าตัด
             </p>
           </div>

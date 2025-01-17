@@ -6,8 +6,8 @@ import {
   DatePicker,
   Button,
   message,
-  notification,
   Modal,
+  notification,
 } from "antd";
 import { Icon } from "@iconify/react";
 import IMask from "imask";
@@ -15,7 +15,6 @@ import axiosInstance from "../../api/axiosInstance";
 import { useAuth } from "../../context/AuthContext";
 import dayjs from "dayjs";
 import { useNavigate } from "react-router-dom";
-import CustomNotification from "../CustomNotification";
 import "./Form.css";
 
 const { Option } = Select;
@@ -64,15 +63,18 @@ function AddCase() {
         if (response.status === 200) {
           setDoctors(response.data.data);
         } else {
-          throw new Error(`Failed to fetch doctors: ${response.statusText}`);
+          throw new Error(
+            `ไม่สามารถโหลดข้อมูลแพทย์ได้: ${response.statusText}`
+          );
         }
       } catch (error) {
-        console.error("Error fetching doctors:", error);
-
+        console.error("เกิดข้อผิดพลาดในการโหลดข้อมูลแพทย์:", error);
         notification.error({
-          message: "Error",
-          description: "Failed to load doctors. Please try again later.",
+          message: "ไม่สามารถโหลดข้อมูลแพทย์ได้ กรุณาลองใหม่ภายหลัง",
+          showProgress: true,
           placement: "topRight",
+          pauseOnHover: true,
+          duration: 2,
         });
       } finally {
         setDoctorsLoading(false);
@@ -88,17 +90,17 @@ function AddCase() {
           setOperatingRooms(response.data.data);
         } else {
           throw new Error(
-            `Failed to fetch operating rooms: ${response.statusText}`
+            `ไม่สามารถโหลดข้อมูลห้องผ่าตัดได้: ${response.statusText}`
           );
         }
       } catch (error) {
-        console.error("Error fetching operating rooms:", error);
-
+        console.error("เกิดข้อผิดพลาดในการโหลดข้อมูลห้องผ่าตัด:", error);
         notification.error({
-          message: "Error",
-          description:
-            "Failed to load operating rooms. Please try again later.",
+          message: "ไม่สามารถโหลดข้อมูลห้องผ่าตัดได้ กรุณาลองใหม่ภายหลัง",
+          showProgress: true,
           placement: "topRight",
+          pauseOnHover: true,
+          duration: 2,
         });
       } finally {
         setOperatingRoomsLoading(false);
@@ -117,16 +119,17 @@ function AddCase() {
           setSurgeryTypes(response.data.data);
         } else {
           throw new Error(
-            `Failed to fetch surgery types: ${response.statusText}`
+            `ไม่สามารถโหลดข้อมูลประเภทการผ่าตัดได้: ${response.statusText}`
           );
         }
       } catch (error) {
-        console.error("Error fetching surgery types:", error);
-
+        console.error("เกิดข้อผิดพลาดในการโหลดข้อมูลประเภทการผ่าตัด:", error);
         notification.error({
-          message: "Error",
-          description: "Failed to load surgery types. Please try again later.",
+          message: "ไม่สามารถโหลดข้อมูลประเภทการผ่าตัดได้ กรุณาลองใหม่ภายหลัง",
+          showProgress: true,
           placement: "topRight",
+          pauseOnHover: true,
+          duration: 2,
         });
       } finally {
         setSurgeryTypesLoading(false);
@@ -148,15 +151,17 @@ function AddCase() {
 
   const onFinish = async () => {
     try {
+      // ตรวจสอบว่าผู้ใช้กรอกข้อมูลที่จำเป็นครบถ้วนหรือไม่
       if (
         !patientData.firstname ||
         !patientData.lastname ||
         !surgeryData.surgery_date
       ) {
-        message.error("Please fill in all required fields.");
+        message.error("กรุณากรอกข้อมูลในช่องที่จำเป็นให้ครบถ้วน");
         return;
       }
 
+      // สร้างข้อมูลของผู้ป่วยจากแบบฟอร์ม
       const patientRequestData = {
         hn_code: patientData.hn_code,
         first_name: patientData.firstname,
@@ -165,17 +170,19 @@ function AddCase() {
         gender: patientData.gender,
       };
 
+      // ส่งข้อมูลผู้ป่วยไปยังเซิร์ฟเวอร์
       const patientResponse = await axiosInstance.post(
         "/patient/",
         patientRequestData
       );
 
       if (!patientResponse.data || !patientResponse.data.patient.patient_id) {
-        throw new Error("Failed to create or find patient.");
+        throw new Error("ไม่สามารถสร้างหรือค้นหาข้อมูลผู้ป่วยได้");
       }
 
-      const patientId = patientResponse.data.patient.patient_id;
+      const patientId = patientResponse.data.patient.patient_id; // เก็บ ID ของผู้ป่วย
 
+      // สร้างข้อมูลสำหรับการผ่าตัด
       const surgeryCaseData = {
         surgery_date: dayjs(surgeryData.surgery_date).format("YYYY-MM-DD"),
         estimate_start_time: dayjs(
@@ -192,7 +199,7 @@ function AddCase() {
         Operation: surgeryData.Operation,
       };
 
-      console.log("Surgery Case Data to be sent:", surgeryCaseData);
+      console.log("ข้อมูลการผ่าตัดที่ส่งไปยังเซิร์ฟเวอร์:", surgeryCaseData);
 
       const caseResponse = await axiosInstance.post(
         `/surgery_case/${patientId}`,
@@ -201,33 +208,40 @@ function AddCase() {
 
       if (caseResponse.status === 201) {
         navigate("/admin/case_manage");
-
         notification.success({
-          message: "Surgery Case Created Successfully!",
-          description: "The surgery case was created successfully.",
+          message: "สร้างข้อมูลเคสการผ่าตัดเรียบร้อยแล้ว",
+          showProgress: true,
+          placement: "topRight",
+          pauseOnHover: true,
+          duration: 2,
         });
       } else {
         notification.error({
-          message: "Failed to Create Surgery Case",
-          description: "There was an issue creating the surgery case.",
+          message: "ไม่สามารถสร้างเคสการผ่าตัดได้ กรุณาลองใหม่ภายหลัง",
+          showProgress: true,
+          placement: "topRight",
+          pauseOnHover: true,
+          duration: 2,
         });
       }
     } catch (error) {
-      console.error("Error during onFinish:", error);
+      console.error("เกิดข้อผิดพลาดระหว่างการทำงาน:", error);
       notification.error({
-        message: "An Error Occurred",
-        description:
-          "An error occurred while processing your request. Please try again.",
+        message: "เกิดข้อผิดพลาดระหว่างดำเนินการ กรุณาลองใหม่ภายหลัง",
+        showProgress: true,
+        placement: "topRight",
+        pauseOnHover: true,
+        duration: 2,
       });
     }
   };
 
   const handleSaveConfirm = () => {
     Modal.confirm({
-      title: "Confirm Save",
-      content: "Are you sure you want to save this surgery case?",
-      okText: "Yes, Save",
-      cancelText: "Cancel",
+      title: "ยืนยันการบันทึก",
+      content: "คุณแน่ใจหรือไม่ว่าต้องการบันทึกข้อมูลเคสการผ่าตัดนี้?",
+      okText: "ใช่, บันทึก",
+      cancelText: "ยกเลิก",
       onOk: onFinish,
     });
   };
@@ -255,9 +269,9 @@ function AddCase() {
 
   const handleSeachHNClick = async () => {
     const hnCode = patientData.hn_code;
+
     if (hnCode) {
       setIsLoading(true);
-
       try {
         const response = await axiosInstance.get(
           `/patient/getPatientData/${hnCode}`
@@ -273,6 +287,7 @@ function AddCase() {
             patient_history = "",
           } = response.data.data;
 
+          // อัปเดตข้อมูลใน state และฟอร์ม
           setPatientData({
             hn_code,
             firstname,
@@ -290,12 +305,19 @@ function AddCase() {
             dob: dayjs(dob).format("YYYY-MM-DD"),
             patient_history,
           });
-          CustomNotification.success("ค้นหาสำเร็จ", "พบข้อมูลผู้ป่วยในระบบ");
         } else {
-          CustomNotification.error("ไม่พบข้อมูล", "ไม่พบข้อมูลผู้ป่วยในระบบ");
+          notification.success({
+            message: "ไม่พบข้อมูลผู้ป่วย HN นี้ในระบบ",
+            showProgress: true,
+            placement: "topRight",
+            pauseOnHover: true,
+            duration: 2,
+          });
         }
       } catch (error) {
         console.error("Error fetching patient data:", error);
+
+        // ล้างค่าในฟอร์มเมื่อเกิดข้อผิดพลาด
         form.setFieldsValue({
           hn_code: "",
           firstname: "",
@@ -304,7 +326,15 @@ function AddCase() {
           dob: "",
           patient_history: "",
         });
-        CustomNotification.error("ไม่พบข้อมูล", "ไม่พบข้อมูลผู้ป่วยในระบบ");
+
+        // แจ้งเตือนเมื่อเกิดข้อผิดพลาด
+        notification.error({
+          message: "ไม่พบข้อมูลผู้ป่วย HN นี้ในระบบ",
+          showProgress: true,
+          placement: "topRight",
+          pauseOnHover: true,
+          duration: 2,
+        });
       } finally {
         setIsLoading(false);
       }
@@ -312,10 +342,6 @@ function AddCase() {
       setIsLoading(false);
     }
   };
-
-  useEffect(() => {
-    console.log("Updated patientData:", patientData);
-  }, [patientData]);
 
   return (
     <>

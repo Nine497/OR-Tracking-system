@@ -1,13 +1,5 @@
 import React, { useState, useEffect } from "react";
-import {
-  Modal,
-  Form,
-  Checkbox,
-  Button,
-  notification,
-  Spin,
-  Tooltip,
-} from "antd";
+import { Modal, Form, Checkbox, Button, Spin, notification } from "antd";
 import axiosInstance from "../../api/axiosInstance";
 import { useAuth } from "../../context/AuthContext";
 import dayjs from "dayjs";
@@ -40,8 +32,11 @@ function PermissionModal({ visible, staff, onClose }) {
       } catch (error) {
         console.error("Error fetching permissions:", error);
         notification.error({
-          message: "Error fetching permissions",
-          description: error.message,
+          message: "ไม่สามารถดึงข้อมูลสิทธิ์ผู้ใช้ได้",
+          showProgress: true,
+          placement: "topRight",
+          pauseOnHover: true,
+          duration: 2,
         });
       } finally {
         setLoading(false);
@@ -67,35 +62,35 @@ function PermissionModal({ visible, staff, onClose }) {
   const handleFinish = async () => {
     const permissions = staffPermissions.map((p) => p.permission_id);
 
-    if (permissions.length > 0) {
-      const currentDateTime = dayjs().format("YYYY-MM-DD HH:mm:ss.SSS");
+    const currentDateTime = dayjs().format("YYYY-MM-DD HH:mm:ss.SSS");
 
-      try {
-        const response = await axiosInstance.post(
-          `/staff/update_permissions/${staff.staff_id}`,
-          {
-            permission_ids: permissions,
-            gived_by: user.id,
-            gived_at: currentDateTime,
-          }
-        );
-
+    try {
+      const response = await axiosInstance.post(
+        `/staff/update_permissions/${staff.staff_id}`,
+        {
+          permission_ids: permissions.length > 0 ? permissions : [null],
+          gived_by: user.id,
+          gived_at: currentDateTime,
+        }
+      );
+      if (response.request.status == 200) {
         notification.success({
-          message: "Success",
-          description: "Permissions updated successfully!",
+          message: "อัปเดตสิทธิ์สำเร็จ",
+          showProgress: true,
+          placement: "topRight",
+          pauseOnHover: true,
+          duration: 2,
         });
 
         onClose();
-      } catch (error) {
-        notification.error({
-          message: "Error",
-          description: "Failed to update permissions.",
-        });
       }
-    } else {
-      notification.warning({
-        message: "No permissions selected",
-        description: "Please select at least one permission to update.",
+    } catch (error) {
+      notification.error({
+        message: "ไม่สามารถอัปเดตสิทธิ์ผู้ใช้ได้",
+        showProgress: true,
+        placement: "topRight",
+        pauseOnHover: true,
+        duration: 2,
       });
     }
   };

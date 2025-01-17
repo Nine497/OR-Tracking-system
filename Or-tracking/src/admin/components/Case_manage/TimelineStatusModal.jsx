@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useMemo } from "react";
-import { notification, Spin, Timeline, Typography, Divider } from "antd";
+import { Spin, Timeline, Typography, notification } from "antd";
 import { Icon } from "@iconify/react";
 import dayjs from "dayjs";
 import axiosInstance from "../../api/axiosInstance";
@@ -14,12 +14,11 @@ const TimelineStatus = ({ record }) => {
 
   const handleError = (err) => {
     notification.error({
-      message: "Error Fetching Data",
-      description: err.response
-        ? `Server responded with status ${err.response.status}: ${
-            err.response.data.message || "Unknown error"
-          }`
-        : "Unable to fetch status data. Please check your connection and try again.",
+      message: "ไม่สามารถดึงข้อมูลได้ กรุณาลองใหม่อีกครั้ง",
+      showProgress: true,
+      placement: "topRight",
+      pauseOnHover: true,
+      duration: 2,
     });
   };
 

@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from "react";
 import { Calendar, Skeleton } from "antd";
-import axiosInstance from "../../api/axiosInstance";
 import "./CalendarSchedule.css";
 import dayjs from "dayjs";
 import { Icon } from "@iconify/react";
@@ -16,10 +15,9 @@ function CalendarSchedule({ events }) {
 
     return (
       <div className="w-full">
-        {/* แสดงจำนวนเคสทั้งหมด */}
         {filteredEvents.length > 0 && (
           <div className="text-sm font-medium text-gray-600 mb-2">
-            {`ทั้งหมด : ${filteredEvents.length} เคส`}
+            {`${filteredEvents.length} เคส`}
           </div>
         )}
         <ul className="event-list space-y-3 w-full mb-2">
@@ -38,7 +36,7 @@ function CalendarSchedule({ events }) {
                 {/* HN Code */}
                 <div className="flex items-center justify-between mb-1">
                   <span
-                    className="text-sm font-semibold text-blue-700 
+                    className="text-sm font-medium text-blue-700 
                                        bg-blue-100 px-3 py-1 rounded-full"
                   >
                     {event.hn_code}
@@ -48,14 +46,14 @@ function CalendarSchedule({ events }) {
                 {/* Room and Time info */}
                 <div className="flex items-center gap-4 text-gray-700">
                   <div className="flex items-center gap-2">
-                    <span className="text-sm font-medium">
+                    <span className="text-sm font-normal">
                       {event.room_name}
                     </span>
                   </div>
 
                   <div className="flex items-center gap-2">
                     <Icon icon="tabler:clock" width="14" height="14" />
-                    <span className="text-sm font-medium">
+                    <span className="text-sm font-normal">
                       {dayjs(event.estimate_start_time, "HH:mm").format(
                         "HH:mm"
                       )}{" "}

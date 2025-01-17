@@ -5,10 +5,10 @@ import {
   Select,
   DatePicker,
   Button,
-  notification,
   Modal,
   Spin,
   TimePicker,
+  notification,
 } from "antd";
 import { Icon } from "@iconify/react";
 import IMask from "imask";
@@ -16,7 +16,6 @@ import axiosInstance from "../../api/axiosInstance";
 import { useAuth } from "../../context/AuthContext";
 import dayjs from "dayjs";
 import { useNavigate, useLocation } from "react-router-dom";
-import CustomNotification from "../CustomNotification";
 import "./Form.css";
 
 const { Option } = Select;
@@ -40,6 +39,7 @@ function EditCase() {
   const [isLoading, setIsLoading] = useState(false);
   const [hn, setHN] = useState(null);
   const [searchIsLoading, setSearchIsLoading] = useState(false);
+  const [patientDobData, setPatientDobData] = useState({});
 
   useEffect(() => {
     const queryParams = new URLSearchParams(location.search);
@@ -64,51 +64,74 @@ function EditCase() {
           `/surgery_case/patient/${surgery_case_id}`
         );
 
-        const surgeryCase = response.data.data;
-        console.log(response.data, "dadadada");
+        const surgeryCase = response.data?.data;
 
         if (!surgeryCase) {
           throw new Error("No surgery case data found");
         }
+        console.log("surgeryCase", surgeryCase);
 
         const transformedSurgeryData = {
-          surgery_case_id: surgeryCase.surgery_case_id,
-          surgery_date: surgeryCase?.surgery_date
-            ? dayjs(surgeryCase.surgery_date)
-            : null,
-          estimate_start_time: surgeryCase?.estimate_start_time
-            ? dayjs(surgeryCase.estimate_start_time, "HH:mm")
-            : null,
-          estimate_duration: surgeryCase?.estimate_duration || null,
-          surgery_type_id: surgeryCase?.surgery_type_id || null,
-          operating_room_id: surgeryCase?.operating_room_id || null,
-          status_id: surgeryCase?.status_id || null,
-          operation_id: surgeryCase?.operation_id || null,
-          operation_name: surgeryCase?.operation_name || null,
+          patient_id: surgeryCase.patient_id,
+          surgery_case_id: surgeryCase.surgery_case_id || null,
+          surgery_date:
+            surgeryCase.surgery_date &&
+            dayjs(surgeryCase.surgery_date).isValid()
+              ? dayjs(surgeryCase.surgery_date)
+              : null,
+          estimate_start_time:
+            surgeryCase.estimate_start_time &&
+            dayjs(surgeryCase.estimate_start_time, "HH:mm").isValid()
+              ? dayjs(surgeryCase.estimate_start_time, "HH:mm")
+              : null,
+          estimate_duration: surgeryCase.estimate_duration || null,
+          surgery_type_id: surgeryCase.surgery_type_id || null,
+          operating_room_id: surgeryCase.operating_room_id || null,
+          status_id: surgeryCase.status_id || null,
+          operation_id: surgeryCase.operation_id || null,
+          operation_name: surgeryCase.operation_name || null,
+          doctor_id: surgeryCase.doctor_id || null,
         };
 
         const transformedPatientData = {
-          patient_hn_code: surgeryCase?.patient_hn_code || "",
-          patient_firstname: surgeryCase?.patient_firstname || "",
-          patient_lastname: surgeryCase?.patient_lastname || "",
-          patient_gender: surgeryCase?.patient_gender || "",
-          patient_dob: surgeryCase?.patient_dob
-            ? dayjs(surgeryCase.patient_dob).format("YYYY-MM-DD")
-            : null,
+          patient_hn_code: surgeryCase.patient_hn_code || "",
+          patient_firstname: surgeryCase.patient_firstname || "",
+          patient_lastname: surgeryCase.patient_lastname || "",
+          patient_gender: surgeryCase.patient_gender || "",
+          patient_dob_year: "",
+          patient_dob_month: "",
+          patient_dob_day: "",
         };
 
-        // Log ข้อมูลที่แยกออกมา
+        if (
+          surgeryCase.patient_dob &&
+          dayjs(surgeryCase.patient_dob).isValid()
+        ) {
+          const formattedDob = dayjs(surgeryCase.patient_dob);
+
+          transformedPatientData.patient_dob_year = formattedDob.format("YYYY");
+          transformedPatientData.patient_dob_month = formattedDob.format("MM");
+          transformedPatientData.patient_dob_day = formattedDob.format("DD");
+        }
+
         console.log("Transformed surgeryData:", transformedSurgeryData);
         console.log("Transformed patientData:", transformedPatientData);
 
-        // อัปเดต state ด้วยข้อมูลที่แยกออกมา
-        setSurgeryData(transformedSurgeryData);
-        setPatientData(transformedPatientData); // ตั้งค่า state ของข้อมูลผู้ป่วย
+        const combinedData = {
+          ...transformedSurgeryData,
+          ...transformedPatientData,
+        };
+        form.setFieldsValue(combinedData);
 
-        // Setting HN code
-        setHN(surgeryCase?.patient_hn_code || "");
+        setSurgeryData(transformedSurgeryData);
+        setPatientData(transformedPatientData);
+
+        setHN(transformedPatientData.patient_hn_code || "");
       } catch (error) {
-        console.error("Error fetching surgery case data:", error);
+        console.error(
+          "Error fetching surgery case data:",
+          error.message || error
+        );
       }
     };
 
@@ -123,11 +146,12 @@ function EditCase() {
         }
       } catch (error) {
         console.error("Error fetching doctors:", error);
-
         notification.error({
-          message: "Error",
-          description: "Failed to load doctors. Please try again later.",
+          message: "ไม่สามารถโหลดข้อมูลแพทย์ได้ กรุณาลองใหม่อีกครั้ง",
+          showProgress: true,
           placement: "topRight",
+          pauseOnHover: true,
+          duration: 2,
         });
       }
     };
@@ -145,12 +169,12 @@ function EditCase() {
         }
       } catch (error) {
         console.error("Error fetching operating rooms:", error);
-
         notification.error({
-          message: "Error",
-          description:
-            "Failed to load operating rooms. Please try again later.",
+          message: "ไม่สามารถโหลดข้อมูลห้องผ่าตัดได้ กรุณาลองใหม่อีกครั้ง",
+          showProgress: true,
           placement: "topRight",
+          pauseOnHover: true,
+          duration: 2,
         });
       }
     };
@@ -172,9 +196,11 @@ function EditCase() {
         console.error("Error fetching surgery types:", error);
 
         notification.error({
-          message: "Error",
-          description: "Failed to load surgery types. Please try again later.",
+          message: "ไม่สามารถโหลดข้อมูลประเภทการผ่าตัดได้ กรุณาลองใหม่อีกครั้ง",
+          showProgress: true,
           placement: "topRight",
+          pauseOnHover: true,
+          duration: 2,
         });
       }
     };
@@ -206,6 +232,13 @@ function EditCase() {
     }));
   };
 
+  const handlePatientDataChange = (key, value) => {
+    setPatientData((prevData) => ({
+      ...prevData,
+      [key]: value,
+    }));
+  };
+
   const onFinish = async () => {
     try {
       const patientDataToSend = {
@@ -227,7 +260,7 @@ function EditCase() {
         ).format("HH:mm"),
         estimate_duration: surgeryData.estimate_duration,
         operating_room_id: surgeryData.operating_room_id,
-        patient_history: surgeryData.patient_history,
+        patient_history: surgeryData.patient_history || "",
       };
 
       const OperationDataToSend = {
@@ -238,7 +271,6 @@ function EditCase() {
       console.log("Patient Case Data to Send:", patientDataToSend);
       console.log("Operation Data to Send:", OperationDataToSend);
 
-      // Update Surgery Case
       const surgeryCaseResponse = await axiosInstance.put(
         `/surgery_case/${surgery_case_id}`,
         surgeryCaseDataToSend
@@ -246,7 +278,6 @@ function EditCase() {
       console.log("Surgery Case Response:", surgeryCaseResponse.data);
 
       if (surgeryCaseResponse.status === 200) {
-        // Update Patient Data
         const patientResponse = await axiosInstance.put(
           `/patient/${surgeryData.patient_id}`,
           patientDataToSend
@@ -267,43 +298,59 @@ function EditCase() {
           ) {
             navigate("/admin/case_manage");
             notification.success({
-              message: "Update Successful",
-              description: "Patient and Surgery Case updated successfully!",
+              message: "อัปเดตข้อมูลเคสผ่าตัดเรียบร้อย",
+              showProgress: true,
+              placement: "topRight",
+              pauseOnHover: true,
+              duration: 2,
             });
           } else {
             notification.error({
-              message: "Failed to Add Operation Data",
-              description: "There was an issue adding the operation data.",
+              message: "ไม่สามารถเพิ่มข้อมูลการผ่าตัดได้ กรุณาลองใหม่อีกครั้ง",
+              showProgress: true,
+              placement: "topRight",
+              pauseOnHover: true,
+              duration: 2,
             });
           }
         } else {
           notification.error({
-            message: "Failed to Update Patient",
-            description: "There was an issue updating the patient details.",
+            message:
+              "ไม่สามารถอัปเดตรายละเอียดของผู้ป่วยได้ กรุณาลองใหม่อีกครั้ง",
+            showProgress: true,
+            placement: "topRight",
+            pauseOnHover: true,
+            duration: 2,
           });
         }
       } else {
         notification.error({
-          message: "Failed to Update Surgery Case",
-          description: "There was an issue updating the surgery case.",
+          message:
+            "ไม่สามารถอัปเดตรายละเอียดของเคสผ่าตัดได้ กรุณาลองใหม่อีกครั้ง",
+          showProgress: true,
+          placement: "topRight",
+          pauseOnHover: true,
+          duration: 2,
         });
       }
     } catch (error) {
       console.error("Error in onFinish:", error);
       notification.error({
-        message: "An Error Occurred",
-        description:
-          "An error occurred while processing your request. Please try again.",
+        message: "เกิดปัญหาในการดำเนินการคำขอของคุณ กรุณาลองใหม่อีกครั้ง",
+        showProgress: true,
+        placement: "topRight",
+        pauseOnHover: true,
+        duration: 2,
       });
     }
   };
 
   const handleSaveConfirm = () => {
     Modal.confirm({
-      title: "Confirm Save",
-      content: "Are you sure you want to save this edited surgery case?",
-      okText: "Yes, Save",
-      cancelText: "Cancel",
+      title: "ยืนยันการบันทึก",
+      content: "คุณแน่ใจไหมว่าต้องการบันทึกข้อมูลเคสการผ่าตัดที่แก้ไขแล้ว?",
+      okText: "ใช่, บันทึก",
+      cancelText: "ยกเลิก",
       onOk: onFinish,
     });
   };
@@ -337,62 +384,106 @@ function EditCase() {
 
   const handleSeachHNClick = async () => {
     const hnCode = patientData.patient_hn_code;
-    if (hnCode) {
-      setSearchIsLoading(true);
 
-      try {
-        const response = await axiosInstance.get(
-          `/patient/getPatientData/${hnCode}`
-        );
+    if (!hnCode) {
+      notification.warning({
+        message: "กรุณากรอกรหัส HN ก่อนค้นหา",
+        showProgress: true,
+        placement: "topRight",
+        pauseOnHover: true,
+        duration: 2,
+      });
+      return;
+    }
 
-        if (response.data) {
-          const {
-            patient_hn_code = "",
-            patient_firstname = "",
-            patient_lastname = "",
-            patient_gender = "",
-            patient_dob = "",
-          } = response.data;
+    setSearchIsLoading(true);
 
-          setPatientData({
-            patient_hn_code,
-            patient_firstname,
-            patient_lastname,
-            patient_gender,
-            patient_dob: dayjs(patient_dob).format("YYYY-MM-DD"), // ใช้ dayjs แปลงวันที่
-          });
+    try {
+      const response = await axiosInstance.get(
+        `/patient/getPatientData/${hnCode}`
+      );
 
-          // อัปเดตฟอร์ม
-          form.setFieldsValue({
-            patient_hn_code,
-            patient_firstname,
-            patient_lastname,
-            patient_gender,
-            patient_dob: dayjs(patient_dob).format("YYYY-MM-DD"),
-          });
+      if (response.data.success) {
+        const patientInfo = response.data.data;
 
-          // แจ้งเตือนสำเร็จ
-          message.success("ค้นหาสำเร็จ: พบข้อมูลผู้ป่วยในระบบ");
-        } else {
-          // แจ้งเตือนกรณีไม่พบข้อมูล
-          message.error("ไม่พบข้อมูล: ไม่พบข้อมูลผู้ป่วยในระบบ");
-        }
-      } catch (error) {
-        console.error("Error fetching patient data:", error);
-        form.setFieldsValue({
-          patient_hn_code: "",
-          patient_firstname: "",
-          patient_lastname: "",
-          patient_gender: null,
-          patient_dob: null,
+        const formattedDob = patientInfo?.dob
+          ? dayjs(patientInfo.dob).format("YYYY-MM-DD")
+          : null;
+
+        console.log("patientInfo", patientInfo);
+
+        const updatedPatientData = {
+          ...patientData, // เก็บค่าฟิลด์อื่น ๆ ที่มีอยู่ใน patientData ไว้
+          patient_hn_code: patientInfo.hn_code || hnCode,
+          patient_firstname: patientInfo.firstname || "",
+          patient_lastname: patientInfo.lastname || "",
+          patient_gender: patientInfo.gender || null,
+          patient_dob: formattedDob,
+        };
+
+        setPatientData(updatedPatientData);
+        form.setFieldsValue(updatedPatientData);
+      } else {
+        notification.error({
+          message: "ไม่พบข้อมูลผู้ป่วยในระบบ",
+          showProgress: true,
+          placement: "topRight",
+          pauseOnHover: true,
+          duration: 2,
         });
-        message.error("ไม่พบข้อมูล: ไม่พบข้อมูลผู้ป่วยในระบบ");
-      } finally {
-        setSearchIsLoading(false);
       }
-    } else {
+    } catch (error) {
+      console.error(
+        "Error fetching patient data:",
+        error.response?.data || error.message
+      );
+
+      const updatedPatientData = {
+        ...patientData,
+        patient_firstname: "",
+        patient_lastname: "",
+        patient_gender: null,
+        patient_dob: null,
+      };
+
+      setPatientData(updatedPatientData);
+
+      form.setFieldsValue(updatedPatientData);
+
+      notification.error({
+        message: "ไม่พบข้อมูลผู้ป่วยในระบบ",
+        showProgress: true,
+        placement: "topRight",
+        pauseOnHover: true,
+        duration: 2,
+      });
+    } finally {
       setSearchIsLoading(false);
     }
+  };
+
+  const getFormattedDob = () => {
+    const { patient_dob_year, patient_dob_month, patient_dob_day } =
+      patientDobData;
+    if (patient_dob_year && patient_dob_month && patient_dob_day) {
+      return `${patient_dob_year}-${patient_dob_month.padStart(
+        2,
+        "0"
+      )}-${patient_dob_day.padStart(2, "0")}`;
+    }
+    return "";
+  };
+
+  const handlePatientDobChange = (field, value) => {
+    setPatientDobData((prevData) => ({
+      ...prevData,
+      [field]: value,
+    }));
+  };
+
+  const updateDobInPatientData = () => {
+    const formattedDob = getFormattedDob();
+    handlePatientDataChange("patient_dob", formattedDob);
   };
 
   return (
@@ -451,9 +542,9 @@ function EditCase() {
                       <div className="flex space-x-2 max-w-md">
                         <Input
                           name="patient_hn_code"
-                          value={patientData.patient_hn_code || ""}
+                          value={patientData.patient_hn_code}
                           onChange={(event) =>
-                            handleSurgeryDataChange(
+                            handlePatientDataChange(
                               "patient_hn_code",
                               event.target.value
                             )
@@ -490,9 +581,9 @@ function EditCase() {
                       >
                         <Input
                           name="patient_firstname"
-                          value={patientData.patient_firstname || ""}
+                          value={patientData.patient_firstname}
                           onChange={(event) =>
-                            handleSurgeryDataChange(
+                            handlePatientDataChange(
                               "patient_firstname",
                               event.target.value
                             )
@@ -519,8 +610,11 @@ function EditCase() {
                         <Input
                           name="patient_lastname"
                           value={patientData.patient_lastname}
-                          onChange={(value) =>
-                            handleSurgeryDataChange("patient_lastname", value)
+                          onChange={(e) =>
+                            handlePatientDataChange(
+                              "patient_lastname",
+                              e.target.value
+                            )
                           }
                           className="h-11 text-base rounded-lg"
                           placeholder="Enter Last Name"
@@ -540,8 +634,11 @@ function EditCase() {
                       >
                         <Select
                           value={patientData.patient_gender}
-                          onChange={(value) =>
-                            handleSurgeryDataChange("patient_gender", value)
+                          onChange={(e) =>
+                            handlePatientDataChange(
+                              "patient_gender",
+                              e.target.value
+                            )
                           }
                           className="h-11 text-base"
                           placeholder="Select gender"
@@ -557,24 +654,53 @@ function EditCase() {
                             Date of Birth
                           </span>
                         }
-                        name="patient_dob"
-                        rules={[
-                          { required: true, message: "Please pick a date!" },
-                        ]}
                       >
-                        <Input
-                          name="patient_dob"
-                          value={patientData.patient_dob}
-                          onChange={(event) =>
-                            handleSurgeryDataChange(
-                              "patient_dob",
-                              event.target.value
-                            )
-                          }
-                          placeholder="YYYY/MM/DD"
-                          ref={dobInputRef}
-                          className="h-11 text-base rounded-lg"
-                        />
+                        <div className="flex">
+                          <Input
+                            name="patient_dob_year"
+                            value={patientData.patient_dob_year}
+                            onChange={(e) =>
+                              handlePatientDobChange(
+                                "patient_dob_year",
+                                e.target.value
+                              )
+                            }
+                            placeholder="YYYY"
+                            className="h-11 text-base rounded-lg"
+                            maxLength={4}
+                          />
+                          <Input
+                            name="patient_dob_month"
+                            value={patientData.patient_dob_month}
+                            onChange={(e) =>
+                              handlePatientDobChange(
+                                "patient_dob_month",
+                                e.target.value
+                              )
+                            }
+                            placeholder="MM"
+                            className="h-11 text-base rounded-lg"
+                            maxLength={2}
+                          />
+                          <Input
+                            name="patient_dob_day"
+                            value={patientData.patient_dob_day}
+                            onChange={(e) =>
+                              handlePatientDobChange(
+                                "patient_dob_day",
+                                e.target.value
+                              )
+                            }
+                            placeholder="DD"
+                            className="h-11 text-base rounded-lg"
+                            maxLength={2}
+                            onBlur={updateDobInPatientData}
+                          />
+                        </div>
+
+                        <div className="mt-2 text-gray-500">
+                          Formatted DOB: {getFormattedDob()}
+                        </div>
                       </Form.Item>
                     </div>
                   </section>

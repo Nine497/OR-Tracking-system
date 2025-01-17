@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Table, Input, Tooltip, Button, notification, Select } from "antd";
+import { Table, Input, Tooltip, Button, Select } from "antd";
 import { Icon } from "@iconify/react";
 import axiosInstance from "../../api/axiosInstance";
 import UpdateModal from "./UpdateModal";
@@ -17,7 +17,7 @@ function CaseTable() {
   const [loading, setLoading] = useState(false);
   const [copyLoading, setCopyLoading] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
-  const [pagination, setPagination] = useState({ pageSize: 6, current: 1 });
+  const [pagination, setPagination] = useState({ pageSize: 7, current: 1 });
   const [doctorSelectedOption, setDoctorSelectedOption] = useState(null);
   const [doctorsData, setDoctorsData] = useState([]);
   const [allStatus, setAllStatus] = useState([]);
@@ -38,8 +38,11 @@ function CaseTable() {
   const copyLink = (linkUrl) => {
     if (!linkUrl) {
       notification.warning({
-        message: "No Link Available",
-        description: "There is no link to copy. Please fetch the link first.",
+        message: "ไม่มีลิงก์ให้คัดลอก กรุณาสร้างลิงก์ก่อน",
+        showProgress: true,
+        placement: "topRight",
+        pauseOnHover: true,
+        duration: 2,
       });
       return;
     }
@@ -53,14 +56,21 @@ function CaseTable() {
     try {
       textArea.select();
       document.execCommand("copy");
+
       notification.success({
-        message: "Link Copied Successfully",
-        description: "The link has been copied to your clipboard.",
+        message: "ลิงก์ได้ถูกคัดลอกไปยังคลิปบอร์ดของคุณแล้ว",
+        showProgress: true,
+        placement: "topRight",
+        pauseOnHover: true,
+        duration: 2,
       });
     } catch (err) {
       notification.error({
-        message: "Copy Failed",
-        description: "Unable to copy the link. Please copy manually.",
+        message: "ไม่สามารถคัดลอกลิงก์ได้ กรุณาคัดลอกด้วยตนเอง",
+        showProgress: true,
+        placement: "topRight",
+        pauseOnHover: true,
+        duration: 2,
       });
       console.error("Copy Error:", err);
     } finally {
@@ -95,10 +105,12 @@ function CaseTable() {
         total: response.data.totalRecords,
       }));
     } catch (error) {
-      console.error("Error searching cases:", error);
       notification.error({
-        message: "Error searching cases",
-        description: error.message,
+        message: "ไม่สามารถค้นหาเคสผ่าตัดได้ กรุณาลองใหม่อีกครั้ง",
+        showProgress: true,
+        placement: "topRight",
+        pauseOnHover: true,
+        duration: 2,
       });
     } finally {
       setLoadingCases(false);
@@ -164,8 +176,11 @@ function CaseTable() {
     } catch (error) {
       console.error("Error fetching cases:", error);
       notification.error({
-        message: "Error fetching cases",
-        description: error.message,
+        message: "ไม่สามารถค้นหาเคสผ่าตัดได้ กรุณาลองใหม่อีกครั้ง",
+        showProgress: true,
+        placement: "topRight",
+        pauseOnHover: true,
+        duration: 2,
       });
     } finally {
       setLoadingCases(false);
@@ -189,8 +204,11 @@ function CaseTable() {
       } catch (error) {
         console.error("Error fetching cases:", error);
         notification.error({
-          message: "Error fetching cases",
-          description: error.message,
+          message: "ไม่สามารถค้นหาเคสผ่าตัดได้ กรุณาลองใหม่อีกครั้ง",
+          showProgress: true,
+          placement: "topRight",
+          pauseOnHover: true,
+          duration: 2,
         });
       } finally {
         setLoadingDoctors(false);
@@ -239,12 +257,11 @@ function CaseTable() {
         }
       } catch (err) {
         notification.error({
-          message: "Error Fetching Status Data",
-          description: err.response
-            ? `Server responded with status ${err.response.status}: ${
-                err.response.data.message || "Unknown error"
-              }`
-            : "Unable to fetch status data. Please check your connection and try again.",
+          message: "ไม่สามารถดึงข้อมูลสถานะได้ กรุณาลองใหม่อีกครั้ง",
+          showProgress: true,
+          placement: "topRight",
+          pauseOnHover: true,
+          duration: 2,
         });
       } finally {
         setLoading(false);
