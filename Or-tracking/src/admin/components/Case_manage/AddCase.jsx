@@ -11,7 +11,7 @@ import {
 } from "antd";
 import { Icon } from "@iconify/react";
 import IMask from "imask";
-import axiosInstance from "../../api/axiosInstance";
+import { axiosInstanceStaff } from "../../api/axiosInstance";
 import { useAuth } from "../../context/AuthContext";
 import dayjs from "dayjs";
 import { useNavigate } from "react-router-dom";
@@ -32,6 +32,7 @@ function AddCase() {
   const [surgeryTypesLoading, setSurgeryTypesLoading] = useState(false);
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
+  const [patientDobData, setPatientDobData] = useState({});
 
   const [patientData, setPatientData] = useState({
     hn_code: "",
@@ -58,7 +59,7 @@ function AddCase() {
     const fetchDoctors = async () => {
       try {
         setDoctorsLoading(true);
-        const response = await axiosInstance.get("/doctor/");
+        const response = await axiosInstanceStaff.get("/doctor/");
 
         if (response.status === 200) {
           setDoctors(response.data.data);
@@ -85,7 +86,7 @@ function AddCase() {
       try {
         setOperatingRoomsLoading(true);
 
-        const response = await axiosInstance.get("/or_room/");
+        const response = await axiosInstanceStaff.get("/or_room/");
         if (response.status === 200) {
           setOperatingRooms(response.data.data);
         } else {
@@ -111,7 +112,7 @@ function AddCase() {
       try {
         setSurgeryTypesLoading(true);
 
-        const response = await axiosInstance.get(
+        const response = await axiosInstanceStaff.get(
           "/surgery_case/all_surgery_types"
         );
 
@@ -149,9 +150,52 @@ function AddCase() {
     console.log("surgeryData", surgeryData);
   };
 
+  const handlePatientDobChange = (field, value) => {
+    if (!/^\d*$/.test(value)) return;
+    setPatientDobData((prevData) => ({
+      ...prevData,
+      [field]: value,
+    }));
+  };
+
+  const isValidDate = (year, month, day) => {
+    const date = new Date(
+      `${year}-${month.padStart(2, "0")}-${day.padStart(2, "0")}`
+    );
+    return (
+      date.getFullYear() === parseInt(year, 10) &&
+      date.getMonth() + 1 === parseInt(month, 10) &&
+      date.getDate() === parseInt(day, 10)
+    );
+  };
+
+  const updateDobInPatientData = () => {
+    const { patient_dob_year, patient_dob_month, patient_dob_day } =
+      patientDobData;
+
+    if (isValidDate(patient_dob_year, patient_dob_month, patient_dob_day)) {
+      const formattedDob = getFormattedDob();
+      handlePatientDataChange("patient_dob", formattedDob);
+    } else {
+      console.error("Invalid Date");
+    }
+  };
+
+  const getFormattedDob = () => {
+    const { patient_dob_year, patient_dob_month, patient_dob_day } =
+      patientDobData;
+
+    if (patient_dob_year && patient_dob_month && patient_dob_day) {
+      return `${patient_dob_year.padStart(4, "0")}-${patient_dob_month.padStart(
+        2,
+        "0"
+      )}-${patient_dob_day.padStart(2, "0")}`;
+    }
+    return "";
+  };
+
   const onFinish = async () => {
     try {
-      // ตรวจสอบว่าผู้ใช้กรอกข้อมูลที่จำเป็นครบถ้วนหรือไม่
       if (
         !patientData.firstname ||
         !patientData.lastname ||
@@ -161,7 +205,6 @@ function AddCase() {
         return;
       }
 
-      // สร้างข้อมูลของผู้ป่วยจากแบบฟอร์ม
       const patientRequestData = {
         hn_code: patientData.hn_code,
         first_name: patientData.firstname,
@@ -170,8 +213,7 @@ function AddCase() {
         gender: patientData.gender,
       };
 
-      // ส่งข้อมูลผู้ป่วยไปยังเซิร์ฟเวอร์
-      const patientResponse = await axiosInstance.post(
+      const patientResponse = await axiosInstanceStaff.post(
         "/patient/",
         patientRequestData
       );
@@ -182,7 +224,6 @@ function AddCase() {
 
       const patientId = patientResponse.data.patient.patient_id; // เก็บ ID ของผู้ป่วย
 
-      // สร้างข้อมูลสำหรับการผ่าตัด
       const surgeryCaseData = {
         surgery_date: dayjs(surgeryData.surgery_date).format("YYYY-MM-DD"),
         estimate_start_time: dayjs(
@@ -201,7 +242,7 @@ function AddCase() {
 
       console.log("ข้อมูลการผ่าตัดที่ส่งไปยังเซิร์ฟเวอร์:", surgeryCaseData);
 
-      const caseResponse = await axiosInstance.post(
+      const caseResponse = await axiosInstanceStaff.post(
         `/surgery_case/${patientId}`,
         surgeryCaseData
       );
@@ -273,7 +314,7 @@ function AddCase() {
     if (hnCode) {
       setIsLoading(true);
       try {
-        const response = await axiosInstance.get(
+        const response = await  axiosInstanceStaff.get(
           `/patient/getPatientData/${hnCode}`
         );
 
@@ -287,14 +328,26 @@ function AddCase() {
             patient_history = "",
           } = response.data.data;
 
-          // อัปเดตข้อมูลใน state และฟอร์ม
+          const dobParsed = dayjs(dob);
+          const year = dobParsed.isValid() ? dobParsed.format("YYYY") : "";
+          const month = dobParsed.isValid() ? dobParsed.format("MM") : "";
+          const day = dobParsed.isValid() ? dobParsed.format("DD") : "";
+
           setPatientData({
             hn_code,
             firstname,
             lastname,
             gender,
-            dob: dayjs(dob).format("YYYY-MM-DD"),
-            patient_history,
+            dob,
+            patient_dob_year: year,
+            patient_dob_month: month,
+            patient_dob_day: day,
+          });
+
+          setPatientDobData({
+            patient_dob_year: year,
+            patient_dob_month: month,
+            patient_dob_day: day,
           });
 
           form.setFieldsValue({
@@ -302,7 +355,9 @@ function AddCase() {
             firstname,
             lastname,
             gender,
-            dob: dayjs(dob).format("YYYY-MM-DD"),
+            patient_dob_year: year,
+            patient_dob_month: month,
+            patient_dob_day: day,
             patient_history,
           });
         } else {
@@ -323,8 +378,16 @@ function AddCase() {
           firstname: "",
           lastname: "",
           gender: null,
-          dob: "",
+          patient_dob_year: "",
+          patient_dob_month: "",
+          patient_dob_day: "",
           patient_history: "",
+        });
+
+        setPatientDobData({
+          patient_dob_year: "",
+          patient_dob_month: "",
+          patient_dob_day: "",
         });
 
         // แจ้งเตือนเมื่อเกิดข้อผิดพลาด
@@ -470,17 +533,51 @@ function AddCase() {
                       Date of Birth
                     </span>
                   }
-                  name="dob"
-                  rules={[{ required: true, message: "Please pick a date!" }]}
                 >
-                  <Input
-                    name="dob"
-                    value={patientData.dob}
-                    onChange={handlePatientDataChange}
-                    placeholder="YYYY/MM/DD"
-                    ref={dobInputRef}
-                    className="h-11 text-base rounded-lg"
-                  />
+                  <Input.Group className="flex ">
+                    <Input
+                      type="number"
+                      name="patient_dob_year"
+                      value={patientData.patient_dob_year}
+                      onChange={(e) =>
+                        handlePatientDobChange(
+                          "patient_dob_year",
+                          e.target.value
+                        )
+                      }
+                      placeholder="YYYY"
+                      className="h-11 w-28 text-center text-base rounded-lg border border-gray-300 focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+                      maxLength={4}
+                    />
+                    <Input
+                      type="number"
+                      name="patient_dob_month"
+                      value={patientData.patient_dob_month}
+                      onChange={(e) =>
+                        handlePatientDobChange(
+                          "patient_dob_month",
+                          e.target.value
+                        )
+                      }
+                      placeholder="MM"
+                      className="h-11 w-20 text-center text-base rounded-lg border border-gray-300 focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+                      maxLength={2}
+                    />
+                    <Input
+                      type="number"
+                      name="patient_dob_day"
+                      value={patientData.patient_dob_day}
+                      onChange={(e) =>
+                        handlePatientDobChange(
+                          "patient_dob_day",
+                          e.target.value
+                        )
+                      }
+                      placeholder="DD"
+                      className="h-11 w-20 text-center text-base rounded-lg border border-gray-300 focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+                      maxLength={2}
+                    />
+                  </Input.Group>
                 </Form.Item>
               </div>
             </section>

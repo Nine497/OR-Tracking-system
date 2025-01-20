@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { CalendarOutlined } from "@ant-design/icons";
 import { Spin } from "antd";
 import RoomCard from "../components/RoomSchedule/RoomCard";
-import axiosInstance from "../api/axiosInstance";
+import { axiosInstanceStaff } from "../api/axiosInstance";
 
 function RoomSchedule() {
   const [roomSchedule, setRoomSchedule] = useState([]);
@@ -11,7 +11,7 @@ function RoomSchedule() {
   useEffect(() => {
     const fetchRoomSchedule = async () => {
       try {
-        const response = await axiosInstance.get("/or_room/");
+        const response = await axiosInstanceStaff.get("/or_room/");
         if (response.status === 200) {
           console.log("or_room", response.data.data);
           setRoomSchedule(response.data.data || []);

@@ -9,28 +9,32 @@
     "TOKEN_NOT_ACTIVE": "Token tidak aktif",
     "VALIDATION_FAILED": "Validasi token gagal"
   },
-  "patient": {
+  "patient_info": { 
     "CASE_ID": "ID Kasus",
     "PATIENT_ID": "ID Pasien"
   },
   "login": {
     "TITLE": "Masuk",
-    "HN": "Nomor KTP",
-    "HN_REQUIRED": "Harap masukkan nomor KTP",
-    "HN_INVALID": "Nomor KTP tidak valid",
+    "HN": "Nomor Rumah Sakit",
+    "HN_REQUIRED": "Harap masukkan Nomor Rumah Sakit Anda",
+    "HN_INVALID": "Nomor Rumah Sakit Tidak Valid",
     "DOB": "Tanggal Lahir",
-    "DOB_REQUIRED": "Harap masukkan tanggal lahir",
-    "DOB_PLACEHOLDER": "Pilih tanggal lahir (DD/MM/YYYY)",
+    "DOB_REQUIRED": "Harap masukkan Tanggal Lahir Anda",
+    "DOB_PLACEHOLDER": "Tanggal Lahir Pasien (DD/MM/YYYY)",
     "SUBMIT": "Kirim",
-    "POLICY_TITLE": "Kebijakan Privasi",
-    "POLICY_TEXT": "Dengan menggunakan aplikasi ini, Anda menyetujui syarat dan ketentuan yang tercantum dalam Kebijakan Privasi kami. Kebijakan ini menjelaskan bagaimana kami mengumpulkan, menggunakan, dan berbagi data pribadi Anda. Kebijakan ini juga menjelaskan hak Anda terkait data pribadi yang Anda berikan kepada kami dan bagaimana Anda dapat mengelolanya. Kami berkomitmen untuk melindungi privasi Anda dan menjaga keamanan informasi Anda. Harap baca kebijakan ini dengan saksama sebelum menggunakan aplikasi kami. Jika Anda tidak setuju dengan syarat ini, harap hentikan penggunaan aplikasi. Untuk informasi lebih lanjut, kunjungi situs resmi kami atau hubungi tim dukungan kami.",
-    "ACCEPT_POLICY": "Saya Setuju",
-    "DECLINE_POLICY": "Saya Menolak"
+    "TERMS_TITLE": "Syarat Layanan",
+    "POLICY_TEXT": "Dengan menggunakan aplikasi ini, Anda setuju dengan syarat dan ketentuan yang tercantum dalam Kebijakan Privasi kami. Kebijakan ini menjelaskan bagaimana kami mengumpulkan, menggunakan, dan membagikan data pribadi Anda. Ini juga menjelaskan hak Anda terkait data pribadi yang Anda berikan kepada kami dan bagaimana Anda dapat mengelolanya. Kami berkomitmen untuk melindungi privasi Anda dan memastikan keamanan informasi Anda. Harap baca kebijakan ini dengan cermat sebelum menggunakan aplikasi kami. Jika Anda tidak setuju dengan syarat-syaratnya, harap hentikan penggunaan aplikasi ini. Untuk informasi lebih lanjut, kunjungi situs web resmi kami atau hubungi tim dukungan kami.",
+    "ACCEPT_POLICY": "Setuju",
+    "DECLINE_POLICY": "Tolak",
+    "POLICY_HEAD": "Kebijakan Privasi",
+    "TERMS_HEAD": "Syarat Layanan",
+    "TERMS_TEXT": "Ini adalah syarat layanan untuk menggunakan aplikasi kami. Harap baca dengan seksama sebelum menggunakan aplikasi.",
+    "AGREE": "Saya setuju dengan "
   },
   "or_tracking": {
     "TITLE": "Pelacakan Operasi"
   },
-  "patient": {
+  "surgery_patient": {
     "HN": "HN",
     "NAME": "Nama Lengkap",
     "GENDER": "Jenis Kelamin",
@@ -58,14 +62,6 @@
   },
   "error": {
     "FAILED_TO_LOAD": "Gagal memuat data"
-  },
-  "review": {
-    "review_title": "Ulasan Kasus Bedah",
-    "submit_review": "Kirim Ulasan",
-    "later": "Nanti",
-    "review_prompt": "Silakan berikan umpan balik atau penilaian untuk kasus bedah ini.",
-    "additional_suggestions": "Saran Tambahan",
-    "suggestions_placeholder": "Masukkan saran Anda di sini..."
   },
   "review": {
     "review_title": "Survei Kepuasan Layanan",

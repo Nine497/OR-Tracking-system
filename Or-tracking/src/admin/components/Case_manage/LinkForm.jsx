@@ -14,7 +14,7 @@ import {
 } from "antd";
 import dayjs from "dayjs";
 import { useAuth } from "../../context/AuthContext";
-import axiosInstance from "../../api/axiosInstance";
+import { axiosInstanceStaff } from "../../api/axiosInstance";
 import { Icon } from "@iconify/react";
 import Logo from "../../assets/Logo2.png";
 
@@ -263,7 +263,7 @@ const ActiveLinkComponent = ({
   };
 
   const handleUpdateExpiration = async (newTime) => {
-    const response = await axiosInstance.put(
+    const response = await axiosInstanceStaff.put(
       `/link_cases/${linkData.surgery_case_links_id}/expiration`,
       {
         expiration_time: newTime,
@@ -428,7 +428,7 @@ const LinkForm = ({ formLink, onClose, handleCopyLink, record }) => {
     const fetchData = async () => {
       setLoading(true);
       try {
-        const response = await axiosInstance.get(
+        const response = await axiosInstanceStaff.get(
           `link_cases/getLast/${record.surgery_case_id}`
         );
 
@@ -471,7 +471,7 @@ const LinkForm = ({ formLink, onClose, handleCopyLink, record }) => {
     setLoading(true);
     try {
       const token = localStorage.getItem("jwtToken");
-      const response = await axiosInstance.post("/link_cases/", linkData);
+      const response = await axiosInstanceStaff.post("/link_cases/", linkData);
       if (response.data) {
         setLinkData(response.data);
         notification.success({
@@ -527,10 +527,13 @@ const LinkForm = ({ formLink, onClose, handleCopyLink, record }) => {
 
   const handleCancelLink = async () => {
     try {
-      const response = await axiosInstance.patch("/link_cases/update_status", {
-        surgery_case_links_id: linkData.surgery_case_links_id,
-        isactive: false,
-      });
+      const response = await axiosInstanceStaff.patch(
+        "/link_cases/update_status",
+        {
+          surgery_case_links_id: linkData.surgery_case_links_id,
+          isactive: false,
+        }
+      );
 
       if (response.status === 200) {
         notification.success({

@@ -1,5 +1,6 @@
-import React from "react";
+import React, { useState } from "react";
 import LanguageSelector from "../components/LanguageSelector";
+import { axiosInstancePatient } from "../../admin/api/axiosInstance";
 
 const Policy = ({
   t,
@@ -7,8 +8,51 @@ const Policy = ({
   handleDeclinePolicy,
   visible,
   handleCloseModal,
+  link,
 }) => {
   if (!visible) return null;
+
+  const [agreedTerms, setAgreedTerms] = useState(false);
+  const [agreedPolicy, setAgreedPolicy] = useState(false);
+
+  const handleTermsChange = (e) => {
+    setAgreedTerms(e.target.checked);
+  };
+
+  const handlePolicyChange = (e) => {
+    setAgreedPolicy(e.target.checked);
+  };
+
+  const saveAcceptedTerms = async () => {
+    try {
+      const response = await axiosInstancePatient.post(
+        `link_cases/accept_terms/${link}`
+      );
+
+      if (response.status === 200) {
+        const data = response.data;
+        console.log("Terms accepted successfully", data);
+      } else {
+        throw new Error("Failed to save terms acceptance");
+      }
+    } catch (error) {
+      console.error("Error accepting terms:", error);
+    }
+  };
+
+  const handleAccept = async () => {
+    if (agreedTerms && agreedPolicy) {
+      try {
+        await saveAcceptedTerms();
+        handleAcceptPolicy();
+      } catch (error) {
+        alert(t("login.TERMS_ACCEPTANCE_FAILED"));
+        console.error("Error accepting terms:", error);
+      }
+    } else {
+      alert(t("login.POLICY_NOT_AGREED"));
+    }
+  };
 
   return (
     <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto flex justify-center items-center z-50 p-4 sm:p-6 md:p-8">
@@ -30,7 +74,7 @@ const Policy = ({
                 />
               </svg>
               <h2 className="text-lg sm:text-xl font-medium text-black">
-                {t("login.POLICY_TITLE")}
+                {t("login.TERMS_TITLE")}
               </h2>
             </div>
             <div className="w-auto ml-auto">
@@ -39,41 +83,72 @@ const Policy = ({
           </header>
 
           <main>
-            <div className="overflow-y-auto max-h-[40vh] sm:max-h-[60vh] md:max-h-96 mb-6 px-6 py-4 bg-gray-50 rounded-lg">
-              <p className="font-normal text-sm sm:text-base text-gray-600 leading-relaxed">
-                {t("login.POLICY_TEXT")}
-              </p>
+            <div className="overflow-y-auto max-h-[40vh] sm:max-h-[60vh] md:max-h-96 mb-6 px-3 py-4 bg-gray-50 rounded-lg">
+              <div className="mb-4">
+                {/* Terms Heading */}
+                <span className="text-base font-semibold text-gray-700">
+                  {t("login.TERMS_HEAD")}
+                </span>
+                <p className="font-normal text-sm sm:text-base text-gray-600 leading-relaxed mt-2">
+                  {t("login.TERMS_TEXT")}
+                </p>
+              </div>
+
+              <div className="mb-4">
+                {/* Policy Heading */}
+                <span className="text-base font-semibold text-gray-700">
+                  {t("login.POLICY_HEAD")}
+                </span>
+                <p className="font-normal text-sm sm:text-base text-gray-600 leading-relaxed mt-2">
+                  {t("login.POLICY_TEXT")}
+                </p>
+              </div>
             </div>
 
-            <div className="flex flex-col sm:flex-row justify-end gap-3 sm:gap-4">
-              {/* <button
-                onClick={handleDeclinePolicy}
-                className="w-full sm:w-auto h-10 sm:h-11 px-4 sm:px-6 border border-gray-200 
-                bg-white text-gray-600 hover:bg-gray-50 flex items-center justify-center
-                rounded transition-colors duration-200 order-2 sm:order-1"
-              >
-                <svg
-                  className="w-4 h-4 mr-2"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={1.5}
-                    d="M6 18L18 6M6 6l12 12"
-                  />
-                </svg>
-                <span className="font-medium text-sm sm:text-base">
-                  {t("login.DECLINE_POLICY")}
-                </span>
-              </button> */}
+            <div className="mb-6">
+              {/* Terms and Conditions Checkbox */}
+              <div className="flex items-center mb-4">
+                <input
+                  type="checkbox"
+                  checked={agreedTerms}
+                  onChange={handleTermsChange}
+                  className="h-5 w-5 text-blue-600 border-gray-300 rounded"
+                />
+                <label className="ml-2 text-sm sm:text-base text-gray-600">
+                  {t("login.AGREE")}{" "}
+                  <span className="font-semibold">{t("login.TERMS_HEAD")}</span>
+                </label>
+              </div>
+
+              {/* Privacy Policy Checkbox */}
+              <div className="flex items-center mb-6">
+                <input
+                  type="checkbox"
+                  checked={agreedPolicy}
+                  onChange={handlePolicyChange}
+                  className="h-5 w-5 text-blue-600 border-gray-300 rounded"
+                />
+                <label className="ml-2 text-sm sm:text-base text-gray-600">
+                  {t("login.AGREE")}{" "}
+                  <span className="font-semibold">
+                    {t("login.POLICY_HEAD")}
+                  </span>
+                </label>
+              </div>
+            </div>
+
+            <div className="flex flex-row justify-end gap-3 sm:gap-4">
+              {/* Accept Button */}
               <button
-                onClick={handleAcceptPolicy}
-                className="w-full sm:w-auto h-10 sm:h-11 px-4 sm:px-6 
-                bg-blue-600 text-white hover:bg-gray-800 flex items-center justify-center
-                rounded transition-colors duration-200 order-1 sm:order-2"
+                onClick={handleAccept}
+                disabled={!agreedTerms || !agreedPolicy} // Disable if not checked
+                className={`w-full sm:w-auto h-10 sm:h-11 px-4 sm:px-6 
+                ${
+                  !agreedTerms || !agreedPolicy
+                    ? "bg-gray-300 cursor-not-allowed"
+                    : "bg-blue-600 text-white hover:bg-gray-800"
+                } 
+                flex items-center justify-center rounded transition-colors duration-200`}
               >
                 <svg
                   className="w-4 h-4 mr-2"

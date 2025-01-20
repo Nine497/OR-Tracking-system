@@ -2,7 +2,7 @@ import React, { useEffect, useState, useMemo } from "react";
 import { Spin, Timeline, Typography, notification } from "antd";
 import { Icon } from "@iconify/react";
 import dayjs from "dayjs";
-import axiosInstance from "../../api/axiosInstance";
+import { axiosInstanceStaff } from "../../api/axiosInstance";
 
 const { Text } = Typography;
 
@@ -73,7 +73,7 @@ const TimelineStatus = ({ record }) => {
     const fetchSurgeryStatus = async () => {
       setIsLoading(true);
       try {
-        const response = await axiosInstance.get(
+        const response = await axiosInstanceStaff.get(
           `surgery_case/status/${record.surgery_case_id}`
         );
         if (response.status === 200 && response.data) {
@@ -94,7 +94,7 @@ const TimelineStatus = ({ record }) => {
     const fetchAllStatuses = async () => {
       setIsLoading(true);
       try {
-        const response = await axiosInstance.get("patient/getAllStatus");
+        const response = await axiosInstanceStaff.get("patient/getAllStatus");
         if (response.status === 200 && response.data) {
           setAllStatus(response.data);
         }

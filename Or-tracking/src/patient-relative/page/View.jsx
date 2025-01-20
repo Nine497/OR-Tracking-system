@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { usePatient } from "../context/PatientContext";
 import { useNavigate } from "react-router-dom";
 import { Card, Avatar, Typography, Spin, Button } from "antd";
-import axiosInstance from "../../admin/api/axiosInstance";
+import { axiosInstancePatient } from "../../admin/api/axiosInstance";
 import LanguageSelector from "../components/LanguageSelector";
 import { useTranslation } from "react-i18next";
 import FullScreenLoading, {
@@ -18,6 +18,7 @@ import LogoutButton from "../components/LogoutButton";
 import { motion, time } from "framer-motion";
 import StatusTimeline from "../components/TimeLine";
 import { UserOutlined, ReloadOutlined } from "@ant-design/icons";
+import Policy from "../components/Policy";
 
 const View = () => {
   const { patient_id, surgery_case_id, patient_link } = usePatient();
@@ -35,6 +36,29 @@ const View = () => {
   const { isLoading, startLoading, exitLoading } = useLoading();
   const [TimelineLoading, setTimelineLoading] = useState(false);
   const [lastUpdated, setLastUpdated] = useState(dayjs().format("HH:mm A"));
+  const [modalVisible, setModalVisible] = useState(true);
+  const [acceptedPolicy, setAcceptedPolicy] = useState(false);
+
+  useEffect(() => {
+    const fetchPolicyStatus = async () => {
+      try {
+        const response = await axiosInstancePatient.get(
+          `/link_cases/${patient_link}`
+        );
+        const acceptedTimestamp = response.data?.accepted_terms;
+
+        if (acceptedTimestamp) {
+          setModalVisible(false);
+        } else {
+          setModalVisible(true);
+        }
+      } catch (error) {
+        console.error("Failed to fetch policy status:", error);
+      }
+    };
+
+    fetchPolicyStatus();
+  }, [patient_link]);
 
   const fetchPatientData = async ({ surgery_case_id, patient_link }) => {
     try {
@@ -43,12 +67,12 @@ const View = () => {
 
       const [patientResponse, statusResponse, statusHisResponse] =
         await Promise.all([
-          axiosInstance.post("patient/getPatientData", {
+          axiosInstancePatient.post("patient/getPatientData", {
             surgery_case_id,
             patient_link,
           }),
-          axiosInstance.get("patient/getAllStatus"),
-          axiosInstance
+          axiosInstancePatient.get("patient/getAllStatus"),
+          axiosInstancePatient
             .get(`patient/getStatus/${surgery_case_id}`)
             .catch((error) => {
               if (error.response && error.response.status === 404) {
@@ -124,14 +148,7 @@ const View = () => {
   }, [patient_id, surgery_case_id, patient_link, startLoading, exitLoading, t]);
 
   useEffect(() => {
-    console.log("Full statusHistory:", statusHistory);
-
     if (statusHistory && Array.isArray(statusHistory.statusHistory)) {
-      console.log(
-        "Status History before processing:",
-        statusHistory.statusHistory
-      );
-
       const currentStatus = statusHistory.statusHistory.find(
         (history) =>
           history.surgery_case_status_history_id === statusHistory.latestStatus
@@ -209,6 +226,19 @@ const View = () => {
     try {
       setTimelineLoading(true);
 
+      const linkValidResponse = await axiosInstancePatient.post(
+        "/validate_link",
+        {
+          link: patient_link,
+        }
+      );
+
+      if (!linkValidResponse.data.valid) {
+        setErrorMessage(t("error.INVALID_LINK"));
+        setTimelineLoading(false);
+        return;
+      }
+
       const { patientData, statusData, statusHistory } = await fetchPatientData(
         {
           surgery_case_id,
@@ -221,6 +251,7 @@ const View = () => {
       setStatusHistory(statusHistory);
       setLastUpdated(dayjs().format("HH:mm A"));
     } catch (error) {
+      console.log("error", error);
       setErrorMessage(t("error.FAILED_TO_LOAD"));
     } finally {
       setTimeout(() => {
@@ -229,13 +260,27 @@ const View = () => {
     }
   };
 
+  const handleAcceptPolicy = () => {
+    setAcceptedPolicy(true);
+    setModalVisible(false);
+  };
+
+  const handleDeclinePolicy = () => {
+    setErrorMessage(t("errors.POLICY_DECLINED"));
+    setModalVisible(false);
+  };
+
+  const handleCloseModal = () => {
+    setModalVisible(false);
+  };
+
   return (
     <>
       {isLoading ? (
         <FullScreenLoading loading={isLoading} t={t} icon={<ORIconLoading />} />
       ) : (
         <motion.div
-          className="flex flex-col min-h-screen w-full relative font-normal text-base bg-slate-100"
+          className="flex flex-col min-h-screen w-full relative font-normal text-base bg-slate-100 overflow-x-hidden"
           initial="hidden"
           animate={showContent ? "visible" : "hidden"}
           variants={{
@@ -244,97 +289,108 @@ const View = () => {
           }}
           transition={{ duration: 0.6, ease: "easeIn" }}
         >
-          <div className="flex flex-col min-h-screen w-full relative font-normal text-base bg-slate-100">
-            <div className="absolute top-0 left-0 right-0 h-1/5 bg-gradient-to-r from-blue-500 to-blue-400 rounded-b-[50%_20%] z-0 opacity-90" />
+          <div className="flex flex-col min-h-screen w-full relative font-normal text-base bg-slate-100 overflow-x-hidden">
+            <Policy
+              t={t}
+              handleAcceptPolicy={handleAcceptPolicy}
+              handleDeclinePolicy={handleDeclinePolicy}
+              visible={modalVisible}
+              handleCloseModal={handleCloseModal}
+              link={patient_link}
+            />
+            {/* Responsive gradient background */}
+            <div className="absolute top-0 left-0 right-0 h-[20vh] md:h-[25vh] bg-gradient-to-r from-blue-500 to-blue-400 rounded-b-[50%_20%] z-0 opacity-90" />
             <div className="absolute bottom-0 left-0 right-0 h-3/4 bg-slate-100 z-0" />
 
-            <div className="relative z-10 container mx-auto px-4 pb-10">
-              <div className="flex items-center justify-between py-6 px-4 md:px-6">
-                <h1 className="font-semibold text-white text-2xl md:text-3xl lg:text-4xl tracking-tight">
+            {/* Main content container */}
+            <div className="relative z-10 container mx-auto px-2 sm:px-4 md:px-6 lg:px-8 pb-6 md:pb-10">
+              {/* Header section */}
+              <div className="flex flex-row items-center justify-between py-4 sm:py-6 px-2 sm:px-4 md:px-6 space-y-4 sm:space-y-0">
+                <h1 className="font-semibold text-white text-xl sm:text-2xl md:text-3xl lg:text-4xl tracking-tight">
                   {t("or_tracking.TITLE")}
                 </h1>
 
-                <div className="flex items-center gap-3">
+                <div className="flex items-center gap-2 sm:gap-3">
                   <LanguageSelector t={t} />
-
                   <LogoutButton />
                 </div>
               </div>
 
-              <div className="grid gap-3 w-full max-w-xl mx-auto">
+              {/* Cards grid */}
+              <div className="grid gap-3 w-full max-w-4xl mx-auto">
+                {/* Patient Info Card */}
                 <Card
-                  className="shadow-lg hover:shadow-xl transition-all duration-300 bg-white rounded-2xl"
+                  className="shadow-lg hover:shadow-xl transition-all duration-300 bg-white rounded-xl sm:rounded-2xl w-full"
                   bordered={false}
                   styles={{
-                    body: {
-                      padding: 0,
-                    },
+                    body: { padding: 0 },
                   }}
                 >
-                  <div className="flex flex-row gap-5 items-center w-full h-auto p-5 sm:gap-0">
-                    <div className="w-3/6 sm:w-2/4 flex flex-col justify-center items-center">
+                  <div className="flex flex-row gap-4 sm:gap-5 items-center w-full p-3 sm:p-5">
+                    <div className="w-full sm:w-3/6 md:w-2/5 flex justify-center">
                       <Avatar
                         src={ManAvatar}
                         icon={
-                          <UserOutlined className="text-gray-500 text-4xl" />
+                          <UserOutlined className="text-gray-500 text-2xl sm:text-4xl" />
                         }
-                        className="w-24 h-24 sm:w-28 sm:h-28 md:w-32 md:h-32 lg:w-36 lg:h-36 border-4 border-gray-100 shadow-md transition-all duration-300 group-hover:scale-105 group-hover:border-blue-100"
+                        className="w-20 h-20 sm:w-24 sm:h-24 md:w-32 md:h-32 lg:w-36 lg:h-36 border-4 border-gray-100 shadow-md transition-all duration-300 group-hover:scale-105 group-hover:border-blue-100"
                       />
                     </div>
 
-                    <div className="flex flex-col justify-center w-4/6 space-y-2 sm:w-2/4">
-                      <Text className="text-black text-sm font-medium sm:text-lg">
-                        {t("patient.HN")} : {patientData.hn_code}
+                    <div className="flex flex-col justify-center w-full sm:w-3/6 md:w-3/5 space-y-1 sm:space-y-2">
+                      <Text className="text-black text-xs sm:text-sm md:text-base lg:text-lg font-medium">
+                        {t("patient_info.HN")} : {patientData.hn_code}
                       </Text>
-                      <Text className="text-black text-sm font-medium sm:text-lg">
-                        {t("patient.NAME")} : {patientData.patient_first_name}{" "}
+                      <Text className="text-black text-xs sm:text-sm md:text-base lg:text-lg font-medium">
+                        {t("patient_info.NAME")} :{" "}
+                        {patientData.patient_first_name}{" "}
                         {patientData.patient_last_name}
                       </Text>
-                      <Text className="text-black text-sm font-medium sm:text-lg">
-                        {t("patient.GENDER")} : {patientData.gender}
+                      <Text className="text-black text-xs sm:text-sm md:text-base lg:text-lg font-medium">
+                        {t("patient_info.GENDER")} : {patientData.gender}
                       </Text>
-                      <Text className="text-black text-sm font-medium sm:text-lg">
+                      <Text className="text-black text-xs sm:text-sm md:text-base lg:text-lg font-medium">
                         Patient Rights :
                       </Text>
                     </div>
                   </div>
                 </Card>
 
+                {/* Surgery Info Card */}
                 <Card
-                  className="shadow-lg hover:shadow-xl transition-all duration-300 bg-white rounded-2xl"
+                  className="shadow-lg hover:shadow-xl transition-all duration-300 bg-white rounded-xl sm:rounded-2xl w-full"
                   bordered={false}
                   styles={{
-                    body: {
-                      padding: 0,
-                    },
+                    body: { padding: 0 },
                   }}
                 >
-                  <div className=" flex justify-center items-center px-6 py-4 h-full sm:mx-4">
-                    <div className="gap-1 flex flex-col space-y-2 w-full max-w-3xl mx-auto">
-                      <Text className="text-black text-sm font-medium sm:text-lg">
-                        {t("patient.SURGEON")} : {patientData.doctor_prefix}{" "}
+                  <div className="flex justify-center items-center px-3 sm:px-6 py-4">
+                    <div className="flex flex-col space-y-2 w-full">
+                      <Text className="ml-1 text-black text-xs sm:text-sm md:text-base lg:text-lg font-medium">
+                        {t("patient_info.SURGEON")} :{" "}
+                        {patientData.doctor_prefix}{" "}
                         {patientData.doctor_first_name}{" "}
                         {patientData.doctor_last_name}
                       </Text>
-                      <Text className="text-black text-sm font-medium sm:text-lg">
-                        {t("patient.ROOM")} : {patientData.room_name}
+                      <Text className="ml-1 text-black text-xs sm:text-sm md:text-base lg:text-lg font-medium">
+                        {t("patient_info.ROOM")} : {patientData.room_name}{" "}
                         {" ( "}
                         {patientData.location}
                         {" ) "}
                       </Text>
-                      <Text className="text-black text-sm font-medium sm:text-lg">
-                        {t("patient.SURGERY_DATE")} : {formattedDate}
+                      <Text className="ml-1 text-black text-xs sm:text-sm md:text-base lg:text-lg font-medium">
+                        {t("patient_info.SURGERY_DATE")} : {formattedDate}
                       </Text>
-                      <div className="inline-flex items-center bg-blue-50 p-2 text-sm font-medium sm:text-lg rounded-md space-x-2">
+                      <div className="inline-flex flex-wrap items-center bg-blue-50 p-2 text-xs sm:text-sm md:text-base lg:text-lg rounded-md gap-2">
                         <span className="text-black font-medium">
-                          {t("patient.SURGERY_START_TIME")}{" "}
+                          {t("patient_info.SURGERY_START_TIME")}{" "}
                         </span>
                         <Icon icon="tabler:clock" className="text-black" />
                         <span className="text-blue-500 font-medium">
                           {startTime.format("HH:mm")}{" "}
                         </span>
                         <span className="text-black font-medium">
-                          {t("patient.SURGERY_FINSIH_TIME")}{" "}
+                          {t("patient_info.SURGERY_FINSIH_TIME")}{" "}
                         </span>
                         <Icon icon="tabler:clock" className="text-black" />
                         <span className="text-blue-500 font-medium">
@@ -345,55 +401,57 @@ const View = () => {
                   </div>
                 </Card>
 
-                <div className="flex flex-row justify-between items-center gap-4 px-4">
+                {/* Timeline Section */}
+                <div className="flex flex-row justify-between items-start sm:items-center gap-2 sm:gap-4 px-2 sm:px-4">
                   <Typography.Title
                     level={4}
                     style={{ margin: 0 }}
-                    className="flex-1 text-left"
+                    className="text-base sm:text-lg md:text-xl"
                   >
                     {t("view.surgery_timeline")}
                   </Typography.Title>
 
-                  <div className="flex flex-col items-end gap-4">
-                    <Button
-                      type="primary"
-                      icon={<ReloadOutlined />}
-                      onClick={handleRefresh}
-                      size="small"
-                    >
-                      Refresh
-                    </Button>
-                  </div>
+                  <Button
+                    type="primary"
+                    icon={<ReloadOutlined />}
+                    onClick={handleRefresh}
+                    size="small"
+                    className="self-end sm:self-auto"
+                  >
+                    Refresh
+                  </Button>
                 </div>
+
+                {/* Timeline Card */}
                 <Card
-                  className="shadow-lg hover:shadow-xl transition-all duration-300 bg-white rounded-2xl"
+                  className="shadow-lg hover:shadow-xl transition-all duration-300 bg-white rounded-xl sm:rounded-2xl w-full"
                   bordered={false}
                   styles={{
-                    body: {
-                      padding: 0,
-                    },
+                    body: { padding: 0 },
                   }}
                 >
-                  <div className="relative m-4">
+                  <div className="relative m-2 sm:m-4">
                     <div className="absolute top-0 right-0 z-10">
-                      <Typography.Text type="secondary">
+                      <Typography.Text
+                        type="secondary"
+                        className="text-xs sm:text-sm"
+                      >
                         {t("view.status_updated")}: {lastUpdated}
                       </Typography.Text>
                     </div>
 
                     <div className="flex flex-col items-center justify-center pt-5">
-                      {" "}
                       {patientData?.status_id === 0 ? (
-                        <div className="text-center p-6">
-                          <p className="text-lg sm:text-xl md:text-2xl font-semibold text-gray-800 mb-2">
+                        <div className="text-center p-4 sm:p-6">
+                          <p className="text-base sm:text-lg md:text-xl lg:text-2xl font-semibold text-gray-800 mb-2">
                             {t("view.pending_title")}
                           </p>
-                          <p className="text-sm sm:text-base md:text-lg text-gray-600 mt-2 leading-relaxed">
+                          <p className="text-xs sm:text-sm md:text-base lg:text-lg text-gray-600 mt-2 leading-relaxed">
                             {t("view.pending_des")}
                           </p>
                         </div>
                       ) : (
-                        <div className="flex flex-col justify-center items-center h-full min-h-[300px]">
+                        <div className="flex flex-col justify-center items-center h-full min-h-[250px] sm:min-h-[300px]">
                           {TimelineLoading ? (
                             <div className="flex justify-center items-center w-full">
                               <Spin

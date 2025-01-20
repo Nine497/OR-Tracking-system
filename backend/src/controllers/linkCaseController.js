@@ -213,6 +213,26 @@ const linkCaseController = {
       res.status(500).json({ message: "Internal server error" });
     }
   },
+
+  acceptTerms: async (req, res) => {
+    try {
+      const { surgery_case_links_id } = req.params;
+      const timeStamp = new Date();
+      const result = await db("surgery_case_links")
+        .where("surgery_case_links_id", surgery_case_links_id)
+        .update({ accepted_terms: timeStamp })
+        .returning("*");
+
+      if (result && result.length > 0) {
+        res.status(200).send("Terms accepted");
+      } else {
+        res.status(400).send("Failed to accept terms");
+      }
+    } catch (error) {
+      console.error("Error updating terms:", error);
+      res.status(500).send("Error updating terms");
+    }
+  },
 };
 
 module.exports = linkCaseController;

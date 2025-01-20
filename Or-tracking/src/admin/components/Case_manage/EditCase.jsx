@@ -12,7 +12,7 @@ import {
 } from "antd";
 import { Icon } from "@iconify/react";
 import IMask from "imask";
-import axiosInstance from "../../api/axiosInstance";
+import { axiosInstanceStaff } from "../../api/axiosInstance";
 import { useAuth } from "../../context/AuthContext";
 import dayjs from "dayjs";
 import { useNavigate, useLocation } from "react-router-dom";
@@ -60,7 +60,7 @@ function EditCase() {
 
     const fetchSurgeryData = async () => {
       try {
-        const response = await axiosInstance.get(
+        const response = await axiosInstanceStaff.get(
           `/surgery_case/patient/${surgery_case_id}`
         );
 
@@ -137,7 +137,7 @@ function EditCase() {
 
     const fetchDoctors = async () => {
       try {
-        const response = await axiosInstance.get("/doctor/");
+        const response = await axiosInstanceStaff.get("/doctor/");
 
         if (response.status === 200) {
           setDoctors(response.data.data);
@@ -158,7 +158,7 @@ function EditCase() {
 
     const fetchOperatingRooms = async () => {
       try {
-        const response = await axiosInstance.get("/or_room/");
+        const response = await axiosInstanceStaff.get("/or_room/");
 
         if (response.status === 200) {
           setOperatingRooms(response.data.data);
@@ -181,7 +181,7 @@ function EditCase() {
 
     const fetchAllSurgeryTypes = async () => {
       try {
-        const response = await axiosInstance.get(
+        const response = await axiosInstanceStaff.get(
           "/surgery_case/all_surgery_types"
         );
 
@@ -271,14 +271,14 @@ function EditCase() {
       console.log("Patient Case Data to Send:", patientDataToSend);
       console.log("Operation Data to Send:", OperationDataToSend);
 
-      const surgeryCaseResponse = await axiosInstance.put(
+      const surgeryCaseResponse = await axiosInstanceStaff.put(
         `/surgery_case/${surgery_case_id}`,
         surgeryCaseDataToSend
       );
       console.log("Surgery Case Response:", surgeryCaseResponse.data);
 
       if (surgeryCaseResponse.status === 200) {
-        const patientResponse = await axiosInstance.put(
+        const patientResponse = await axiosInstanceStaff.put(
           `/patient/${surgeryData.patient_id}`,
           patientDataToSend
         );
@@ -286,7 +286,7 @@ function EditCase() {
 
         if (patientResponse.status === 200) {
           // Add Operation Data
-          const operationResponse = await axiosInstance.post(
+          const operationResponse = await axiosInstanceStaff.post(
             `/surgery_case/operation/`,
             OperationDataToSend
           );
@@ -399,7 +399,7 @@ function EditCase() {
     setSearchIsLoading(true);
 
     try {
-      const response = await axiosInstance.get(
+      const response = await axiosInstanceStaff.get(
         `/patient/getPatientData/${hnCode}`
       );
 

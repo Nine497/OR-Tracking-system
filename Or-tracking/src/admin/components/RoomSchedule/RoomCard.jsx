@@ -4,7 +4,7 @@ import {
   ClockCircleOutlined,
   ExclamationCircleOutlined,
 } from "@ant-design/icons";
-import axiosInstance from "../../api/axiosInstance";
+import { axiosInstanceStaff } from "../../api/axiosInstance";
 import dayjs from "dayjs";
 import "./RoomCard.css";
 
@@ -18,11 +18,13 @@ function RoomCard({ room }) {
     const fetchRoomDetails = async () => {
       setLoading(true);
       try {
-        const casesResponse = await axiosInstance.get(
+        const casesResponse = await axiosInstanceStaff.get(
           `/surgery_case/getSurgery_case_ByOrID/${room.operating_room_id}`
         );
 
-        const statusResponse = await axiosInstance.get("patient/getAllStatus");
+        const statusResponse = await axiosInstanceStaff.get(
+          "patient/getAllStatus"
+        );
         if (casesResponse.status === 200 && statusResponse.status === 200) {
           setCases(casesResponse.data);
           setStatuses(statusResponse.data);

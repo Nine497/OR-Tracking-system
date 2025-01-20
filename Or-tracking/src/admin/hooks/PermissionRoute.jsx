@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { Navigate, Outlet } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
-import axiosInstance from "../api/axiosInstance";
+import { axiosInstanceStaff } from "../api/axiosInstance";
 import { Spin } from "antd";
 
 const PermissionRoute = ({ requiredPermission }) => {
@@ -17,7 +17,7 @@ const PermissionRoute = ({ requiredPermission }) => {
       }
 
       try {
-        const response = await axiosInstance.get(
+        const response = await axiosInstanceStaff.get(
           `staff/permissions/${user.id}`
         );
         const permissions = response.data.map((item) => item.permission_id);

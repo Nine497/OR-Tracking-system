@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { Form, Input, Button, notification } from "antd";
 import { useAuth } from "../context/AuthContext";
 import { useNavigate } from "react-router-dom";
-import axiosInstance from "../api/axiosInstance";
+import { axiosInstanceStaff } from "../api/axiosInstance";
 import LoginImg from "../assets/Login.jpg";
 import { Icon } from "@iconify/react";
 import { toast } from "react-toastify";
@@ -17,7 +17,7 @@ const Login = () => {
     try {
       const { username, password } = values;
 
-      const { data } = await axiosInstance.post("auth/login", {
+      const { data } = await axiosInstanceStaff.post("auth/login", {
         username,
         password,
       });

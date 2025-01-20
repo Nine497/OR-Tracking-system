@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { Select, Popconfirm, Button, notification } from "antd";
-import axiosInstance from "../../api/axiosInstance";
+import { axiosInstanceStaff } from "../../api/axiosInstance";
 import { useAuth } from "../../context/AuthContext";
 import "./StatusUpdateForm.css";
 
@@ -16,7 +16,7 @@ const StatusUpdateForm = ({ record, allStatus, onStatusUpdate }) => {
 
     const fetchData = async () => {
       try {
-        const response = await axiosInstance.get(
+        const response = await axiosInstanceStaff.get(
           `surgery_case/status/${record.surgery_case_id}`
         );
         if (response.status === 200 && response.data) {
@@ -47,7 +47,7 @@ const StatusUpdateForm = ({ record, allStatus, onStatusUpdate }) => {
     setLoading(true);
     try {
       const token = localStorage.getItem("jwtToken");
-      const response = await axiosInstance.patch(
+      const response = await axiosInstanceStaff.patch(
         `surgery_case/status/${record.surgery_case_id}`,
         { status_id: tempStatus, updatedBy: user?.id }
       );

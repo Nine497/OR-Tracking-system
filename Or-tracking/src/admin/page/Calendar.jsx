@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { Tabs, Spin } from "antd";
 import Schedule from "../components/Calendar/CalendarSchedule";
 import Table from "../components/Calendar/ScheduleTable";
-import axiosInstance from "../api/axiosInstance";
+import { axiosInstanceStaff } from "../api/axiosInstance";
 
 export default function Calendar() {
   const [events, setEvents] = useState([]);
@@ -12,7 +12,7 @@ export default function Calendar() {
     const fetchEvents = async () => {
       setLoading(true);
       try {
-        const response = await axiosInstance.get(
+        const response = await axiosInstanceStaff.get(
           "/surgery_case/getCaseCalendar/"
         );
         const eventData = response.data.data || [];

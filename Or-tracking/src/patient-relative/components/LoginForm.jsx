@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from "react";
-import { Form, Input, Button } from "antd";
+import { Form, Input, Button, notification } from "antd";
 import IMask from "imask";
 import Logo from "../assets/Logo.png";
-import axiosInstance from "../../admin/api/axiosInstance";
+import { axiosInstancePatient } from "../../admin/api/axiosInstance";
 import { usePatient } from "../context/PatientContext";
 import { useNavigate } from "react-router-dom";
 
@@ -16,21 +16,32 @@ const LoginForm = ({ t, link }) => {
   const onFinish = async (values) => {
     try {
       setLoading(true);
-      const { hn, dob } = values;
+      const { hn, dob_day, dob_month, dob_year } = values;
       const patient_link = link;
-      const [day, month, year] = dob.split("/");
-      const formattedDob = `${year}-${month}-${day}`;
+      const dob = `${dob_year}-${dob_month}-${dob_day}`;
 
-      const response = await axiosInstance.post("patient/login", {
+      console.log("hn", hn);
+      console.log("patient_link", patient_link);
+      console.log("dob", dob);
+
+      const surgeryCaseResponse = await axiosInstancePatient.get(
+        `link_cases/${patient_link}`
+      );
+      const surgery_case_id = surgeryCaseResponse?.data?.surgery_case_id;
+
+      if (!surgery_case_id) {
+        throw new Error(t("login.INVALID_CASE"));
+      }
+
+      const response = await axiosInstancePatient.post("patient/login", {
         hn,
-        dob: formattedDob,
+        dob,
         surgery_case_id,
         link: patient_link,
       });
 
       if (response.data.valid) {
         localStorage.setItem("token", response.data.token);
-        notification.success({ message: t("login.SUCCESS") });
         navigate("/ptr/view");
       } else {
         notification.error({ message: t("login.FAILED") });
@@ -105,25 +116,71 @@ const LoginForm = ({ t, link }) => {
 
             <Form.Item
               label={
-                <span className="text-sm sm:text-base font-medium text-gray-700">
+                <span className="text-base font-medium text-gray-700">
                   {t("login.DOB")}
                 </span>
               }
-              name="dob"
-              rules={[
-                { required: true, message: t("login.DOB_REQUIRED") },
-                {
-                  pattern: /^\d{2}\/\d{2}\/\d{4}$/,
-                  message: t("login.DOB_INVALID"),
-                },
-              ]}
             >
-              <Input
-                placeholder={t("login.DOB_PLACEHOLDER")}
-                ref={dobInputRef}
-                maxLength={10}
-                className="w-full p-2 text-sm sm:text-base border rounded-md"
-              />
+              <Input.Group className="flex">
+                {/* ช่องวัน */}
+                <Form.Item
+                  name="dob_day"
+                  rules={[
+                    { required: true, message: t("login.DOB_DAY_REQUIRED") },
+                    {
+                      pattern: /^\d{2}$/,
+                      message: t("login.DOB_DAY_INVALID"),
+                    },
+                  ]}
+                  noStyle
+                >
+                  <Input
+                    type="number"
+                    placeholder="DD"
+                    maxLength={2}
+                    className="h-11 w-20 text-center text-base rounded-lg border border-gray-300 focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+                  />
+                </Form.Item>
+                {/* ช่องเดือน */}
+                <Form.Item
+                  name="dob_month"
+                  rules={[
+                    { required: true, message: t("login.DOB_MONTH_REQUIRED") },
+                    {
+                      pattern: /^\d{2}$/,
+                      message: t("login.DOB_MONTH_INVALID"),
+                    },
+                  ]}
+                  noStyle
+                >
+                  <Input
+                    type="number"
+                    placeholder="MM"
+                    maxLength={2}
+                    className="h-11 w-20 text-center text-base rounded-lg border border-gray-300 focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+                  />
+                </Form.Item>
+
+                {/* ช่องปี */}
+                <Form.Item
+                  name="dob_year"
+                  rules={[
+                    { required: true, message: t("login.DOB_YEAR_REQUIRED") },
+                    {
+                      pattern: /^\d{4}$/,
+                      message: t("login.DOB_YEAR_INVALID"),
+                    },
+                  ]}
+                  noStyle
+                >
+                  <Input
+                    type="number"
+                    placeholder="YYYY"
+                    maxLength={4}
+                    className="h-11 w-28 text-center text-base rounded-lg border border-gray-300 focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+                  />
+                </Form.Item>
+              </Input.Group>
             </Form.Item>
 
             <Form.Item className="mb-0">

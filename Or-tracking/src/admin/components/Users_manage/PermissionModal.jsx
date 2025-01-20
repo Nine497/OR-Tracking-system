@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Modal, Form, Checkbox, Button, Spin, notification } from "antd";
-import axiosInstance from "../../api/axiosInstance";
+import { axiosInstanceStaff } from "../../api/axiosInstance";
 import { useAuth } from "../../context/AuthContext";
 import dayjs from "dayjs";
 
@@ -17,13 +17,13 @@ function PermissionModal({ visible, staff, onClose }) {
       if (!visible) return;
       setLoading(true);
       try {
-        const response = await axiosInstance.get("staff/permissions");
+        const response = await axiosInstanceStaff.get("staff/permissions");
 
         setAllPermissions(response.data.permissions);
         console.log(response.data.permissions);
 
         if (staff) {
-          const staffResponse = await axiosInstance.get(
+          const staffResponse = await axiosInstanceStaff.get(
             `staff/permissions/${staff.staff_id}`
           );
 
@@ -65,7 +65,7 @@ function PermissionModal({ visible, staff, onClose }) {
     const currentDateTime = dayjs().format("YYYY-MM-DD HH:mm:ss.SSS");
 
     try {
-      const response = await axiosInstance.post(
+      const response = await axiosInstanceStaff.post(
         `/staff/update_permissions/${staff.staff_id}`,
         {
           permission_ids: permissions.length > 0 ? permissions : [null],

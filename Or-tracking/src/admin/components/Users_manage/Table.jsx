@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Input, Table, Tooltip, Switch, notification } from "antd";
 import { Icon } from "@iconify/react";
-import axiosInstance from "../../api/axiosInstance";
+import { axiosInstanceStaff } from "../../api/axiosInstance";
 import { Spin } from "antd";
 import PermissionModal from "./PermissionModal";
 import { Button } from "antd";
@@ -23,7 +23,7 @@ function UsersTable() {
     setLoading(true);
 
     try {
-      const response = await axiosInstance.get("/staff", {
+      const response = await axiosInstanceStaff.get("/staff", {
         params: {
           search: value,
           limit: pagination.pageSize,
@@ -59,7 +59,7 @@ function UsersTable() {
 
   const handleActiveToggle = async (record, checked) => {
     try {
-      const response = await axiosInstance.put(
+      const response = await axiosInstanceStaff.put(
         `/staff/isActive/${record.staff_id}`,
         {
           isActive: checked,
@@ -94,7 +94,7 @@ function UsersTable() {
       setLoading(true);
 
       try {
-        const response = await axiosInstance.get("/staff", {
+        const response = await axiosInstanceStaff.get("/staff", {
           params: {
             search: searchTerm,
             limit: pagination.pageSize,

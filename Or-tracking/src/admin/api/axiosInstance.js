@@ -1,41 +1,25 @@
 import axios from "axios";
-import { jwtDecode } from "jwt-decode";
 import { notification } from "antd";
 
-console.log(import.meta.env.VITE_BASE_API_URL);
-
-const axiosInstance = axios.create({
+const axiosInstanceStaff = axios.create({
   baseURL: import.meta.env.VITE_BASE_API_URL || "http://localhost:3000/api/",
   timeout: 15000,
 });
 
-const isTokenExpired = (token) => {
-  try {
-    const decoded = jwtDecode(token);
-    const expirationTime = decoded.exp * 1000;
-    return Date.now() > expirationTime;
-  } catch (error) {
-    return true;
-  }
-};
+const axiosInstancePatient = axios.create({
+  baseURL: import.meta.env.VITE_BASE_API_URL || "http://localhost:3000/api/",
+  timeout: 15000,
+});
 
-axiosInstance.interceptors.request.use(
+// Staff Token Interceptor
+axiosInstanceStaff.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem("jwtToken");
 
     if (token) {
-      if (isTokenExpired(token)) {
-        notification.error({
-          message: "Session Expired",
-          description: "Your session has expired. Please log in again.",
-        });
-        localStorage.removeItem("jwtToken");
-        window.location.href = "/login";
-        return Promise.reject("Token expired");
-      }
-
       config.headers["Authorization"] = `Bearer ${token}`;
     }
+
     return config;
   },
   (error) => {
@@ -43,7 +27,7 @@ axiosInstance.interceptors.request.use(
   }
 );
 
-axiosInstance.interceptors.response.use(
+axiosInstanceStaff.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error.response && error.response.status === 401) {
@@ -59,4 +43,4 @@ axiosInstance.interceptors.response.use(
   }
 );
 
-export default axiosInstance;
+export { axiosInstanceStaff, axiosInstancePatient };

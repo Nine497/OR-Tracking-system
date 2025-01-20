@@ -1,7 +1,7 @@
 import React, { useMemo, useEffect, useState } from "react";
 import { Modal, Timeline, Tag, Typography, Rate, Input } from "antd";
 import { FrownOutlined, MehOutlined, SmileOutlined } from "@ant-design/icons";
-import axiosInstance from "../../admin/api/axiosInstance";
+import { axiosInstancePatient } from "../../admin/api/axiosInstance";
 import dayjs from "dayjs";
 import { Icon } from "@iconify/react";
 
@@ -31,7 +31,7 @@ const StatusTimeline = ({
     const checkReviewStatus = async () => {
       if (currentStatus?.status_id === 5) {
         try {
-          const response = await axiosInstance.get(
+          const response = await axiosInstancePatient.get(
             `/link_cases/check_reviews/${surgery_case_id}`
           );
           if (!response.data.reviewExists) {
@@ -48,7 +48,7 @@ const StatusTimeline = ({
 
   const handleOk = async () => {
     try {
-      await axiosInstance.post(`/link_cases/submit_review`, {
+      await axiosInstancePatient.post(`/link_cases/submit_review`, {
         surgery_case_id,
         review_text: suggestions,
         rating,

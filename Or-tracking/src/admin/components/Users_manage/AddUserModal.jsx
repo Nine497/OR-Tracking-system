@@ -1,7 +1,7 @@
 import React from "react";
 import { Modal, Form, Input, Button, Row, Col, notification } from "antd";
 import { Icon } from "@iconify/react";
-import axiosInstance from "../../api/axiosInstance";
+import { axiosInstanceStaff } from "../../api/axiosInstance";
 import { useAuth } from "../../context/AuthContext";
 
 function AddUserModal({ visible, onClose }) {
@@ -12,7 +12,7 @@ function AddUserModal({ visible, onClose }) {
       console.log("values: ", { ...values, created_by: user.id });
 
       const token = localStorage.getItem("jwtToken");
-      const response = await axiosInstance.post("/staff", {
+      const response = await axiosInstanceStaff.post("/staff", {
         ...values,
         created_by: user.id,
       });

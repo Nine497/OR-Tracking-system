@@ -12,7 +12,7 @@ import {
 import { Icon } from "@iconify/react";
 
 import Logo from "../assets/Logo.png";
-import axiosInstance from "../api/axiosInstance";
+import { axiosInstanceStaff } from "../api/axiosInstance";
 
 const items = [
   {
@@ -54,7 +54,7 @@ const Sidebar = ({ collapsed, setCollapsed, isMobile, user }) => {
     const fetchPermissions = async () => {
       if (user?.id) {
         try {
-          const response = await axiosInstance.get(
+          const response = await axiosInstanceStaff.get(
             `staff/permissions/${user.id}`
           );
           const permissions = response.data.map((item) => item.permission_id);

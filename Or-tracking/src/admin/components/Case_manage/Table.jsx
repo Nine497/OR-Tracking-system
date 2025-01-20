@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
-import { Table, Input, Tooltip, Button, Select } from "antd";
+import { Table, Input, Tooltip, Button, Select, notification } from "antd";
 import { Icon } from "@iconify/react";
-import axiosInstance from "../../api/axiosInstance";
+import { axiosInstanceStaff } from "../../api/axiosInstance";
 import UpdateModal from "./UpdateModal";
 import StatusUpdateForm from "./Status_update";
 import dayjs from "dayjs";
@@ -83,7 +83,7 @@ function CaseTable() {
     setLoadingCases(true);
     try {
       const token = localStorage.getItem("jwtToken");
-      const response = await axiosInstance.get("/surgery_case/", {
+      const response = await axiosInstanceStaff.get("/surgery_case/", {
         params: {
           search: value,
           doctor_id: doctor,
@@ -152,7 +152,7 @@ function CaseTable() {
     setLoadingCases(true);
     try {
       const token = localStorage.getItem("jwtToken");
-      const response = await axiosInstance.get("/surgery_case/", {
+      const response = await axiosInstanceStaff.get("/surgery_case/", {
         params: {
           search: searchTerm,
           limit: pagination.pageSize,
@@ -195,7 +195,7 @@ function CaseTable() {
     setLoadingDoctors(true);
     const fetchDoctorsData = async () => {
       try {
-        const response = await axiosInstance.get("doctor/");
+        const response = await axiosInstanceStaff.get("doctor/");
         if (response.data && Array.isArray(response.data.data)) {
           setDoctorsData(response.data.data);
         } else {
@@ -218,7 +218,7 @@ function CaseTable() {
     // const fetchTypeData = async () => {
     //   try {
     //     const token = localStorage.getItem("jwtToken");
-    //     const response = await axiosInstance.get("doctor/", {
+    //     const response = await  axiosInstanceStaff.get("doctor/", {
     //       headers: {
     //         Authorization: `Bearer ${token}`,
     //       },
@@ -250,7 +250,7 @@ function CaseTable() {
     const fetchStatusData = async () => {
       setLoading(true);
       try {
-        const response = await axiosInstance.get("patient/getAllStatus");
+        const response = await axiosInstanceStaff.get("patient/getAllStatus");
         if (response.status === 200 && response.data) {
           console.log("response.data:", response.data);
           setAllStatus(response.data);

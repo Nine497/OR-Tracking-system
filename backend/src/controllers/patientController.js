@@ -174,6 +174,7 @@ exports.login = async (req, res) => {
 
   console.log("DOB", formattedDob);
   console.log("link", link);
+  console.log("surgery_case_id", surgery_case_id);
 
   if (!hn || !formattedDob || !surgery_case_id) {
     return res.status(400).json({
