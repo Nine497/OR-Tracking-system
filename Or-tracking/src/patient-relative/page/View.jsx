@@ -227,7 +227,7 @@ const View = () => {
       setTimelineLoading(true);
 
       const linkValidResponse = await axiosInstancePatient.post(
-        "/validate_link",
+        "patient/validate_link",
         {
           link: patient_link,
         }
@@ -326,8 +326,8 @@ const View = () => {
                     body: { padding: 0 },
                   }}
                 >
-                  <div className="flex flex-row gap-4 sm:gap-5 items-center w-full p-3 sm:p-5">
-                    <div className="w-full sm:w-3/6 md:w-2/5 flex justify-center">
+                  <div className="flex flex-row  items-center w-full p-3 sm:p-5">
+                    <div className=" w-2/5  sm:w-2/6 md:w-2/5 flex justify-center">
                       <Avatar
                         src={ManAvatar}
                         icon={
@@ -337,19 +337,19 @@ const View = () => {
                       />
                     </div>
 
-                    <div className="flex flex-col justify-center w-full sm:w-3/6 md:w-3/5 space-y-1 sm:space-y-2">
-                      <Text className="text-black text-xs sm:text-sm md:text-base lg:text-lg font-medium">
+                    <div className="flex flex-col w-3/5 justify-center  sm:w-4/6 md:w-3/5 space-y-1 sm:space-y-2">
+                      <Text className="text-black text-sm sm:text-sm md:text-base lg:text-lg font-medium">
                         {t("patient_info.HN")} : {patientData.hn_code}
                       </Text>
-                      <Text className="text-black text-xs sm:text-sm md:text-base lg:text-lg font-medium">
+                      <Text className="text-black text-sm sm:text-sm md:text-base lg:text-lg font-medium">
                         {t("patient_info.NAME")} :{" "}
                         {patientData.patient_first_name}{" "}
                         {patientData.patient_last_name}
                       </Text>
-                      <Text className="text-black text-xs sm:text-sm md:text-base lg:text-lg font-medium">
+                      <Text className="text-black text-sm sm:text-sm md:text-base lg:text-lg font-medium">
                         {t("patient_info.GENDER")} : {patientData.gender}
                       </Text>
-                      <Text className="text-black text-xs sm:text-sm md:text-base lg:text-lg font-medium">
+                      <Text className="text-black text-sm sm:text-sm md:text-base lg:text-lg font-medium">
                         Patient Rights :
                       </Text>
                     </div>
@@ -366,22 +366,22 @@ const View = () => {
                 >
                   <div className="flex justify-center items-center px-3 sm:px-6 py-4">
                     <div className="flex flex-col space-y-2 w-full">
-                      <Text className="ml-1 text-black text-xs sm:text-sm md:text-base lg:text-lg font-medium">
+                      <Text className="ml-1 text-black text-sm sm:text-sm md:text-base lg:text-lg font-medium">
                         {t("patient_info.SURGEON")} :{" "}
                         {patientData.doctor_prefix}{" "}
                         {patientData.doctor_first_name}{" "}
                         {patientData.doctor_last_name}
                       </Text>
-                      <Text className="ml-1 text-black text-xs sm:text-sm md:text-base lg:text-lg font-medium">
+                      <Text className="ml-1 text-black text-sm sm:text-sm md:text-base lg:text-lg font-medium">
                         {t("patient_info.ROOM")} : {patientData.room_name}{" "}
                         {" ( "}
                         {patientData.location}
                         {" ) "}
                       </Text>
-                      <Text className="ml-1 text-black text-xs sm:text-sm md:text-base lg:text-lg font-medium">
+                      <Text className="ml-1 text-black text-sm sm:text-sm md:text-base lg:text-lg font-medium">
                         {t("patient_info.SURGERY_DATE")} : {formattedDate}
                       </Text>
-                      <div className="inline-flex flex-wrap items-center bg-blue-50 p-2 text-xs sm:text-sm md:text-base lg:text-lg rounded-md gap-2">
+                      <div className="inline-flex flex-wrap items-center bg-blue-50 p-2 text-sm sm:text-sm md:text-base lg:text-lg rounded-md gap-2">
                         <span className="text-black font-medium">
                           {t("patient_info.SURGERY_START_TIME")}{" "}
                         </span>
@@ -434,7 +434,7 @@ const View = () => {
                     <div className="absolute top-0 right-0 z-10">
                       <Typography.Text
                         type="secondary"
-                        className="text-xs sm:text-sm"
+                        className="text-sm sm:text-sm"
                       >
                         {t("view.status_updated")}: {lastUpdated}
                       </Typography.Text>
@@ -446,7 +446,7 @@ const View = () => {
                           <p className="text-base sm:text-lg md:text-xl lg:text-2xl font-semibold text-gray-800 mb-2">
                             {t("view.pending_title")}
                           </p>
-                          <p className="text-xs sm:text-sm md:text-base lg:text-lg text-gray-600 mt-2 leading-relaxed">
+                          <p className="text-sm sm:text-sm md:text-base lg:text-lg text-gray-600 mt-2 leading-relaxed">
                             {t("view.pending_des")}
                           </p>
                         </div>

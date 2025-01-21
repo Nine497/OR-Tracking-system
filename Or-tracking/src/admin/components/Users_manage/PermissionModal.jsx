@@ -166,7 +166,7 @@ function PermissionModal({ visible, staff, onClose }) {
             valuePropName="value"
             initialValue={staffPermissions.map((p) => p.permission_id)}
           >
-            <div className="flex flex-col gap-6">
+            <div className="flex flex-col gap-6 items-end">
               <Checkbox
                 checked={isFullAccessChecked}
                 onChange={handleFullAccessChange}

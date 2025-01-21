@@ -84,7 +84,10 @@ function EditCase() {
             dayjs(surgeryCase.estimate_start_time, "HH:mm").isValid()
               ? dayjs(surgeryCase.estimate_start_time, "HH:mm")
               : null,
-          estimate_duration: surgeryCase.estimate_duration || null,
+          estimate_duration:
+            surgeryCase.estimate_duration !== null
+              ? (surgeryCase.estimate_duration / 60).toFixed(2)
+              : null,
           surgery_type_id: surgeryCase.surgery_type_id || null,
           operating_room_id: surgeryCase.operating_room_id || null,
           status_id: surgeryCase.status_id || null,
@@ -248,7 +251,38 @@ function EditCase() {
         lastname: patientData.patient_lastname,
         gender: patientData.patient_gender,
       };
+
       console.log("Patient Data to Send:", patientDataToSend);
+
+      // ตรวจสอบ HN ว่ามีอยู่แล้วหรือไม่
+      let patientId;
+      const existingPatientResponse = await axiosInstanceStaff.get(
+        `/patient/getPatientData/${patientData.patient_hn_code}`
+      );
+      const existingPatient = existingPatientResponse.data?.data;
+
+      if (existingPatient) {
+        // อัปเดตข้อมูลผู้ป่วย
+        const patientResponse = await axiosInstanceStaff.put(
+          `/patient/${existingPatient.patient_id}`,
+          patientDataToSend
+        );
+        console.log("Patient Response (Update):", patientResponse.data);
+        patientId = existingPatient.patient_id;
+      } else {
+        // สร้างข้อมูลผู้ป่วยใหม่
+        const patientResponse = await axiosInstanceStaff.post(
+          `/patient`,
+          patientDataToSend
+        );
+        console.log("Patient Response (Create):", patientResponse.data);
+        patientId = patientResponse.data?.patient?.id; // รับ patient_id จาก response
+      }
+
+      // ตรวจสอบว่าได้ patient_id หรือไม่
+      if (!patientId) {
+        throw new Error("Patient ID is missing. Unable to proceed.");
+      }
 
       const surgeryCaseDataToSend = {
         surgery_type_id: surgeryData.surgery_type_id,
@@ -258,19 +292,22 @@ function EditCase() {
           surgeryData.estimate_start_time,
           "HH:mm"
         ).format("HH:mm"),
-        estimate_duration: surgeryData.estimate_duration,
+        estimate_duration: surgeryData.estimate_duration
+          ? (() => {
+              const [hours, minutes] = surgeryData.estimate_duration
+                .toString()
+                .split(".");
+              return parseInt(hours) * 60 + (minutes ? parseInt(minutes) : 0);
+            })()
+          : null,
         operating_room_id: surgeryData.operating_room_id,
         patient_history: surgeryData.patient_history || "",
+        patient_id: patientId,
       };
 
-      const OperationDataToSend = {
-        operation_name: surgeryData.operation_name,
-        surgery_case_id: surgery_case_id,
-      };
       console.log("Surgery Case Data to Send:", surgeryCaseDataToSend);
-      console.log("Patient Case Data to Send:", patientDataToSend);
-      console.log("Operation Data to Send:", OperationDataToSend);
 
+      // อัปเดตข้อมูลเคสผ่าตัด
       const surgeryCaseResponse = await axiosInstanceStaff.put(
         `/surgery_case/${surgery_case_id}`,
         surgeryCaseDataToSend
@@ -278,45 +315,35 @@ function EditCase() {
       console.log("Surgery Case Response:", surgeryCaseResponse.data);
 
       if (surgeryCaseResponse.status === 200) {
-        const patientResponse = await axiosInstanceStaff.put(
-          `/patient/${surgeryData.patient_id}`,
-          patientDataToSend
+        const OperationDataToSend = {
+          operation_name: surgeryData.operation_name,
+          surgery_case_id: parseInt(surgery_case_id, 10),
+        };
+
+        console.log("Operation Data to Send:", OperationDataToSend);
+
+        // เพิ่มข้อมูลการผ่าตัด
+        const operationResponse = await axiosInstanceStaff.post(
+          `/surgery_case/operation/`,
+          OperationDataToSend
         );
-        console.log("Patient Response:", patientResponse.data);
+        console.log("Operation Response:", operationResponse.data);
 
-        if (patientResponse.status === 200) {
-          // Add Operation Data
-          const operationResponse = await axiosInstanceStaff.post(
-            `/surgery_case/operation/`,
-            OperationDataToSend
-          );
-          console.log("Operation Response:", operationResponse.data);
-
-          if (
-            operationResponse.status === 200 ||
-            operationResponse.status === 201
-          ) {
-            navigate("/admin/case_manage");
-            notification.success({
-              message: "อัปเดตข้อมูลเคสผ่าตัดเรียบร้อย",
-              showProgress: true,
-              placement: "topRight",
-              pauseOnHover: true,
-              duration: 2,
-            });
-          } else {
-            notification.error({
-              message: "ไม่สามารถเพิ่มข้อมูลการผ่าตัดได้ กรุณาลองใหม่อีกครั้ง",
-              showProgress: true,
-              placement: "topRight",
-              pauseOnHover: true,
-              duration: 2,
-            });
-          }
+        if (
+          operationResponse.status === 200 ||
+          operationResponse.status === 201
+        ) {
+          navigate("/admin/case_manage");
+          notification.success({
+            message: "อัปเดตข้อมูลเคสผ่าตัดเรียบร้อย",
+            showProgress: true,
+            placement: "topRight",
+            pauseOnHover: true,
+            duration: 2,
+          });
         } else {
           notification.error({
-            message:
-              "ไม่สามารถอัปเดตรายละเอียดของผู้ป่วยได้ กรุณาลองใหม่อีกครั้ง",
+            message: "ไม่สามารถเพิ่มข้อมูลการผ่าตัดได้ กรุณาลองใหม่อีกครั้ง",
             showProgress: true,
             placement: "topRight",
             pauseOnHover: true,
@@ -504,7 +531,7 @@ function EditCase() {
         ) : (
           <>
             <div className="text-3xl font-normal flex flex-row pb-5">
-              <p className="text-black">Edit Case</p>
+              <p className="text-black">แก้ไขเคสผ่าตัด</p>
               <p className="text-blue-600 ml-2">#{hn}</p>
             </div>
             <hr />
@@ -522,13 +549,13 @@ function EditCase() {
                     <div className="flex items-center space-x-3 mb-6">
                       <div className="w-2 h-8 bg-green-600 rounded-full" />
                       <h2 className="text-xl font-semibold text-gray-800">
-                        Patient Information
+                        ข้อมูลผู้ป่วย
                       </h2>
                     </div>
                     <Form.Item
                       label={
                         <span className="text-base font-medium text-gray-700">
-                          Hospital Number Code
+                          หมายเลขของผู้ป่วย{" "}
                         </span>
                       }
                       name="patient_hn_code"
@@ -568,7 +595,7 @@ function EditCase() {
                       <Form.Item
                         label={
                           <span className="text-base font-medium text-gray-700">
-                            First Name
+                            ชื่อ
                           </span>
                         }
                         name="patient_firstname"
@@ -596,7 +623,7 @@ function EditCase() {
                       <Form.Item
                         label={
                           <span className="text-base font-medium text-gray-700">
-                            Last Name
+                            นามสกุล
                           </span>
                         }
                         name="patient_lastname"
@@ -624,7 +651,7 @@ function EditCase() {
                       <Form.Item
                         label={
                           <span className="text-base font-medium text-gray-700">
-                            Gender
+                            เพศ
                           </span>
                         }
                         name="patient_gender"
@@ -643,64 +670,102 @@ function EditCase() {
                           className="h-11 text-base"
                           placeholder="Select gender"
                         >
-                          <Option value="male">Male</Option>
-                          <Option value="female">Female</Option>
+                          <Option value="male">ชาย</Option>
+                          <Option value="female">หญิง</Option>
                         </Select>
                       </Form.Item>
 
                       <Form.Item
                         label={
                           <span className="text-base font-medium text-gray-700">
-                            Date of Birth
+                            ปี/เดือน/วัน เกิด
                           </span>
                         }
                       >
-                        <div className="flex">
-                          <Input
+                        <Input.Group className="flex">
+                          <Form.Item
                             name="patient_dob_year"
-                            value={patientData.patient_dob_year}
-                            onChange={(e) =>
-                              handlePatientDobChange(
-                                "patient_dob_year",
-                                e.target.value
-                              )
-                            }
-                            placeholder="YYYY"
-                            className="h-11 text-base rounded-lg"
-                            maxLength={4}
-                          />
-                          <Input
+                            noStyle
+                            rules={[
+                              {
+                                required: true,
+                                message: "Year is required",
+                              },
+                              {
+                                pattern: /^\d{4}$/,
+                                message: "Invalid year format",
+                              },
+                            ]}
+                          >
+                            <Input
+                              value={patientData.patient_dob_year}
+                              onChange={(e) =>
+                                handlePatientDobChange(
+                                  "patient_dob_year",
+                                  e.target.value
+                                )
+                              }
+                              placeholder="YYYY"
+                              className="h-11 text-base rounded-lg w-24 text-center border-gray-300 focus:border-blue-500 focus:ring-blue-500"
+                              maxLength={4}
+                            />
+                          </Form.Item>
+                          <Form.Item
                             name="patient_dob_month"
-                            value={patientData.patient_dob_month}
-                            onChange={(e) =>
-                              handlePatientDobChange(
-                                "patient_dob_month",
-                                e.target.value
-                              )
-                            }
-                            placeholder="MM"
-                            className="h-11 text-base rounded-lg"
-                            maxLength={2}
-                          />
-                          <Input
+                            noStyle
+                            rules={[
+                              {
+                                required: true,
+                                message: "Month is required",
+                              },
+                              {
+                                pattern: /^(0[1-9]|1[0-2])$/,
+                                message: "Invalid month format",
+                              },
+                            ]}
+                          >
+                            <Input
+                              value={patientData.patient_dob_month}
+                              onChange={(e) =>
+                                handlePatientDobChange(
+                                  "patient_dob_month",
+                                  e.target.value
+                                )
+                              }
+                              placeholder="MM"
+                              className="h-11 text-base rounded-lg w-20 text-center border-gray-300 focus:border-blue-500 focus:ring-blue-500"
+                              maxLength={2}
+                            />
+                          </Form.Item>
+                          <Form.Item
                             name="patient_dob_day"
-                            value={patientData.patient_dob_day}
-                            onChange={(e) =>
-                              handlePatientDobChange(
-                                "patient_dob_day",
-                                e.target.value
-                              )
-                            }
-                            placeholder="DD"
-                            className="h-11 text-base rounded-lg"
-                            maxLength={2}
-                            onBlur={updateDobInPatientData}
-                          />
-                        </div>
-
-                        <div className="mt-2 text-gray-500">
-                          Formatted DOB: {getFormattedDob()}
-                        </div>
+                            noStyle
+                            rules={[
+                              {
+                                required: true,
+                                message: "Day is required",
+                              },
+                              {
+                                pattern: /^(0[1-9]|[12][0-9]|3[01])$/,
+                                message: "Invalid day format",
+                              },
+                            ]}
+                          >
+                            <Input
+                              value={patientData.patient_dob_day}
+                              onChange={(e) =>
+                                handlePatientDobChange(
+                                  "patient_dob_day",
+                                  e.target.value
+                                )
+                              }
+                              placeholder="DD"
+                              className="h-11 text-base rounded-lg w-20 text-center border-gray-300 focus:border-blue-500 focus:ring-blue-500"
+                              maxLength={2}
+                              onBlur={updateDobInPatientData}
+                            />
+                          </Form.Item>
+                        </Input.Group>
                       </Form.Item>
                     </div>
                   </section>
@@ -710,7 +775,7 @@ function EditCase() {
                     <div className="flex items-center space-x-3 mb-6">
                       <div className="w-2 h-8 bg-purple-600 rounded-full" />
                       <h2 className="text-xl font-semibold text-gray-800">
-                        Surgery Details
+                        รายละเอียดการผ่าตัด
                       </h2>
                     </div>
 
@@ -718,7 +783,7 @@ function EditCase() {
                       <Form.Item
                         label={
                           <span className="text-base font-medium text-gray-700">
-                            Select Doctor
+                            เลือกแพทย์
                           </span>
                         }
                         name="doctor_id"
@@ -752,7 +817,7 @@ function EditCase() {
                       <Form.Item
                         label={
                           <span className="text-base font-medium text-gray-700">
-                            Operation
+                            การผ่าตัด
                           </span>
                         }
                         name="operation_name"
@@ -781,7 +846,7 @@ function EditCase() {
                       <Form.Item
                         label={
                           <span className="text-base font-medium text-gray-700">
-                            Surgery Type
+                            ประเภทการผ่าตัด
                           </span>
                         }
                         name="surgery_type_id"
@@ -826,7 +891,7 @@ function EditCase() {
                       <Form.Item
                         label={
                           <span className="text-base font-medium text-gray-700">
-                            OR-Room
+                            เลือกห้องผ่าตัด
                           </span>
                         }
                         name="operating_room_id"
@@ -862,7 +927,7 @@ function EditCase() {
                       <Form.Item
                         label={
                           <span className="text-base font-medium text-gray-700">
-                            Surgery Date
+                            วันที่กำหนดการผ่าตัด
                           </span>
                         }
                         name="surgery_date"
@@ -876,7 +941,7 @@ function EditCase() {
                       <Form.Item
                         label={
                           <span className="text-base font-medium text-gray-700">
-                            Estimate Start Time
+                            เวลาเริ่มผ่าตัดโดยประมาณ
                           </span>
                         }
                         name="estimate_start_time"
@@ -901,7 +966,7 @@ function EditCase() {
                       <Form.Item
                         label={
                           <span className="text-base font-medium text-gray-700">
-                            Estimate Duration (in hours)
+                            ระยะเวลาที่คาดว่าจะใช้ (หน่วยชั่วโมง){" "}
                           </span>
                         }
                         name="estimate_duration"
@@ -945,7 +1010,11 @@ function EditCase() {
                     <Form.Item
                       label={
                         <span className="text-base font-medium text-gray-700">
-                          Patient History
+                          ประวัติผู้ป่วย
+                          <span className="text-sm font-normal text-gray-500">
+                            {" "}
+                            (ไม่จำเป็น){" "}
+                          </span>
                         </span>
                       }
                       name="patient_history"

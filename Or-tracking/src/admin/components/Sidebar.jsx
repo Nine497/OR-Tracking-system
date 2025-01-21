@@ -1,15 +1,9 @@
 import React, { useEffect, useState } from "react";
 import { Layout, Menu, Button } from "antd";
 import { useLocation, NavLink } from "react-router-dom";
-import {
-  HomeOutlined,
-  CalendarOutlined,
-  UsergroupAddOutlined,
-  FileTextOutlined,
-  RightOutlined,
-  LeftOutlined,
-} from "@ant-design/icons";
+import { RightOutlined, LeftOutlined } from "@ant-design/icons";
 import { Icon } from "@iconify/react";
+import { useAuth } from "../context/AuthContext";
 
 import Logo from "../assets/Logo.png";
 import { axiosInstanceStaff } from "../api/axiosInstance";
@@ -32,44 +26,49 @@ const items = [
     to: "/admin/case_manage",
     icon: <Icon icon="ic:outline-description" className="text-lg" />,
     key: "case_manage",
-    permissionRequired: 5003,
+    permissionRequired: "5003",
   },
   {
     label: "ผู้ใช้",
     to: "/admin/users_manage",
     icon: <Icon icon="ic:baseline-group-add" className="text-lg" />,
     key: "users_manage",
-    permissionRequired: 5002,
+    permissionRequired: "5002",
   },
 ];
 
-const Sidebar = ({ collapsed, setCollapsed, isMobile, user }) => {
+const Sidebar = ({ collapsed, setCollapsed, isMobile }) => {
   const location = useLocation();
   const [userPermissions, setUserPermissions] = useState([]);
   const selectedKey = items.find((item) =>
     location.pathname.startsWith(item.to)
   )?.key;
+  const { permissions } = useAuth();
 
   useEffect(() => {
-    const fetchPermissions = async () => {
-      if (user?.id) {
-        try {
-          const response = await axiosInstanceStaff.get(
-            `staff/permissions/${user.id}`
-          );
-          const permissions = response.data.map((item) => item.permission_id);
-          setUserPermissions(permissions);
-          console.log(permissions);
-        } catch (error) {
-          console.error("Error fetching permissions:", error);
-        }
-      }
-    };
+    setUserPermissions(permissions);
+  }, [permissions]);
 
-    fetchPermissions();
-    const fetchPermissionsInterval = setInterval(fetchPermissions, 300000);
-    return () => clearInterval(fetchPermissionsInterval);
-  }, [user?.id]);
+  // useEffect(() => {
+  //   const fetchPermissions = async () => {
+  //     if (user?.id) {
+  //       try {
+  //         const response = await axiosInstanceStaff.get(
+  //           `staff/permissions/${user.id}`
+  //         );
+  //         const permissions = response.data.map((item) => item.permission_id);
+  //         setUserPermissions(permissions);
+  //         console.log(permissions);
+  //       } catch (error) {
+  //         console.error("Error fetching permissions:", error);
+  //       }
+  //     }
+  //   };
+
+  //   fetchPermissions();
+  //   const fetchPermissionsInterval = setInterval(fetchPermissions, 300000);
+  //   return () => clearInterval(fetchPermissionsInterval);
+  // }, [user?.id]);
 
   const menuItems = items
     .map((item) => {

@@ -19,11 +19,11 @@ router.get(
 );
 
 // เส้นทาง dynamic
+router.post("/operation/", surgeryController.createOperation);
 router.get("/:id", surgeryController.getCaseById);
 router.post("/:patient_id", surgeryController.createSurgeryCase);
 router.put("/:surgery_case_id", surgeryController.updateSurgeryCase);
 router.patch("/status/:id", surgeryController.updateStatusById);
-router.post("/operation/", surgeryController.createOperation);
 router.get("/", surgeryController.getAllCase);
 
 module.exports = router;

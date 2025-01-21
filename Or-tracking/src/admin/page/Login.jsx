@@ -28,6 +28,7 @@ const Login = () => {
           position: "top-right",
           autoClose: 3000,
         });
+        console.log(data);
         navigate("/admin/room_schedule");
       }
     } catch (error) {
@@ -85,9 +86,7 @@ const Login = () => {
             <div className="inline-block p-2 bg-blue-600 rounded-lg mb-4">
               <h1 className="text-3xl font-bold text-white">OR-Tracking</h1>
             </div>
-            <h2 className="text-2xl font-bold text-gray-800">
-              ยินดีต้อนรับกลับ
-            </h2>
+
             <p className="mt-2 text-gray-600">
               กรุณาเข้าสู่ระบบเพื่อดำเนินการต่อ
             </p>

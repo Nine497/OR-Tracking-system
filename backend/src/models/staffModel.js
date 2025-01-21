@@ -60,8 +60,18 @@ const Staff = {
 
         await trx("staff_permission").where("staff_id", staff_id).del();
 
-        if (Array.isArray(permission_ids) && permission_ids.length > 0) {
-          const permissions = permission_ids.map((permissionId) => ({
+        const validPermissionIds = (permission_ids || []).filter(
+          (id) => id !== null && id !== undefined
+        );
+
+        if (validPermissionIds.length > 0) {
+          if (!gived_by || !gived_at) {
+            throw new Error(
+              "gived_by and gived_at are required for adding permissions"
+            );
+          }
+
+          const permissions = validPermissionIds.map((permissionId) => ({
             staff_id: staff_id,
             permission_id: permissionId,
             gived_by: gived_by,

@@ -74,9 +74,9 @@ const LoginForm = ({ t, link }) => {
       {/* เนื้อหาหลัก */}
       <div className="flex-grow w-full flex flex-col items-center justify-center py-8">
         <div className="w-full max-w-full mx-auto px-4 sm:px-6 md:px-8">
-          <h2 className="text-lg sm:text-xl md:text-2xl font-semibold text-center mb-6 text-blue-800">
+          {/* <h2 className="text-lg sm:text-xl md:text-2xl font-semibold text-center mb-6 text-blue-800">
             {t("login.TITLE")}
-          </h2>
+          </h2> */}
           <div className="mb-8">
             <img
               src={Logo}
@@ -138,7 +138,7 @@ const LoginForm = ({ t, link }) => {
                     type="number"
                     placeholder="DD"
                     maxLength={2}
-                    className="h-11 w-20 text-center text-base rounded-lg border border-gray-300 focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+                    className="p-2 text-center text-sm sm:text-base rounded-lg border border-gray-300 focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
                   />
                 </Form.Item>
                 {/* ช่องเดือน */}
@@ -157,7 +157,7 @@ const LoginForm = ({ t, link }) => {
                     type="number"
                     placeholder="MM"
                     maxLength={2}
-                    className="h-11 w-20 text-center text-base rounded-lg border border-gray-300 focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+                    className="p-2 text-center text-sm sm:text-base rounded-lg border border-gray-300 focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
                   />
                 </Form.Item>
 
@@ -177,7 +177,7 @@ const LoginForm = ({ t, link }) => {
                     type="number"
                     placeholder="YYYY"
                     maxLength={4}
-                    className="h-11 w-28 text-center text-base rounded-lg border border-gray-300 focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+                    className="p-2 text-center text-sm sm:text-base rounded-lg border border-gray-300 focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
                   />
                 </Form.Item>
               </Input.Group>

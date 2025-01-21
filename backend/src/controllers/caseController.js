@@ -37,9 +37,14 @@ exports.createOperation = async (req, res) => {
     const { operation_name, surgery_case_id } = req.body;
     console.log("operation_name : ", operation_name);
 
-    if (!operation_name || !surgery_case_id) {
+    if (!operation_name) {
       return res.status(400).json({
-        message: "Missing required fields: operation_name or surgery_case_id",
+        message: "Missing required fields: operation_name",
+      });
+    }
+    if (!surgery_case_id) {
+      return res.status(400).json({
+        message: "Missing required fields: surgery_case_id",
       });
     }
     console.log("operation_name ", operation_name);

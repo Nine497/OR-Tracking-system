@@ -130,7 +130,7 @@ function RoomCard({ room }) {
                                      text-xs sm:text-sm font-semibold 
                                      bg-gradient-to-r from-indigo-50 to-violet-50
                                      text-indigo-700 rounded-full 
-                                     ring-1 ring-indigo-200/50"
+                                     ring-1 ring-indigo-200/50 tracking-wider"
                         >
                           {c.patient_HN}
                         </span>

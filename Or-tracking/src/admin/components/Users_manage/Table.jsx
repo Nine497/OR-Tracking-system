@@ -6,6 +6,7 @@ import { Spin } from "antd";
 import PermissionModal from "./PermissionModal";
 import { Button } from "antd";
 import dayjs from "dayjs";
+import { useAuth } from "../../context/AuthContext";
 
 function UsersTable() {
   const [filteredData, setFilteredData] = useState([]);
@@ -16,6 +17,7 @@ function UsersTable() {
   const [modalVisible, setModalVisible] = useState(false);
   const [selectedUser, setSelectedUser] = useState(null);
   const [dataLastestUpdated, setDataLastestUpdated] = useState(null);
+  const { permissions } = useAuth();
 
   const handleSearch = async (value) => {
     setSearchTerm(value);
@@ -151,6 +153,10 @@ function UsersTable() {
     setModalVisible(false);
   };
 
+  useEffect(() => {
+    console.log("permissions", permissions);
+  }, []);
+
   const columns = [
     {
       title: <span className="text-base font-bold">#</span>,
@@ -185,49 +191,57 @@ function UsersTable() {
       ),
     },
     {
-      title: <span className="text-base font-bold">จัดการ</span>,
+      title: permissions.includes("5001") ? (
+        <span className="text-base font-bold">จัดการ</span>
+      ) : null,
       key: "action",
-      render: (_, record) => (
-        <div className="flex flex-between items-center space-x-4">
-          <Tooltip title="จัดการสิทธิ์การเข้าถึง">
-            <div>
-              <Button
-                type="primary"
-                icon={
-                  <Icon
-                    icon="weui:setting-filled"
-                    className="mr-1 w-4 h-4 text-white"
-                  />
-                }
-                onClick={() => handlePermission(record)}
-                className="w-full sm:w-auto"
-              >
-                <span className="font-medium text-base">จัดการสิทธิ์</span>
-              </Button>
-            </div>
-          </Tooltip>
+      render: (_, record) => {
+        const hasPermission5001 = permissions.includes("5001");
 
-          <div className="flex items-center space-x-2 bg-gray-100 px-3 py-1 rounded-lg">
-            <Tooltip
-              title={
-                record.isActive
-                  ? "คลิกเพื่อปิดใช้งานบัญชี"
-                  : "คลิกเพื่อเปิดใช้งานบัญชี"
-              }
-            >
-              <Switch
-                size="small"
-                className="bg-gray-300"
-                checked={record.isActive}
-                onChange={(checked) => handleActiveToggle(record, checked)}
-              />
+        if (!hasPermission5001) return null;
+
+        return (
+          <div className="flex flex-between items-center space-x-4">
+            <Tooltip title="จัดการสิทธิ์การเข้าถึง">
+              <div>
+                <Button
+                  type="primary"
+                  icon={
+                    <Icon
+                      icon="weui:setting-filled"
+                      className="mr-1 w-4 h-4 text-white"
+                    />
+                  }
+                  onClick={() => handlePermission(record)}
+                  className="w-full sm:w-auto"
+                >
+                  <span className="font-medium text-base">จัดการสิทธิ์</span>
+                </Button>
+              </div>
             </Tooltip>
-            <span className="font-medium text-base text-gray-700">
-              เปิดใช้งานบัญชี
-            </span>
+
+            <div className="flex items-center space-x-2 bg-gray-100 px-3 py-1 rounded-lg">
+              <Tooltip
+                title={
+                  record.isActive
+                    ? "คลิกเพื่อปิดใช้งานบัญชี"
+                    : "คลิกเพื่อเปิดใช้งานบัญชี"
+                }
+              >
+                <Switch
+                  size="small"
+                  className="bg-gray-300"
+                  checked={record.isActive}
+                  onChange={(checked) => handleActiveToggle(record, checked)}
+                />
+              </Tooltip>
+              <span className="font-medium text-base text-gray-700">
+                เปิดใช้งานบัญชี
+              </span>
+            </div>
           </div>
-        </div>
-      ),
+        );
+      },
     },
   ];
 

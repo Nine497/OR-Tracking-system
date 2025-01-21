@@ -193,19 +193,12 @@ exports.getAllPermissions = async (req, res) => {
 exports.updatePermissions = async (req, res) => {
   const { staff_id } = req.params;
   const { permission_ids, gived_by, gived_at } = req.body;
-  try {
-    console.log(staff_id);
 
-    if (!permission_ids || permission_ids.length === 0) {
-      await Staff.updatePermissions(staff_id, [], gived_by, gived_at);
-    } else {
-      await Staff.updatePermissions(
-        staff_id,
-        permission_ids,
-        gived_by,
-        gived_at
-      );
-    }
+  try {
+    console.log("Staff ID:", staff_id);
+    console.log("Permission IDs:", permission_ids);
+
+    await Staff.updatePermissions(staff_id, permission_ids, gived_by, gived_at);
 
     res.json({ message: "Permissions updated successfully" });
   } catch (error) {

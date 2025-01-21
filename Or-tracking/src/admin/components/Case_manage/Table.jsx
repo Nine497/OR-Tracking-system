@@ -6,6 +6,7 @@ import UpdateModal from "./UpdateModal";
 import StatusUpdateForm from "./Status_update";
 import dayjs from "dayjs";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "../../context/AuthContext";
 
 function CaseTable() {
   const [selectedRecord, setSelectedRecord] = useState(null);
@@ -24,6 +25,7 @@ function CaseTable() {
   const [dataLastestUpdated, setDataLastestUpdated] = useState(null);
   const BASE_URL = import.meta.env.VITE_BASE_URL;
   const navigate = useNavigate();
+  const { permissions } = useAuth();
 
   const handleSelectChange = (value) => {
     setDoctorSelectedOption(value);
@@ -283,14 +285,14 @@ function CaseTable() {
       title: <span className="text-base font-semibold">HN</span>,
       dataIndex: "hn_code",
       key: "hn_code",
-      align: "center",
+      align: "left",
       render: (text) => <span className="text-base font-normal">{text}</span>,
     },
     {
       title: <span className="text-base font-semibold">ชื่อผู้ป่วย</span>,
       dataIndex: "patientName",
       key: "patientName",
-      align: "center",
+      align: "left",
       render: (text, record) => (
         <span className="text-base font-normal">
           {record.patient_firstname} {record.patient_lastname}
@@ -301,7 +303,7 @@ function CaseTable() {
       title: <span className="text-base font-semibold">แพทย์</span>,
       dataIndex: "doctorName",
       key: "doctorName",
-      align: "center",
+      align: "left",
       render: (text, record) => (
         <span className="text-base font-normal">
           {record.doctor_prefix}
@@ -313,14 +315,14 @@ function CaseTable() {
       title: <span className="text-base font-semibold">ห้องผ่าตัด</span>,
       dataIndex: "room_name",
       key: "room_name",
-      align: "center",
+      align: "left",
       render: (text) => <span className="text-base font-normal">{text}</span>,
     },
     {
       title: <span className="text-base font-semibold">วันที่ผ่าตัด</span>,
       dataIndex: "surgery_date",
       key: "surgery_date",
-      align: "center",
+      align: "left",
       render: (text) => (
         <span className="text-base font-normal">
           {new Date(text).toLocaleDateString()}{" "}
@@ -331,7 +333,7 @@ function CaseTable() {
       title: <span className="text-base font-bold">อัพเดทสถานะ</span>,
       dataIndex: "status_id",
       key: "status_id",
-      align: "center",
+      align: "left",
       render: (_, record) => (
         <StatusUpdateForm record={record} allStatus={allStatus} />
       ),
@@ -339,7 +341,7 @@ function CaseTable() {
     {
       title: <span className="text-base font-bold">สถานะ</span>,
       key: "status",
-      align: "center",
+      align: "left",
       render: (_, record) => (
         <div className="flex flex-wrap items-center justify-between gap-2">
           <Tooltip title="View Status Timeline">
@@ -358,40 +360,50 @@ function CaseTable() {
       ),
     },
     {
-      title: <span className="text-base font-bold">Link</span>,
+      title: permissions.includes("5004") ? (
+        <span className="text-base font-bold">Link</span>
+      ) : null,
       dataIndex: "status_id",
       key: "status_id",
-      align: "center",
-      render: (_, record) => (
-        <div className="flex flex-wrap items-center justify-between gap-2">
-          <Button
-            type="default"
-            icon={<Icon icon="lucide:settings" />}
-            onClick={() => openLinkModal(record)}
-            className="flex items-center gap-1"
-          >
-            ตั้งค่า
-          </Button>
-          {record.link_id &&
-          record.link_active === true &&
-          new Date(record.link_expiration) > Date.now() ? (
+      align: "left",
+      render: (_, record) => {
+        const hasPermission5004 = permissions.includes("5004");
+
+        if (!hasPermission5004) return null;
+
+        return (
+          <div className="flex flex-wrap items-center justify-between gap-2">
             <Button
               type="default"
-              icon={<Icon icon="bx:bx-link" />}
-              onClick={() => copyLink(`${BASE_URL}ptr?link=${record.link_id}`)}
+              icon={<Icon icon="lucide:settings" />}
+              onClick={() => openLinkModal(record)}
               className="flex items-center gap-1"
-              loading={copyLoading}
             >
-              คัดลอก
+              ตั้งค่า
             </Button>
-          ) : null}
-        </div>
-      ),
+            {record.link_id &&
+            record.link_active === true &&
+            new Date(record.link_expiration) > Date.now() ? (
+              <Button
+                type="default"
+                icon={<Icon icon="bx:bx-link" />}
+                onClick={() =>
+                  copyLink(`${BASE_URL}ptr?link=${record.link_id}`)
+                }
+                className="flex items-center gap-1"
+                loading={copyLoading}
+              >
+                คัดลอก
+              </Button>
+            ) : null}
+          </div>
+        );
+      },
     },
     {
       title: <span className="text-base font-bold">จัดการ</span>,
       key: "Action",
-      align: "center",
+      align: "left",
       render: (_, record) => (
         <div className="flex flex-wrap items-center justify-between gap-2">
           <Tooltip title="Edit Record">
