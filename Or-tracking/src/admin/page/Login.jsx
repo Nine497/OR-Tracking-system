@@ -5,7 +5,6 @@ import { useNavigate } from "react-router-dom";
 import { axiosInstanceStaff } from "../api/axiosInstance";
 import LoginImg from "../assets/Login.jpg";
 import { Icon } from "@iconify/react";
-import { toast } from "react-toastify";
 
 const Login = () => {
   const { login } = useAuth();
@@ -24,9 +23,12 @@ const Login = () => {
 
       if (data.token) {
         login(data.token);
-        toast.success("เข้าสู่ระบบสำเร็จ", {
-          position: "top-right",
-          autoClose: 3000,
+        notification.success({
+          message: "เข้าสู่ระบบสำเร็จ",
+          showProgress: true,
+          placement: "topRight",
+          pauseOnHover: true,
+          duration: 2,
         });
         console.log(data);
         navigate("/admin/room_schedule");
@@ -36,25 +38,37 @@ const Login = () => {
 
       if (error.response) {
         if (error.response.status === 401) {
-          toast.error("ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง", {
-            position: "top-right",
-            autoClose: 3000,
+          notification.error({
+            message: "ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง",
+            showProgress: true,
+            placement: "topRight",
+            pauseOnHover: true,
+            duration: 2,
           });
         } else if (error.response.status === 403) {
-          toast.error("บัญชีของคุณถูกระงับการใช้งาน", {
-            position: "top-right",
-            autoClose: 3000,
+          notification.error({
+            message: "บัญชีคุณถูกระงับ กรุณาติดต่อผู้ดูแล",
+            showProgress: true,
+            placement: "topRight",
+            pauseOnHover: true,
+            duration: 2,
           });
         } else {
-          toast.error("ไม่สามารถเข้าสู่ระบบได้", {
-            position: "top-right",
-            autoClose: 3000,
+          notification.error({
+            message: "เกิดข้อผิดพลาดในการเข้าสู่ระบบ กรุณาลองใหม่อีกครั้ง",
+            showProgress: true,
+            placement: "topRight",
+            pauseOnHover: true,
+            duration: 2,
           });
         }
       } else {
-        toast.error("ไม่สามารถเชื่อมต่อกับเซิร์ฟเวอร์", {
-          position: "top-right",
-          autoClose: 3000,
+        notification.error({
+          message: "ไม่สามารถเชื่อมต่อกับเซิร์ฟเวอร์ กรุณาลองใหม่อีกครั้ง",
+          showProgress: true,
+          placement: "topRight",
+          pauseOnHover: true,
+          duration: 2,
         });
       }
     } finally {

@@ -266,17 +266,17 @@ function UsersTable() {
           className="w-full sm:w-auto"
           size="large"
         >
-          <span className="font-medium text-lg">อัพเดท</span>
+          <span className="font-medium text-lg">อัปเดต</span>
         </Button>
       </div>
       <div className="ml-auto text-right">
         <div className="text-gray-500 text-sm">
-          ข้อมูลอัพเดทเมื่อ: {dataLastestUpdated}
+          ข้อมูลอัปเดตเมื่อ: {dataLastestUpdated}
         </div>
       </div>
 
       <div className="w-full h-full mt-4 overflow-x-auto">
-        <Spin spinning={loading} size="large">
+        <Spin spinning={loading} size="middle">
           <Table
             dataSource={filteredData}
             columns={columns}

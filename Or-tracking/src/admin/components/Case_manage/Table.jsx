@@ -217,34 +217,6 @@ function CaseTable() {
       }
     };
 
-    // const fetchTypeData = async () => {
-    //   try {
-    //     const token = localStorage.getItem("jwtToken");
-    //     const response = await  axiosInstanceStaff.get("doctor/", {
-    //       headers: {
-    //         Authorization: `Bearer ${token}`,
-    //       },
-    //     });
-    //     if (response) {
-    //       console.log("Respond : ", response);
-    //     }
-
-    //     if (response.data && Array.isArray(response.data.data)) {
-    //       setDoctorsData(response.data.data);
-    //     } else {
-    //       console.error("Invalid data format received for doctors.");
-    //     }
-    //   } catch (error) {
-    //     console.error("Error fetching cases:", error);
-    //     notification.error({
-    //       message: "Error fetching cases",
-    //       description: error.message,
-    //     });
-    //   } finally {
-    //     setLoading(false);
-    //   }
-    // };
-
     fetchDoctorsData();
   }, []);
 
@@ -274,13 +246,6 @@ function CaseTable() {
   }, []);
 
   const columns = [
-    // {
-    //   title: <span className="text-base font-semibold">#</span>,
-    //   dataIndex: "surgery_case_id",
-    //   key: "surgery_case_id",
-    //   align: "center",
-    //   render: (text) => <span className="text-base font-normal">{text}</span>,
-    // },
     {
       title: <span className="text-base font-semibold">HN</span>,
       dataIndex: "hn_code",
@@ -330,7 +295,7 @@ function CaseTable() {
       ),
     },
     {
-      title: <span className="text-base font-bold">อัพเดทสถานะ</span>,
+      title: <span className="text-base font-bold">อัปเดตสถานะ</span>,
       dataIndex: "status_id",
       key: "status_id",
       align: "left",
@@ -461,13 +426,13 @@ function CaseTable() {
           className="w-full sm:w-auto"
           size="large"
         >
-          <span className="font-medium text-lg">อัพเดท</span>
+          <span className="font-medium text-lg">อัปเดต</span>
         </Button>
       </div>
 
       <div className="ml-auto text-right">
         <div className="text-gray-500 text-sm">
-          ข้อมูลอัพเดทเมื่อ: {dataLastestUpdated}
+          ข้อมูลอัปเดตเมื่อ: {dataLastestUpdated}
         </div>
       </div>
 

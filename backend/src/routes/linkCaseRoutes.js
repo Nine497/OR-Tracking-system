@@ -5,10 +5,18 @@ const verifyToken = require("../middlewares/verifyToken");
 
 router.get("/:id", linkCaseController.getLinkCaseById);
 router.get("/", linkCaseController.getAllLinkCases);
-router.post("/", linkCaseController.createLinkCase);
-router.put("/:id", linkCaseController.updateLinkCase);
-router.put("/:id/expiration", linkCaseController.updateLinkCaseExpiration);
-router.patch("/update_status", linkCaseController.updateLinkCaseStatus);
+router.post("/", verifyToken, linkCaseController.createLinkCase);
+router.put("/:id", verifyToken, linkCaseController.updateLinkCase);
+router.put(
+  "/:id/expiration",
+  verifyToken,
+  linkCaseController.updateLinkCaseExpiration
+);
+router.patch(
+  "/update_status",
+  verifyToken,
+  linkCaseController.updateLinkCaseStatus
+);
 router.get(
   "/getLast/:surgery_case_id",
   linkCaseController.getLatestActiveLinkCaseBySurgeryCaseId

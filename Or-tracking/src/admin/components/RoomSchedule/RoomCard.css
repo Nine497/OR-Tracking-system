@@ -1,7 +1,3 @@
-.CollapseCustom .ant-collapse {
-  background-color: #FBFBFB;
-}
-
 .custom-scrollbar::-webkit-scrollbar {
   width: 8px;
   border: none;
@@ -21,6 +17,12 @@
 .custom-scrollbar::-webkit-scrollbar-thumb:hover {
   background: rgb(165 180 252);
   border: none;
+}
+
+.custom-card:where(.css-dev-only-do-not-override-1wwf28x).ant-card
+  .ant-card-body {
+  padding: 10px !important;
+  border-radius: 0 0 8px 8px !important;
 }
 
 /* Firefox */

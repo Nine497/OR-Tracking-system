@@ -11,7 +11,6 @@ const axiosInstancePatient = axios.create({
   timeout: 15000,
 });
 
-// Staff Token Interceptor
 axiosInstanceStaff.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem("jwtToken");
@@ -30,15 +29,31 @@ axiosInstanceStaff.interceptors.request.use(
 axiosInstanceStaff.interceptors.response.use(
   (response) => response,
   (error) => {
-    if (error.response && error.response.status === 401) {
-      notification.error({
-        message: "Unauthorized",
-        description:
-          "You are not authorized to access this resource. Please log in again.",
-      });
-      localStorage.removeItem("jwtToken");
-      window.location.href = "/login";
+    if (error.response) {
+      const { status, data } = error.response;
+
+      if (data?.message === "Account is deactivated") {
+        notification.error({
+          message: "Account is deactivated",
+          description:
+            "Your account has been deactivated. You will be logged out.",
+        });
+
+        localStorage.removeItem("jwtToken");
+        window.location.href = "/login";
+      }
+
+      if (status === 401) {
+        notification.error({
+          message: "Unauthorized",
+          description:
+            "You are not authorized to access this resource. Please log in again.",
+        });
+        localStorage.removeItem("jwtToken");
+        window.location.href = "/login";
+      }
     }
+
     return Promise.reject(error);
   }
 );

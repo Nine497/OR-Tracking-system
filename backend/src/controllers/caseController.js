@@ -4,13 +4,18 @@ const db = require("../config/database");
 exports.getCalendar = async (req, res) => {
   try {
     const caseCalendar = await db("surgery_case")
-      .select("surgery_case.*", "operating_room.*", "patients.hn_code")
-      .join(
-        "operating_room",
-        "surgery_case.operating_room_id",
-        "operating_room.operating_room_id"
+      .select(
+        "surgery_case.surgery_case_id",
+        "surgery_case.surgery_date",
+        "surgery_case.estimate_start_time",
+        "patients.hn_code",
+        "doctors.doctor_id",
+        db.raw(
+          "CONCAT(doctors.firstname, ' ', doctors.lastname) AS doctor_fullname"
+        )
       )
-      .join("patients", "surgery_case.patient_id", "patients.patient_id");
+      .join("patients", "surgery_case.patient_id", "patients.patient_id")
+      .join("doctors", "surgery_case.doctor_id", "doctors.doctor_id");
 
     if (!caseCalendar || caseCalendar.length === 0) {
       return res.status(404).json({
@@ -340,7 +345,7 @@ exports.createSurgeryCase = async (req, res) => {
         created_by: surgeryCaseData.created_by,
         patient_id: parsedPatientId,
         created_at: new Date().toISOString(),
-        patient_history: surgeryCaseData.patient_history,
+        patient_history: surgeryCaseData.patient_history || "",
       })
       .returning("*")
       .then((newSurgeryCase) => newSurgeryCase[0]);

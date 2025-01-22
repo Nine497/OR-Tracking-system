@@ -440,7 +440,7 @@ function EditCase() {
         console.log("patientInfo", patientInfo);
 
         const updatedPatientData = {
-          ...patientData, // เก็บค่าฟิลด์อื่น ๆ ที่มีอยู่ใน patientData ไว้
+          ...patientData,
           patient_hn_code: patientInfo.hn_code || hnCode,
           patient_firstname: patientInfo.firstname || "",
           patient_lastname: patientInfo.lastname || "",
@@ -506,6 +506,10 @@ function EditCase() {
       ...prevData,
       [field]: value,
     }));
+
+    form.setFieldsValue({
+      [field]: value,
+    });
   };
 
   const updateDobInPatientData = () => {
@@ -562,7 +566,7 @@ function EditCase() {
                       rules={[
                         {
                           required: true,
-                          message: "Please enter the hospital number code!",
+                          message: "กรุณากรอกหมายเลขของผู้ป่วย !",
                         },
                       ]}
                     >
@@ -577,7 +581,6 @@ function EditCase() {
                             )
                           }
                           ref={hnInputRef}
-                          placeholder="Enter HN code"
                           className="h-11 text-base border rounded-lg"
                         />
                         <Button
@@ -602,7 +605,7 @@ function EditCase() {
                         rules={[
                           {
                             required: true,
-                            message: "Please enter the first name!",
+                            message: "กรุณากรอกชื่อของผู้ป่วย !",
                           },
                         ]}
                       >
@@ -616,7 +619,6 @@ function EditCase() {
                             )
                           }
                           className="h-11 text-base rounded-lg"
-                          placeholder="Enter First Name"
                         />
                       </Form.Item>
 
@@ -630,7 +632,7 @@ function EditCase() {
                         rules={[
                           {
                             required: true,
-                            message: "Please enter the last name!",
+                            message: "กรุณากรอกนามสกุลของผู้ป่วย !",
                           },
                         ]}
                       >
@@ -644,7 +646,6 @@ function EditCase() {
                             )
                           }
                           className="h-11 text-base rounded-lg"
-                          placeholder="Enter Last Name"
                         />
                       </Form.Item>
 
@@ -656,7 +657,10 @@ function EditCase() {
                         }
                         name="patient_gender"
                         rules={[
-                          { required: true, message: "Please select gender!" },
+                          {
+                            required: true,
+                            message: "กรุณาเลือกเพศของผู้ป่วย !",
+                          },
                         ]}
                       >
                         <Select
@@ -678,9 +682,16 @@ function EditCase() {
                       <Form.Item
                         label={
                           <span className="text-base font-medium text-gray-700">
-                            ปี/เดือน/วัน เกิด
+                            ปี/เดือน/วัน เกิด{" "}
                           </span>
                         }
+                        required
+                        rules={[
+                          {
+                            required: true,
+                            message: "กรุณาระบุปี/เดือน/วันเกิด",
+                          },
+                        ]}
                       >
                         <Input.Group className="flex">
                           <Form.Item
@@ -689,11 +700,11 @@ function EditCase() {
                             rules={[
                               {
                                 required: true,
-                                message: "Year is required",
+                                message: "จำเป็นต้องกรอกปี",
                               },
                               {
                                 pattern: /^\d{4}$/,
-                                message: "Invalid year format",
+                                message: "รูปแบบปีไม่ถูกต้อง",
                               },
                             ]}
                           >
@@ -716,53 +727,91 @@ function EditCase() {
                             rules={[
                               {
                                 required: true,
-                                message: "Month is required",
+                                message: "จำเป็นต้องกรอกเดือน",
                               },
                               {
-                                pattern: /^(0[1-9]|1[0-2])$/,
-                                message: "Invalid month format",
+                                validator: (_, value) => {
+                                  if (!value || (value >= 1 && value <= 12)) {
+                                    return Promise.resolve();
+                                  }
+                                  return Promise.reject(
+                                    "กรุณากรอกเดือนที่อยู่ในช่วง 1-12"
+                                  );
+                                },
                               },
                             ]}
                           >
                             <Input
                               value={patientData.patient_dob_month}
-                              onChange={(e) =>
-                                handlePatientDobChange(
-                                  "patient_dob_month",
-                                  e.target.value
-                                )
-                              }
+                              onChange={(e) => {
+                                let value = e.target.value;
+                                if (
+                                  !isNaN(value) &&
+                                  value >= 1 &&
+                                  value <= 12
+                                ) {
+                                  handlePatientDobChange(
+                                    "patient_dob_month",
+                                    value
+                                  );
+                                }
+                              }}
                               placeholder="MM"
                               className="h-11 text-base rounded-lg w-20 text-center border-gray-300 focus:border-blue-500 focus:ring-blue-500"
                               maxLength={2}
+                              onBlur={(e) => {
+                                let value = e.target.value;
+                                if (value && value.length === 1) {
+                                  value = `0${value}`;
+                                }
+                                if (value > 12) {
+                                  value = "12";
+                                }
+                                handlePatientDobChange(
+                                  "patient_dob_month",
+                                  value
+                                );
+                              }}
                             />
                           </Form.Item>
+
                           <Form.Item
                             name="patient_dob_day"
                             noStyle
                             rules={[
                               {
                                 required: true,
-                                message: "Day is required",
-                              },
-                              {
-                                pattern: /^(0[1-9]|[12][0-9]|3[01])$/,
-                                message: "Invalid day format",
+                                message: "จำเป็นต้องกรอกวัน",
                               },
                             ]}
                           >
                             <Input
                               value={patientData.patient_dob_day}
-                              onChange={(e) =>
-                                handlePatientDobChange(
-                                  "patient_dob_day",
-                                  e.target.value
-                                )
-                              }
+                              onChange={(e) => {
+                                let value = e.target.value;
+                                if (!isNaN(value) && value <= 31) {
+                                  handlePatientDobChange(
+                                    "patient_dob_day",
+                                    value
+                                  );
+                                }
+                              }}
                               placeholder="DD"
                               className="h-11 text-base rounded-lg w-20 text-center border-gray-300 focus:border-blue-500 focus:ring-blue-500"
                               maxLength={2}
-                              onBlur={updateDobInPatientData}
+                              onBlur={(e) => {
+                                let value = e.target.value;
+                                if (value && value.length === 1) {
+                                  value = `0${value}`;
+                                }
+                                if (value > 31) {
+                                  value = "31";
+                                }
+                                handlePatientDobChange(
+                                  "patient_dob_day",
+                                  value
+                                );
+                              }}
                             />
                           </Form.Item>
                         </Input.Group>
@@ -783,7 +832,7 @@ function EditCase() {
                       <Form.Item
                         label={
                           <span className="text-base font-medium text-gray-700">
-                            เลือกแพทย์
+                            แพทย์
                           </span>
                         }
                         name="doctor_id"
@@ -891,7 +940,7 @@ function EditCase() {
                       <Form.Item
                         label={
                           <span className="text-base font-medium text-gray-700">
-                            เลือกห้องผ่าตัด
+                            ห้องผ่าตัด
                           </span>
                         }
                         name="operating_room_id"
@@ -927,7 +976,7 @@ function EditCase() {
                       <Form.Item
                         label={
                           <span className="text-base font-medium text-gray-700">
-                            วันที่กำหนดการผ่าตัด
+                            วันที่ผ่าตัด
                           </span>
                         }
                         name="surgery_date"
@@ -941,7 +990,7 @@ function EditCase() {
                       <Form.Item
                         label={
                           <span className="text-base font-medium text-gray-700">
-                            เวลาเริ่มผ่าตัดโดยประมาณ
+                            เวลาเริ่มผ่าตัด
                           </span>
                         }
                         name="estimate_start_time"
@@ -966,7 +1015,7 @@ function EditCase() {
                       <Form.Item
                         label={
                           <span className="text-base font-medium text-gray-700">
-                            ระยะเวลาที่คาดว่าจะใช้ (หน่วยชั่วโมง){" "}
+                            ระยะเวลาการผ่าตัด (หน่วยชั่วโมง){" "}
                           </span>
                         }
                         name="estimate_duration"
@@ -1013,7 +1062,7 @@ function EditCase() {
                           ประวัติผู้ป่วย
                           <span className="text-sm font-normal text-gray-500">
                             {" "}
-                            (ไม่จำเป็น){" "}
+                            ( ไม่จำเป็น ){" "}
                           </span>
                         </span>
                       }

@@ -46,7 +46,7 @@ export default function Calendar() {
     <div className="w-full px-4 bg-white rounded-lg min-h-[500px]">
       <span className="text-3xl font-semibold">ปฏิทินเคสผ่าตัด</span>
       {loading ? (
-        <div className="flex justify-center items-center h-96">
+        <div className="flex justify-center items-center min-h-[calc(106vh-theme(spacing.32))] w-full">
           <Spin size="large" />
         </div>
       ) : (

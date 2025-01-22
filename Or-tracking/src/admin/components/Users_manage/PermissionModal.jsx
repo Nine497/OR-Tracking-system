@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, memo } from "react";
 import { Modal, Form, Checkbox, Button, Spin, notification } from "antd";
 import { axiosInstanceStaff } from "../../api/axiosInstance";
 import { useAuth } from "../../context/AuthContext";
@@ -17,25 +17,19 @@ function PermissionModal({ visible, staff, onClose }) {
       if (!visible) return;
       setLoading(true);
       try {
-        const response = await axiosInstanceStaff.get("staff/permissions");
+        const [allPermissionsRes, staffPermissionsRes] = await Promise.all([
+          axiosInstanceStaff.get("staff/permissions"),
+          staff
+            ? axiosInstanceStaff.get(`staff/permissions/${staff.staff_id}`)
+            : Promise.resolve({ data: [] }),
+        ]);
 
-        setAllPermissions(response.data.permissions);
-        console.log(response.data.permissions);
-
-        if (staff) {
-          const staffResponse = await axiosInstanceStaff.get(
-            `staff/permissions/${staff.staff_id}`
-          );
-
-          setStaffPermissions(staffResponse?.data);
-        }
+        setAllPermissions(allPermissionsRes.data.permissions);
+        setStaffPermissions(staffPermissionsRes?.data || []);
       } catch (error) {
-        console.error("Error fetching permissions:", error);
         notification.error({
           message: "ไม่สามารถดึงข้อมูลสิทธิ์ผู้ใช้ได้",
-          showProgress: true,
           placement: "topRight",
-          pauseOnHover: true,
           duration: 2,
         });
       } finally {
@@ -43,9 +37,7 @@ function PermissionModal({ visible, staff, onClose }) {
       }
     };
 
-    if (visible) {
-      fetchPermissions();
-    }
+    fetchPermissions();
   }, [visible, staff]);
 
   useEffect(() => {
@@ -60,8 +52,8 @@ function PermissionModal({ visible, staff, onClose }) {
   }, [allPermissions, staffPermissions]);
 
   const handleFinish = async () => {
+    setLoading(true);
     const permissions = staffPermissions.map((p) => p.permission_id);
-
     const currentDateTime = dayjs().format("YYYY-MM-DD HH:mm:ss.SSS");
 
     try {
@@ -73,25 +65,20 @@ function PermissionModal({ visible, staff, onClose }) {
           gived_at: currentDateTime,
         }
       );
-      if (response.request.status == 200) {
-        notification.success({
-          message: "อัปเดตสิทธิ์สำเร็จ",
-          showProgress: true,
-          placement: "topRight",
-          pauseOnHover: true,
-          duration: 2,
-        });
-
-        onClose();
-      }
+      notification.success({
+        message: "อัปเดตสิทธิ์สำเร็จ",
+        placement: "topRight",
+        duration: 2,
+      });
+      onClose();
     } catch (error) {
       notification.error({
         message: "ไม่สามารถอัปเดตสิทธิ์ผู้ใช้ได้",
-        showProgress: true,
         placement: "topRight",
-        pauseOnHover: true,
         duration: 2,
       });
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -154,7 +141,7 @@ function PermissionModal({ visible, staff, onClose }) {
       width={800}
       confirmLoading={loading}
     >
-      <Spin spinning={loading}>
+      <Spin spinning={loading} key={loading ? "loading" : "loaded"}>
         <Form onFinish={handleFinish} layout="vertical" className="space-y-6">
           <Form.Item
             name="permissions"
@@ -197,6 +184,7 @@ function PermissionModal({ visible, staff, onClose }) {
             <Button
               type="primary"
               htmlType="submit"
+              loading={loading}
               className="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white text-lg"
             >
               ยืนยัน
@@ -208,17 +196,11 @@ function PermissionModal({ visible, staff, onClose }) {
   );
 }
 
-const CustomCheckbox = ({ value, label, staff, onChange, des }) => {
-  const [isChecked, setIsChecked] = useState(false);
-
-  useEffect(() => {
-    setIsChecked(staff.some((item) => item.permission_id === value));
-  }, [staff, value]);
+const CustomCheckbox = memo(({ value, label, staff, onChange, des }) => {
+  const isChecked = staff.some((item) => item.permission_id === value);
 
   const handleClick = () => {
-    const newCheckedState = !isChecked;
-    setIsChecked(newCheckedState);
-    onChange(value, newCheckedState);
+    onChange(value, !isChecked);
   };
 
   return (
@@ -230,7 +212,7 @@ const CustomCheckbox = ({ value, label, staff, onChange, des }) => {
         <input
           type="checkbox"
           checked={isChecked}
-          onChange={() => {}}
+          readOnly
           className="w-4 h-4"
         />
         <span className="text-base font-medium text-gray-700 ml-2">
@@ -240,6 +222,6 @@ const CustomCheckbox = ({ value, label, staff, onChange, des }) => {
       <p className="text-sm text-gray-500 mt-1.5 ml-6">{des}</p>
     </div>
   );
-};
+});
 
 export default PermissionModal;

@@ -151,48 +151,33 @@ function AddCase() {
   };
 
   const handlePatientDobChange = (field, value) => {
-    if (!/^\d*$/.test(value)) return;
     setPatientDobData((prevData) => ({
       ...prevData,
       [field]: value,
     }));
+
+    form.setFieldsValue({
+      [field]: value,
+    });
   };
 
-  const isValidDate = (year, month, day) => {
-    const date = new Date(
-      `${year}-${month.padStart(2, "0")}-${day.padStart(2, "0")}`
-    );
-    return (
-      date.getFullYear() === parseInt(year, 10) &&
-      date.getMonth() + 1 === parseInt(month, 10) &&
-      date.getDate() === parseInt(day, 10)
-    );
-  };
+  // const updateDobInPatientData = () => {
+  //   const formattedDob = getFormattedDob();
+  //   handlePatientDataChange("patient_dob", formattedDob);
+  // };
 
-  const updateDobInPatientData = () => {
-    const { patient_dob_year, patient_dob_month, patient_dob_day } =
-      patientDobData;
+  // const getFormattedDob = () => {
+  //   const { patient_dob_year, patient_dob_month, patient_dob_day } =
+  //     patientDobData;
 
-    if (isValidDate(patient_dob_year, patient_dob_month, patient_dob_day)) {
-      const formattedDob = getFormattedDob();
-      handlePatientDataChange("patient_dob", formattedDob);
-    } else {
-      console.error("Invalid Date");
-    }
-  };
-
-  const getFormattedDob = () => {
-    const { patient_dob_year, patient_dob_month, patient_dob_day } =
-      patientDobData;
-
-    if (patient_dob_year && patient_dob_month && patient_dob_day) {
-      return `${patient_dob_year.padStart(4, "0")}-${patient_dob_month.padStart(
-        2,
-        "0"
-      )}-${patient_dob_day.padStart(2, "0")}`;
-    }
-    return "";
-  };
+  //   if (patient_dob_year && patient_dob_month && patient_dob_day) {
+  //     return `${patient_dob_year.padStart(4, "0")}-${patient_dob_month.padStart(
+  //       2,
+  //       "0"
+  //     )}-${patient_dob_day.padStart(2, "0")}`;
+  //   }
+  //   return "";
+  // };
 
   const onFinish = async () => {
     try {
@@ -204,12 +189,14 @@ function AddCase() {
         message.error("กรุณากรอกข้อมูลในช่องที่จำเป็นให้ครบถ้วน");
         return;
       }
-
+      const combild_dob = dayjs(
+        `${patientDobData.patient_dob_year}-${patientDobData.patient_dob_month}-${patientDobData.patient_dob_day}`
+      );
       const patientRequestData = {
         hn_code: patientData.hn_code,
         first_name: patientData.firstname,
         last_name: patientData.lastname,
-        dob: dayjs(patientData.dob).format("YYYY-MM-DD"),
+        dob: combild_dob.format("YYYY-MM-DD"),
         gender: patientData.gender,
       };
 
@@ -268,7 +255,7 @@ function AddCase() {
     } catch (error) {
       console.error("เกิดข้อผิดพลาดระหว่างการทำงาน:", error);
       notification.error({
-        message: "เกิดข้อผิดพลาดระหว่างดำเนินการ กรุณาลองใหม่ภายหลัง",
+        message: "เกิดข้อผิดพลาดระหว่างดำเนินการ กรุณาลองใหม่ภายหลัง ",
         showProgress: true,
         placement: "topRight",
         pauseOnHover: true,
@@ -314,7 +301,7 @@ function AddCase() {
     if (hnCode) {
       setIsLoading(true);
       try {
-        const response = await  axiosInstanceStaff.get(
+        const response = await axiosInstanceStaff.get(
           `/patient/getPatientData/${hnCode}`
         );
 
@@ -325,7 +312,6 @@ function AddCase() {
             lastname = "",
             gender = "",
             dob = "",
-            patient_history = "",
           } = response.data.data;
 
           const dobParsed = dayjs(dob);
@@ -358,7 +344,6 @@ function AddCase() {
             patient_dob_year: year,
             patient_dob_month: month,
             patient_dob_day: day,
-            patient_history,
           });
         } else {
           notification.success({
@@ -373,18 +358,22 @@ function AddCase() {
         console.error("Error fetching patient data:", error);
 
         // ล้างค่าในฟอร์มเมื่อเกิดข้อผิดพลาด
+        //form.resetFields();
+
         form.setFieldsValue({
-          hn_code: "",
           firstname: "",
           lastname: "",
           gender: null,
           patient_dob_year: "",
           patient_dob_month: "",
           patient_dob_day: "",
-          patient_history: "",
         });
 
-        setPatientDobData({
+        setPatientData({
+          ...patientData,
+          firstname: "",
+          lastname: "",
+          gender: "",
           patient_dob_year: "",
           patient_dob_month: "",
           patient_dob_day: "",
@@ -409,7 +398,7 @@ function AddCase() {
   return (
     <>
       <div className="pb-5">
-        <div className="text-3xl font-normal">Add Case</div>
+        <div className="text-3xl font-normal">เพิ่มเคสผ่าตัด</div>
       </div>
       <hr />
       <div className="p-6 rounded-base min-h-full">
@@ -425,13 +414,13 @@ function AddCase() {
               <div className="flex items-center space-x-3 mb-6">
                 <div className="w-2 h-8 bg-green-600 rounded-full" />
                 <h2 className="text-xl font-semibold text-gray-800">
-                  Patient Information
+                  ข้อมูลผู้ป่วย
                 </h2>
               </div>
               <Form.Item
                 label={
                   <span className="text-base font-medium text-gray-700">
-                    Hospital Number Code
+                    หมายเลขของผู้ป่วย
                   </span>
                 }
                 name="hn_code"
@@ -466,7 +455,7 @@ function AddCase() {
                 <Form.Item
                   label={
                     <span className="text-base font-medium text-gray-700">
-                      First Name
+                      ชื่อ
                     </span>
                   }
                   name="firstname"
@@ -486,7 +475,7 @@ function AddCase() {
                 <Form.Item
                   label={
                     <span className="text-base font-medium text-gray-700">
-                      Last Name
+                      นามสกุล
                     </span>
                   }
                   name="lastname"
@@ -506,7 +495,7 @@ function AddCase() {
                 <Form.Item
                   label={
                     <span className="text-base font-medium text-gray-700">
-                      Gender
+                      เพศ
                     </span>
                   }
                   name="gender"
@@ -522,61 +511,130 @@ function AddCase() {
                     className="h-11 text-base"
                     placeholder="Select gender"
                   >
-                    <Option value="male">Male</Option>
-                    <Option value="female">Female</Option>
+                    <Option value="male">ชาย</Option>
+                    <Option value="female">หญิง</Option>
                   </Select>
                 </Form.Item>
 
                 <Form.Item
                   label={
                     <span className="text-base font-medium text-gray-700">
-                      Date of Birth
+                      ปี/เดือน/วัน เกิด{" "}
                     </span>
                   }
+                  required
+                  rules={[
+                    {
+                      required: true,
+                      message: "กรุณาระบุปี/เดือน/วันเกิด",
+                    },
+                  ]}
                 >
-                  <Input.Group className="flex ">
-                    <Input
-                      type="number"
+                  <Input.Group className="flex">
+                    <Form.Item
                       name="patient_dob_year"
-                      value={patientData.patient_dob_year}
-                      onChange={(e) =>
-                        handlePatientDobChange(
-                          "patient_dob_year",
-                          e.target.value
-                        )
-                      }
-                      placeholder="YYYY"
-                      className="h-11 w-28 text-center text-base rounded-lg border border-gray-300 focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
-                      maxLength={4}
-                    />
-                    <Input
-                      type="number"
+                      noStyle
+                      rules={[
+                        {
+                          required: true,
+                          message: "จำเป็นต้องกรอกปี",
+                        },
+                        {
+                          pattern: /^\d{4}$/,
+                          message: "รูปแบบปีไม่ถูกต้อง",
+                        },
+                      ]}
+                    >
+                      <Input
+                        value={patientData.patient_dob_year}
+                        onChange={(e) =>
+                          handlePatientDobChange(
+                            "patient_dob_year",
+                            e.target.value
+                          )
+                        }
+                        placeholder="YYYY"
+                        className="h-11 text-base rounded-lg w-24 text-center border-gray-300 focus:border-blue-500 focus:ring-blue-500"
+                        maxLength={4}
+                      />
+                    </Form.Item>
+                    <Form.Item
                       name="patient_dob_month"
-                      value={patientData.patient_dob_month}
-                      onChange={(e) =>
-                        handlePatientDobChange(
-                          "patient_dob_month",
-                          e.target.value
-                        )
-                      }
-                      placeholder="MM"
-                      className="h-11 w-20 text-center text-base rounded-lg border border-gray-300 focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
-                      maxLength={2}
-                    />
-                    <Input
-                      type="number"
+                      noStyle
+                      rules={[
+                        {
+                          required: true,
+                          message: "จำเป็นต้องกรอกเดือน",
+                        },
+                        {
+                          validator: (_, value) => {
+                            if (!value || (value >= 1 && value <= 12)) {
+                              return Promise.resolve();
+                            }
+                            return Promise.reject(
+                              "กรุณากรอกเดือนที่อยู่ในช่วง 1-12"
+                            );
+                          },
+                        },
+                      ]}
+                    >
+                      <Input
+                        value={patientData.patient_dob_month}
+                        onChange={(e) => {
+                          let value = e.target.value;
+                          if (!isNaN(value) && value >= 1 && value <= 12) {
+                            handlePatientDobChange("patient_dob_month", value);
+                          }
+                        }}
+                        placeholder="MM"
+                        className="h-11 text-base rounded-lg w-20 text-center border-gray-300 focus:border-blue-500 focus:ring-blue-500"
+                        maxLength={2}
+                        onBlur={(e) => {
+                          let value = e.target.value;
+                          if (value && value.length === 1) {
+                            value = `0${value}`;
+                          }
+                          if (value > 12) {
+                            value = "12";
+                          }
+                          handlePatientDobChange("patient_dob_month", value);
+                        }}
+                      />
+                    </Form.Item>
+
+                    <Form.Item
                       name="patient_dob_day"
-                      value={patientData.patient_dob_day}
-                      onChange={(e) =>
-                        handlePatientDobChange(
-                          "patient_dob_day",
-                          e.target.value
-                        )
-                      }
-                      placeholder="DD"
-                      className="h-11 w-20 text-center text-base rounded-lg border border-gray-300 focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
-                      maxLength={2}
-                    />
+                      noStyle
+                      rules={[
+                        {
+                          required: true,
+                          message: "จำเป็นต้องกรอกวัน",
+                        },
+                      ]}
+                    >
+                      <Input
+                        value={patientData.patient_dob_day}
+                        onChange={(e) => {
+                          let value = e.target.value;
+                          if (!isNaN(value) && value <= 31) {
+                            handlePatientDobChange("patient_dob_day", value);
+                          }
+                        }}
+                        placeholder="DD"
+                        className="h-11 text-base rounded-lg w-20 text-center border-gray-300 focus:border-blue-500 focus:ring-blue-500"
+                        maxLength={2}
+                        onBlur={(e) => {
+                          let value = e.target.value;
+                          if (value && value.length === 1) {
+                            value = `0${value}`;
+                          }
+                          if (value > 31) {
+                            value = "31";
+                          }
+                          handlePatientDobChange("patient_dob_day", value);
+                        }}
+                      />
+                    </Form.Item>
                   </Input.Group>
                 </Form.Item>
               </div>
@@ -587,7 +645,7 @@ function AddCase() {
               <div className="flex items-center space-x-3 mb-6">
                 <div className="w-2 h-8 bg-purple-600 rounded-full" />
                 <h2 className="text-xl font-semibold text-gray-800">
-                  Surgery Details
+                  รายละเอียดการผ่าตัด
                 </h2>
               </div>
 
@@ -595,7 +653,7 @@ function AddCase() {
                 <Form.Item
                   label={
                     <span className="text-base font-medium text-gray-700">
-                      Select Doctor
+                      เลือกแพทย์
                     </span>
                   }
                   name="doctor_id"
@@ -622,7 +680,7 @@ function AddCase() {
                 <Form.Item
                   label={
                     <span className="text-base font-medium text-gray-700">
-                      Operation
+                      การผ่าตัด
                     </span>
                   }
                   name="Operation"
@@ -645,7 +703,7 @@ function AddCase() {
                 <Form.Item
                   label={
                     <span className="text-base font-medium text-gray-700">
-                      Surgery Type
+                      ประเภทการผ่าตัด
                     </span>
                   }
                   name="surgery_type_id"
@@ -690,7 +748,7 @@ function AddCase() {
                 <Form.Item
                   label={
                     <span className="text-base font-medium text-gray-700">
-                      OR-Room
+                      ห้องผ่าตัด
                     </span>
                   }
                   name="operating_room_id"
@@ -726,7 +784,7 @@ function AddCase() {
                 <Form.Item
                   label={
                     <span className="text-base font-medium text-gray-700">
-                      Surgery Date
+                      วันผ่าตัด
                     </span>
                   }
                   name="surgery_date"
@@ -745,7 +803,7 @@ function AddCase() {
                 <Form.Item
                   label={
                     <span className="text-base font-medium text-gray-700">
-                      Estimate Start Time
+                      เวลาเริ่มผ่าตัด
                     </span>
                   }
                   name="estimate_start_time"
@@ -769,7 +827,7 @@ function AddCase() {
                 <Form.Item
                   label={
                     <span className="text-base font-medium text-gray-700">
-                      Estimate Duration (in hours)
+                      ระยะเวลาผ่าตัด (หน่วยชั่วโมง)
                     </span>
                   }
                   name="estimate_duration"
@@ -807,7 +865,11 @@ function AddCase() {
               <Form.Item
                 label={
                   <span className="text-base font-medium text-gray-700">
-                    Patient History
+                    ประวัติผู้ป่วย
+                    <span className="text-sm font-normal text-gray-500">
+                      {" "}
+                      (ไม่จำเป็น){" "}
+                    </span>
                   </span>
                 }
                 name="patient_history"
