@@ -4,7 +4,6 @@ const staffController = require("../controllers/staffController");
 const verifyToken = require("../middlewares/verifyToken");
 
 router.use(verifyToken);
-
 router.get("/", staffController.getAllStaff);
 router.post("/", staffController.createStaff);
 router.put("/:id", staffController.updateStaff);

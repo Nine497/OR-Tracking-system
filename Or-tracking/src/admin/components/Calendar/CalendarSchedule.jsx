@@ -9,7 +9,8 @@ function CalendarSchedule({ events }) {
     const dateStr = dayjs(value).format("YYYY-MM-DD");
     const filteredEvents = Array.isArray(events)
       ? events.filter(
-          (event) => dayjs(event.surgery_date).format("YYYY-MM-DD") === dateStr
+          (event) =>
+            dayjs(event.surgery_start_time).format("YYYY-MM-DD") === dateStr
         )
       : [];
 

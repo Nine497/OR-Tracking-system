@@ -1,19 +1,13 @@
 // controllers/operatingRoomController.js
 const OperatingRoom = require("../models/operatingRoomModel");
 const db = require("../config/database");
-
 const OperatingRoomController = {
   getAllOperatingRooms: async (req, res) => {
     try {
-      const operatingRooms = await db.raw(`
-        SELECT * 
-        FROM surgery_case sc2 
-        INNER JOIN operating_room or2 ON sc2.operating_room_id = or2.operating_room_id
-        INNER JOIN patients p ON sc2.patient_id = p.patient_id;
-      `);
+      const operatingRooms = await OperatingRoom.getAll();
       res.status(200).json({
         message: "Operating rooms fetched successfully",
-        data: operatingRooms.rows,
+        data: operatingRooms,
       });
     } catch (error) {
       console.error("Error fetching operating rooms:", error);

@@ -1,5 +1,5 @@
 import axios from "axios";
-import { notification } from "antd";
+import { Modal } from "antd";
 
 const axiosInstanceStaff = axios.create({
   baseURL: import.meta.env.VITE_BASE_API_URL || "http://localhost:3000/api/",
@@ -21,9 +21,7 @@ axiosInstanceStaff.interceptors.request.use(
 
     return config;
   },
-  (error) => {
-    return Promise.reject(error);
-  }
+  (error) => Promise.reject(error)
 );
 
 axiosInstanceStaff.interceptors.response.use(
@@ -32,25 +30,19 @@ axiosInstanceStaff.interceptors.response.use(
     if (error.response) {
       const { status, data } = error.response;
 
-      if (data?.message === "Account is deactivated") {
-        notification.error({
-          message: "Account is deactivated",
-          description:
-            "Your account has been deactivated. You will be logged out.",
-        });
+      console.log("Response Status:", status);
+      console.log("Response Data:", data);
 
-        localStorage.removeItem("jwtToken");
-        window.location.href = "/login";
-      }
-
-      if (status === 401) {
-        notification.error({
-          message: "Unauthorized",
-          description:
-            "You are not authorized to access this resource. Please log in again.",
+      if (status === 301) {
+        Modal.error({
+          title: "บัญชีถูกระงับ",
+          content: "บัญชีของคุณถูกระงับ กรุณาเข้าสู่ระบบอีกครั้ง.",
+          okText: "ไปยังหน้าล็อกอิน",
+          onOk: () => {
+            localStorage.removeItem("jwtToken");
+            window.location.href = "/login";
+          },
         });
-        localStorage.removeItem("jwtToken");
-        window.location.href = "/login";
       }
     }
 

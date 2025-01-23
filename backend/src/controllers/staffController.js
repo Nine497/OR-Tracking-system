@@ -115,6 +115,16 @@ exports.getPermissionsByStaffId = async (req, res) => {
   const { staffId } = req.params;
 
   try {
+    const user = await Staff.findById(staffId);
+    console.log("staffId", staffId);
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    if (!user.isActive) {
+      return res.status(301).json({ message: "Inactive" });
+    }
+
     const permissions = await Staff.getPermissionsByStaffId(staffId);
 
     if (permissions.length === 0) {

@@ -285,12 +285,12 @@ function CaseTable() {
     },
     {
       title: <span className="text-base font-semibold">วันที่ผ่าตัด</span>,
-      dataIndex: "surgery_date",
-      key: "surgery_date",
+      dataIndex: "surgery_start_time",
+      key: "surgery_start_time",
       align: "left",
       render: (text) => (
         <span className="text-base font-normal">
-          {new Date(text).toLocaleDateString()}{" "}
+          {dayjs(text).format("YYYY/MM/DD")}
         </span>
       ),
     },

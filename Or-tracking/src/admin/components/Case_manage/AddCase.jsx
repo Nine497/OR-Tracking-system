@@ -184,14 +184,28 @@ function AddCase() {
       if (
         !patientData.firstname ||
         !patientData.lastname ||
-        !surgeryData.surgery_date
+        !surgeryData.surgery_start_time ||
+        !surgeryData.surgery_end_time
       ) {
         message.error("กรุณากรอกข้อมูลในช่องที่จำเป็นให้ครบถ้วน");
         return;
       }
+
+      const surgeryStartTime = dayjs(surgeryData.surgery_start_time);
+      const surgeryEndTime = dayjs(surgeryData.surgery_end_time);
+
+      if (surgeryStartTime.isAfter(surgeryEndTime)) {
+        message.error("เวลาเริ่มผ่าตัดต้องน้อยกว่าเวลาเสร็จสิ้นการผ่าตัด");
+        return;
+      }
+
+      console.log("surgeryStartTime", surgeryStartTime);
+      console.log("surgeryEndTime", surgeryEndTime);
+
       const combild_dob = dayjs(
         `${patientDobData.patient_dob_year}-${patientDobData.patient_dob_month}-${patientDobData.patient_dob_day}`
       );
+
       const patientRequestData = {
         hn_code: patientData.hn_code,
         first_name: patientData.firstname,
@@ -209,22 +223,19 @@ function AddCase() {
         throw new Error("ไม่สามารถสร้างหรือค้นหาข้อมูลผู้ป่วยได้");
       }
 
-      const patientId = patientResponse.data.patient.patient_id; // เก็บ ID ของผู้ป่วย
+      const patientId = patientResponse.data.patient.patient_id;
 
       const surgeryCaseData = {
-        surgery_date: dayjs(surgeryData.surgery_date).format("YYYY-MM-DD"),
-        estimate_start_time: dayjs(
-          surgeryData.estimate_start_time,
-          "HH:mm"
-        ).format("HH:mm"),
-        estimate_duration: surgeryData.estimate_duration,
-        surgery_type_id: surgeryData.surgery_type_id,
-        operating_room_id: surgeryData.operating_room_id,
-        status_id: surgeryData.status_id,
-        created_by: surgeryData.created_by,
+        patient_id: patientId,
         doctor_id: surgeryData.doctor_id,
+        operating_room_id: surgeryData.operating_room_id,
+        created_by: surgeryData.created_by,
+        surgery_type_id: surgeryData.surgery_type_id,
+        status_id: surgeryData.status_id,
         patient_history: surgeryData.patient_history,
-        Operation: surgeryData.Operation,
+        created_at: dayjs().format("YYYY-MM-DD HH:mm:ss"),
+        surgery_start_time: surgeryStartTime.format("YYYY-MM-DD HH:mm:ss"),
+        surgery_end_time: surgeryEndTime.format("YYYY-MM-DD HH:mm:ss"),
       };
 
       console.log("ข้อมูลการผ่าตัดที่ส่งไปยังเซิร์ฟเวอร์:", surgeryCaseData);
@@ -780,84 +791,67 @@ function AddCase() {
                   </Select>
                 </Form.Item>
               </div>
-              <div className="grid grid-cols-3 gap-6">
-                <Form.Item
-                  label={
-                    <span className="text-base font-medium text-gray-700">
-                      วันผ่าตัด
-                    </span>
-                  }
-                  name="surgery_date"
-                  rules={[{ required: true, message: "Please pick a date!" }]}
-                >
-                  <DatePicker
-                    format="YYYY-MM-DD"
-                    value={dayjs(surgeryData.surgery_date)}
-                    onChange={(date, dateString) =>
-                      handleSurgeryDataChange("surgery_date", dateString)
-                    }
-                    className="h-11 text-base rounded-lg w-full"
-                  />
-                </Form.Item>
-
+              <div className="grid grid-cols-2 gap-6">
+                {/* เวลาเริ่มผ่าตัด */}
                 <Form.Item
                   label={
                     <span className="text-base font-medium text-gray-700">
                       เวลาเริ่มผ่าตัด
                     </span>
                   }
-                  name="estimate_start_time"
-                  rules={[{ required: true, message: "Please pick a time!" }]}
+                  name="surgery_start_time"
+                  rules={[
+                    { required: true, message: "Please pick a start time!" },
+                  ]}
                 >
-                  <DatePicker.TimePicker
-                    name="estimate_start_time"
+                  <DatePicker
+                    showTime={{
+                      format: "HH:mm",
+                    }}
+                    format="YYYY-MM-DD HH:mm"
                     value={
-                      surgeryData.estimate_start_time
-                        ? dayjs(surgeryData.estimate_start_time, "HH:mm")
+                      surgeryData.surgery_start_time
+                        ? dayjs(
+                            surgeryData.surgery_start_time,
+                            "YYYY-MM-DD HH:mm"
+                          )
                         : null
                     }
-                    onChange={(value) =>
-                      handleSurgeryDataChange("estimate_start_time", value)
+                    onChange={(date, dateString) =>
+                      handleSurgeryDataChange("surgery_start_time", dateString)
                     }
-                    format="HH:mm"
                     className="h-11 text-base rounded-lg w-full"
                   />
                 </Form.Item>
 
+                {/* เวลาสิ้นสุดผ่าตัด */}
                 <Form.Item
                   label={
                     <span className="text-base font-medium text-gray-700">
-                      ระยะเวลาผ่าตัด (หน่วยชั่วโมง)
+                      เวลาสิ้นสุดผ่าตัด
                     </span>
                   }
-                  name="estimate_duration"
+                  name="surgery_end_time"
                   rules={[
-                    { required: true, message: "Please enter the duration!" },
-                    {
-                      validator: (_, value) =>
-                        value > 0
-                          ? Promise.resolve()
-                          : Promise.reject(
-                              new Error("Duration must be greater than 0")
-                            ),
-                    },
+                    { required: true, message: "Please pick an end time!" },
                   ]}
                 >
-                  <Input
-                    name="estimate_duration"
-                    placeholder="Input estimate duration (in hours)"
-                    value={
-                      surgeryData.estimate_duration
-                        ? (surgeryData.estimate_duration / 60).toFixed(2)
-                        : ""
-                    }
-                    onChange={(e) => {
-                      const hours = parseFloat(e.target.value) || 0;
-                      const minutes = Math.round(hours * 60);
-                      handleSurgeryDataChange("estimate_duration", minutes);
+                  <DatePicker
+                    showTime={{
+                      format: "HH:mm",
                     }}
-                    type="number"
-                    step="0.01"
+                    format="YYYY-MM-DD HH:mm"
+                    value={
+                      surgeryData.surgery_end_time
+                        ? dayjs(
+                            surgeryData.surgery_end_time,
+                            "YYYY-MM-DD HH:mm"
+                          )
+                        : null
+                    }
+                    onChange={(date, dateString) =>
+                      handleSurgeryDataChange("surgery_end_time", dateString)
+                    }
                     className="h-11 text-base rounded-lg w-full"
                   />
                 </Form.Item>

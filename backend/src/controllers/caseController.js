@@ -6,8 +6,8 @@ exports.getCalendar = async (req, res) => {
     const caseCalendar = await db("surgery_case")
       .select(
         "surgery_case.surgery_case_id",
-        "surgery_case.surgery_date",
-        "surgery_case.estimate_start_time",
+        "surgery_case.surgery_start_time",
+        "surgery_case.surgery_end_time",
         "patients.hn_code",
         "doctors.doctor_id",
         db.raw(
@@ -327,36 +327,63 @@ exports.createSurgeryCase = async (req, res) => {
       return res.status(400).json({ message: "Invalid patient ID" });
     }
 
-    if (!surgeryCaseData) {
-      return res
-        .status(400)
-        .json({ message: "Missing required surgery details" });
+    // ตรวจสอบข้อมูลที่จำเป็น
+    const requiredFields = [
+      "doctor_id",
+      "surgery_start_time",
+      "surgery_end_time",
+      "surgery_type_id",
+      "operating_room_id",
+      "status_id",
+      "created_by",
+    ];
+
+    const missingFields = requiredFields.filter(
+      (field) => !surgeryCaseData[field]
+    );
+
+    if (missingFields.length > 0) {
+      return res.status(400).json({
+        message: `Missing required fields: ${missingFields.join(", ")}`,
+      });
     }
 
+    console.log("surgery_start_time", surgeryCaseData.surgery_start_time);
+    console.log("surgery_end_time", surgeryCaseData.surgery_end_time);
+    // สร้างเคสการผ่าตัด
     const newSurgeryCase = await db("surgery_case")
       .insert({
         doctor_id: surgeryCaseData.doctor_id,
-        surgery_date: surgeryCaseData.surgery_date,
-        estimate_start_time: surgeryCaseData.estimate_start_time,
-        estimate_duration: surgeryCaseData.estimate_duration,
+        surgery_end_time: surgeryCaseData.surgery_end_time,
+        surgery_start_time: surgeryCaseData.surgery_start_time,
         surgery_type_id: surgeryCaseData.surgery_type_id,
         operating_room_id: surgeryCaseData.operating_room_id,
         status_id: surgeryCaseData.status_id,
         created_by: surgeryCaseData.created_by,
         patient_id: parsedPatientId,
-        created_at: new Date().toISOString(),
+        created_at: surgeryCaseData.created_at,
         patient_history: surgeryCaseData.patient_history || "",
       })
-      .returning("*")
-      .then((newSurgeryCase) => newSurgeryCase[0]);
 
-    await db("operation").insert({
-      surgery_case_id: newSurgeryCase.surgery_case_id,
-      operation_name: surgeryCaseData.Operation,
-    });
+      .returning("*");
 
+    if (!newSurgeryCase || newSurgeryCase.length === 0) {
+      return res.status(500).json({ message: "Failed to create surgery case" });
+    }
+
+    const surgeryCaseId = newSurgeryCase[0].surgery_case_id;
+
+    // เพิ่มข้อมูล operation
+    if (surgeryCaseData.Operation) {
+      await db("operation").insert({
+        surgery_case_id: surgeryCaseId,
+        operation_name: surgeryCaseData.Operation,
+      });
+    }
+
+    // เพิ่มประวัติสถานะเคส
     await db("surgery_case_status_history").insert({
-      surgery_case_id: newSurgeryCase.surgery_case_id,
+      surgery_case_id: surgeryCaseId,
       status_id: 0,
       updated_at: new Date().toISOString(),
       updated_by: surgeryCaseData.created_by,
@@ -364,7 +391,7 @@ exports.createSurgeryCase = async (req, res) => {
 
     res.status(201).json({
       message: "Surgery case created successfully",
-      data: newSurgeryCase,
+      data: newSurgeryCase[0],
     });
   } catch (err) {
     console.error(err);

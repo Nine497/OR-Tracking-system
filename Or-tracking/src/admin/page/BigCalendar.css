@@ -1,0 +1,111 @@
+/* Custom React Big Calendar Styles with Modern Design */
+
+/* Global Calendar Styling */
+.rbc-calendar {
+  @apply bg-white shadow-sm rounded-lg border border-gray-100;
+}
+
+/* Header Styling */
+.rbc-row-content {
+  display: none !important;
+}
+
+.rbc-time-content {
+  border: none;
+}
+
+.rbc-header {
+  @apply py-3 text-sm font-semibold text-gray-700 uppercase tracking-wider bg-gray-50 border-b border-gray-200;
+}
+
+.rbc-time-header {
+  @apply bg-white border-b border-gray-200 rounded-t-lg;
+}
+
+.rbc-time-header-content {
+  @apply bg-white rounded-t-lg;
+}
+
+.rbc-time-header-cell {
+  @apply text-blue-600 font-medium py-2 text-xs;
+}
+
+/* Time Gutter and Slots */
+.rbc-time-gutter .rbc-label {
+  @apply text-sm text-gray-500 pr-3 text-right font-normal;
+}
+
+.rbc-time-slot {
+  @apply border-t border-gray-100 hover:bg-gray-50 transition-colors duration-75;
+}
+
+.rbc-day-slot .rbc-time-slot {
+  @apply border-r border-gray-100;
+}
+
+/* Event Styling */
+/* .rbc-event {
+  @apply border-none rounded-md shadow-lg px-2 py-1 text-xs border-0 cursor-pointer;
+} */
+
+.rbc-event:hover {
+  @apply shadow-md bg-gray-100;
+}
+
+.rbc-event-label {
+  @apply text-sm font-normal tracking-wide;
+}
+
+.rbc-event .rbc-event-content {
+  @apply truncate font-normal text-xs tracking-normal;
+}
+
+.rbc-event .rbc-event-time {
+  @apply text-[10px] opacity-75;
+}
+
+/* Color Variations */
+.rbc-event {
+  @apply bg-white text-black p-2 border-none;
+}
+
+/* Toolbar Styling */
+.rbc-toolbar {
+  @apply flex justify-between items-center mb-4 px-4 py-2 bg-gray-50 rounded-t-lg;
+}
+
+.rbc-toolbar-label {
+  @apply text-base font-medium text-gray-800;
+}
+
+.rbc-btn-group {
+  @apply flex space-x-2;
+}
+
+.rbc-btn {
+  @apply px-3 py-1 text-sm bg-white border border-gray-300 rounded-md hover:bg-gray-100 transition-colors;
+}
+
+/* Responsive Adjustments */
+@media (max-width: 768px) {
+  .rbc-time-view {
+    @apply text-xs;
+  }
+
+  .rbc-time-header-content {
+    @apply overflow-x-auto;
+  }
+
+  .rbc-event {
+    @apply text-[10px] px-1 py-0.5;
+  }
+}
+
+/* Scrollbar Styling (Webkit) */
+.rbc-time-view::-webkit-scrollbar {
+  @apply w-2 bg-transparent;
+}
+
+.rbc-time-view::-webkit-scrollbar-thumb {
+  @apply bg-gray-300 rounded-full;
+}

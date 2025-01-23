@@ -1,33 +1,27 @@
+/* กำหนด scrollbar ของ react-big-calendar */
+.custom-scrollbar .rbc-time-content {
+  width: 8px;
+  border-radius: 8px;
+  background: rgb(165, 180, 252);
+}
+
+/* กำหนด scrollbar สำหรับ Firefox */
+.custom-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: rgb(165, 180, 252) rgb(243, 244, 246);
+}
+
+/* กำหนด scrollbar สำหรับ Chrome, Edge, และ Safari */
 .custom-scrollbar::-webkit-scrollbar {
   width: 8px;
-  border: none;
 }
 
 .custom-scrollbar::-webkit-scrollbar-track {
-  background: rgb(243 244 246);
-  border: none;
+  background: rgb(243, 244, 246);
+  border-radius: 8px;
 }
 
 .custom-scrollbar::-webkit-scrollbar-thumb {
-  background: rgb(199 210 254);
+  background-color: rgb(165, 180, 252);
   border-radius: 8px;
-  border: none;
-}
-
-.custom-scrollbar::-webkit-scrollbar-thumb:hover {
-  background: rgb(165 180 252);
-  border: none;
-}
-
-.custom-card:where(.css-dev-only-do-not-override-1wwf28x).ant-card
-  .ant-card-body {
-  padding: 10px !important;
-  border-radius: 0 0 8px 8px !important;
-}
-
-/* Firefox */
-.custom-scrollbar {
-  scrollbar-width: thin;
-  scrollbar-color: rgb(199 210 254) rgb(243 244 246);
-  border: none;
 }

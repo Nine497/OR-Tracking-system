@@ -10,18 +10,20 @@ const verifyToken = async (req, res, next) => {
       .json({ message: "Access denied. No token provided." });
   }
 
-  try { 
+  try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET_KEY);
     req.user = decoded;
+    console.log("User decoded : ", decoded);
 
     const user = await db("staff").where("staff_id", decoded.id).first();
 
     if (!user) {
       return res.status(404).json({ message: "User not found" });
     }
+    console.log("User Active : ", user.isActive);
 
     if (!user.isActive) {
-      return res.status(403).json({ message: "Account is deactivated" });
+      return res.status(301).json({ message: "Inactive 112" });
     }
 
     next();
