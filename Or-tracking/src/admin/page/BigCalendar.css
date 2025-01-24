@@ -5,15 +5,20 @@
   @apply bg-white shadow-sm rounded-lg border border-gray-100;
 }
 
-/* Header Styling */
+/* Hide Row Content */
 .rbc-row-content {
-  display: none !important;
+  @apply hidden !important;
 }
 
 .rbc-time-content {
-  border: none;
+  @apply border-0;
 }
 
+.rbc-today {
+  @apply bg-white;
+}
+
+/* Header Styling */
 .rbc-header {
   @apply py-3 text-sm font-semibold text-gray-700 uppercase tracking-wider bg-gray-50 border-b border-gray-200;
 }
@@ -39,34 +44,35 @@
   @apply border-t border-gray-100 hover:bg-gray-50 transition-colors duration-75;
 }
 
-.rbc-day-slot .rbc-time-slot {
-  @apply border-r border-gray-100;
-}
-
 /* Event Styling */
 /* .rbc-event {
-  @apply border-none rounded-md shadow-lg px-2 py-1 text-xs border-0 cursor-pointer;
+  @apply bg-blue-500 p-3 border-collapse rounded-md shadow-sm text-white;
 } */
 
-.rbc-event:hover {
-  @apply shadow-md bg-gray-100;
+/* .rbc-event:hover {
+  @apply shadow-lg bg-blue-400;
+} */
+.rbc-day-slot .rbc-event {
+  @apply border-none;
+}
+.rbc-event {
+  @apply p-0 bg-transparent;
+}
+
+.rbc-day-slot .rbc-events-container {
+  @apply mr-0;
+}
+
+.rbc-time-content > * + * > * {
+  @apply border-l-0;
 }
 
 .rbc-event-label {
-  @apply text-sm font-normal tracking-wide;
-}
-
-.rbc-event .rbc-event-content {
-  @apply truncate font-normal text-xs tracking-normal;
+  @apply hidden;
 }
 
 .rbc-event .rbc-event-time {
-  @apply text-[10px] opacity-75;
-}
-
-/* Color Variations */
-.rbc-event {
-  @apply bg-white text-black p-2 border-none;
+  @apply text-lg;
 }
 
 /* Toolbar Styling */
@@ -86,6 +92,10 @@
   @apply px-3 py-1 text-sm bg-white border border-gray-300 rounded-md hover:bg-gray-100 transition-colors;
 }
 
+.rbc-current-time-indicator {
+  @apply h-0.5 bg-gray-500;
+}
+
 /* Responsive Adjustments */
 @media (max-width: 768px) {
   .rbc-time-view {
@@ -95,17 +105,8 @@
   .rbc-time-header-content {
     @apply overflow-x-auto;
   }
-
-  .rbc-event {
-    @apply text-[10px] px-1 py-0.5;
-  }
 }
 
-/* Scrollbar Styling (Webkit) */
-.rbc-time-view::-webkit-scrollbar {
-  @apply w-2 bg-transparent;
-}
-
-.rbc-time-view::-webkit-scrollbar-thumb {
-  @apply bg-gray-300 rounded-full;
+.rbc-event-content {
+  @apply text-xl font-light tracking-wider;
 }

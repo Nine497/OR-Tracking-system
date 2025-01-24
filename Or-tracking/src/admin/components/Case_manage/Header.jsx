@@ -11,7 +11,9 @@ function Case_Table_Header() {
 
   return (
     <div className="flex flex-row p-4 justify-between">
-      <div className="text-3xl font-semibold">การจัดการเคสผ่าตัด</div>
+      <div className="text-xl sm:text-2xl font-semibold">
+        การจัดการเคสผ่าตัด
+      </div>
 
       <Button
         type="primary"

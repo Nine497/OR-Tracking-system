@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Dropdown, Menu, Button, Modal, notification } from "antd";
+import { Dropdown, Button, Modal, notification } from "antd";
 import { Icon } from "@iconify/react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
@@ -44,40 +44,42 @@ const StyledDropdown = () => {
     });
   };
 
-  const menu = (
-    <Menu>
-      {/* แสดงชื่อและนามสกุล */}
-      <Menu.Item key="user_info" disabled>
+  const menuItems = [
+    {
+      key: "user_info",
+      label: (
         <span className="text-gray-700 font-medium text-base">
           {`${user.firstname} ${user.lastname}`}
         </span>
-      </Menu.Item>
-      <Menu.Divider />
-
-      {/* ตัวเลือกสำหรับ Profile Setting */}
-      <Menu.Item
-        key="profile_setting"
-        onClick={() => navigate("/profile")}
-        icon={<Icon icon="weui:setting-outlined" className="text-xl" />}
-      >
-        <span className="text-sm font-normal">Account Setting</span>
-      </Menu.Item>
-
-      <Menu.Divider />
-
-      {/* ตัวเลือกสำหรับ Logout */}
-      <Menu.Item
-        key="logout"
-        onClick={handleLogout}
-        icon={<Icon icon="mdi:logout" className="text-xl" />}
-      >
-        <span className="text-sm font-normal">Logout</span>
-      </Menu.Item>
-    </Menu>
-  );
+      ),
+      disabled: true,
+    },
+    {
+      type: "divider",
+    },
+    {
+      key: "profile_setting",
+      label: <span className="text-sm font-normal">Account Setting</span>,
+      icon: <Icon icon="weui:setting-outlined" className="text-xl" />,
+      onClick: () => navigate("/profile"),
+    },
+    {
+      type: "divider",
+    },
+    {
+      key: "logout",
+      label: <span className="text-sm font-normal">Logout</span>,
+      icon: <Icon icon="mdi:logout" className="text-xl" />,
+      onClick: handleLogout,
+    },
+  ];
 
   return (
-    <Dropdown overlay={menu} trigger={["click"]} placement="bottomRight">
+    <Dropdown
+      menu={{ items: menuItems }}
+      trigger={["click"]}
+      placement="bottomRight"
+    >
       <Button
         className=" rounded-full bg-white
                flex items-center justify-center 
