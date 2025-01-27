@@ -74,19 +74,15 @@ function EditCase() {
         const transformedSurgeryData = {
           patient_id: surgeryCase.patient_id,
           surgery_case_id: surgeryCase.surgery_case_id || null,
-          surgery_date:
-            surgeryCase.surgery_date &&
-            dayjs(surgeryCase.surgery_date).isValid()
-              ? dayjs(surgeryCase.surgery_date)
+          surgery_start_time:
+            surgeryCase.surgery_start_time &&
+            dayjs(surgeryCase.surgery_start_time).isValid()
+              ? dayjs(surgeryCase.surgery_start_time)
               : null,
-          estimate_start_time:
-            surgeryCase.estimate_start_time &&
-            dayjs(surgeryCase.estimate_start_time, "HH:mm").isValid()
-              ? dayjs(surgeryCase.estimate_start_time, "HH:mm")
-              : null,
-          estimate_duration:
-            surgeryCase.estimate_duration !== null
-              ? (surgeryCase.estimate_duration / 60).toFixed(2)
+          surgery_end_time:
+            surgeryCase.surgery_end_time &&
+            dayjs(surgeryCase.surgery_end_time, "HH:mm").isValid()
+              ? dayjs(surgeryCase.surgery_end_time, "HH:mm")
               : null,
           surgery_type_id: surgeryCase.surgery_type_id || null,
           operating_room_id: surgeryCase.operating_room_id || null,
@@ -287,19 +283,12 @@ function EditCase() {
       const surgeryCaseDataToSend = {
         surgery_type_id: surgeryData.surgery_type_id,
         doctor_id: surgeryData.doctor_id,
-        surgery_date: dayjs(surgeryData.surgery_date).format("YYYY-MM-DD"),
-        estimate_start_time: dayjs(
-          surgeryData.estimate_start_time,
-          "HH:mm"
-        ).format("HH:mm"),
-        estimate_duration: surgeryData.estimate_duration
-          ? (() => {
-              const [hours, minutes] = surgeryData.estimate_duration
-                .toString()
-                .split(".");
-              return parseInt(hours) * 60 + (minutes ? parseInt(minutes) : 0);
-            })()
-          : null,
+        surgery_start_time: dayjs(surgeryData.surgery_start_time).format(
+          "YYYY-MM-DD HH:mm:ss"
+        ),
+        surgery_end_time: dayjs(surgeryData.surgery_end_time, "HH:mm").format(
+          "YYYY-MM-DD HH:mm:ss"
+        ),
         operating_room_id: surgeryData.operating_room_id,
         patient_history: surgeryData.patient_history || "",
         patient_id: patientId,
@@ -972,86 +961,71 @@ function EditCase() {
                         </Select>
                       </Form.Item>
                     </div>
-                    <div className="grid grid-cols-3 gap-6">
-                      <Form.Item
-                        label={
-                          <span className="text-base font-medium text-gray-700">
-                            วันที่ผ่าตัด
-                          </span>
-                        }
-                        name="surgery_date"
-                        rules={[
-                          { required: true, message: "Please pick a date!" },
-                        ]}
-                      >
-                        <DatePicker className="h-11 text-base rounded-lg w-full" />
-                      </Form.Item>
-
+                    <div className="grid grid-cols-2 gap-6">
                       <Form.Item
                         label={
                           <span className="text-base font-medium text-gray-700">
                             เวลาเริ่มผ่าตัด
                           </span>
                         }
-                        name="estimate_start_time"
+                        name="surgery_start_time"
                         rules={[
-                          { required: true, message: "Please pick a time!" },
+                          { required: true, message: "Please pick a date!" },
                         ]}
                       >
-                        <TimePicker
-                          name="estimate_start_time"
-                          value={surgeryData.estimate_start_time}
-                          onChange={(time) =>
+                        <DatePicker
+                          showTime={{
+                            format: "HH:mm",
+                          }}
+                          format="YYYY-MM-DD HH:mm"
+                          value={
+                            surgeryData.surgery_start_time
+                              ? dayjs(
+                                  surgeryData.surgery_start_time,
+                                  "YYYY-MM-DD HH:mm"
+                                )
+                              : null
+                          }
+                          onChange={(date, dateString) =>
                             handleSurgeryDataChange(
-                              "estimate_start_time",
-                              time ? time.format("HH:mm") : null
+                              "surgery_start_time",
+                              dateString
                             )
                           }
-                          format="HH:mm"
                           className="h-11 text-base rounded-lg w-full"
-                        />
+                        />{" "}
                       </Form.Item>
 
                       <Form.Item
                         label={
                           <span className="text-base font-medium text-gray-700">
-                            ระยะเวลาการผ่าตัด (หน่วยชั่วโมง){" "}
+                            เวลาสิ้นสุดผ่าตัด
                           </span>
                         }
-                        name="estimate_duration"
+                        name="surgery_end_time"
                         rules={[
-                          {
-                            required: true,
-                            message: "Please enter the duration!",
-                          },
-                          {
-                            validator: (_, value) =>
-                              value > 0
-                                ? Promise.resolve()
-                                : Promise.reject(
-                                    new Error("Duration must be greater than 0")
-                                  ),
-                          },
+                          { required: true, message: "Please pick a time!" },
                         ]}
                       >
-                        <Input
-                          name="estimate_duration"
-                          placeholder="Input estimate duration (in hours)"
-                          value={
-                            surgeryData.estimate_duration
-                              ? (surgeryData.estimate_duration / 60).toFixed(2)
-                              : ""
-                          }
-                          onChange={(e) => {
-                            const hours = parseFloat(e.target.value) || 0;
-                            const minutes = Math.round(hours * 60);
-                            handleSurgeryDataChange(
-                              "estimate_duration",
-                              minutes
-                            );
+                        <DatePicker
+                          showTime={{
+                            format: "HH:mm",
                           }}
-                          type="number"
-                          step="0.01"
+                          format="YYYY-MM-DD HH:mm"
+                          value={
+                            surgeryData.surgery_end_time
+                              ? dayjs(
+                                  surgeryData.surgery_end_time,
+                                  "YYYY-MM-DD HH:mm"
+                                )
+                              : null
+                          }
+                          onChange={(date, dateString) =>
+                            handleSurgeryDataChange(
+                              "surgery_end_time",
+                              dateString
+                            )
+                          }
                           className="h-11 text-base rounded-lg w-full"
                         />
                       </Form.Item>

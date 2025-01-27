@@ -1,15 +1,8 @@
 import React, { useState } from "react";
 import LanguageSelector from "../components/LanguageSelector";
 import { axiosInstancePatient } from "../../admin/api/axiosInstance";
-
-const Policy = ({
-  t,
-  handleAcceptPolicy,
-  handleDeclinePolicy,
-  visible,
-  handleCloseModal,
-  link,
-}) => {
+import { Checkbox } from "antd";
+const Policy = ({ t, handleAcceptPolicy, visible, link }) => {
   if (!visible) return null;
 
   const [agreedTerms, setAgreedTerms] = useState(false);
@@ -55,7 +48,10 @@ const Policy = ({
   };
 
   return (
-    <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto flex justify-center items-center z-50 p-4 sm:p-6 md:p-8">
+    <div
+      style={{ pointerEvents: visible ? "auto" : "none" }}
+      className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto flex justify-center items-center z-50 p-4 sm:p-6 md:p-8"
+    >
       <div className="bg-white rounded-lg shadow-lg w-full max-w-4xl relative">
         <div className="p-4 sm:p-6 md:p-8">
           <header className="flex flex-row justify-between items-center border-b pb-4 mb-4 gap-4">
@@ -107,31 +103,35 @@ const Policy = ({
 
             <div className="mb-6">
               {/* Terms and Conditions Checkbox */}
-              <div className="flex items-center mb-4">
-                <input
-                  type="checkbox"
-                  checked={agreedTerms}
-                  onChange={handleTermsChange}
-                  className="h-5 w-5 text-blue-600 border-gray-300 rounded"
-                />
-                <label className="ml-2 text-sm sm:text-base text-gray-600">
-                  {t("login.AGREE")}{" "}
-                  <span className="font-semibold">{t("login.TERMS_HEAD")}</span>
+              <div className="flex items-center mb-2 px-3 py-4 border-2 border-gray-300 rounded-lg">
+                <label className="flex items-center space-x-2 cursor-pointer">
+                  <Checkbox
+                    checked={agreedTerms}
+                    onChange={handleTermsChange}
+                    className="h-5 w-5 text-blue-600 checked:bg-blue-600"
+                  />
+                  <span className="text-sm sm:text-base text-gray-600">
+                    {t("login.AGREE")}{" "}
+                    <span className="font-semibold">
+                      {t("login.TERMS_HEAD")}
+                    </span>
+                  </span>
                 </label>
               </div>
 
               {/* Privacy Policy Checkbox */}
-              <div className="flex items-center mb-6">
-                <input
-                  type="checkbox"
-                  checked={agreedPolicy}
-                  onChange={handlePolicyChange}
-                  className="h-5 w-5 text-blue-600 border-gray-300 rounded"
-                />
-                <label className="ml-2 text-sm sm:text-base text-gray-600">
-                  {t("login.AGREE")}{" "}
-                  <span className="font-semibold">
-                    {t("login.POLICY_HEAD")}
+              <div className="flex items-center mb-2 px-3 py-4 border-2 border-gray-300 rounded-lg">
+                <label className="flex items-center space-x-2 cursor-pointer">
+                  <Checkbox
+                    checked={agreedPolicy}
+                    onChange={handlePolicyChange}
+                    className="h-5 w-5 text-blue-600"
+                  />
+                  <span className="text-sm sm:text-base text-gray-600">
+                    {t("login.AGREE")}{" "}
+                    <span className="font-semibold">
+                      {t("login.POLICY_HEAD")}
+                    </span>
                   </span>
                 </label>
               </div>

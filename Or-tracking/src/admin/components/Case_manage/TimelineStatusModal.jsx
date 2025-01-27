@@ -94,7 +94,9 @@ const TimelineStatus = ({ record }) => {
     const fetchAllStatuses = async () => {
       setIsLoading(true);
       try {
-        const response = await axiosInstanceStaff.get("patient/getAllStatus");
+        const response = await axiosInstanceStaff.get(
+          "patient/getAllStatus?language_code=th"
+        );
         if (response.status === 200 && response.data) {
           setAllStatus(response.data);
         }

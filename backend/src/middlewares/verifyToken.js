@@ -22,8 +22,10 @@ const verifyToken = async (req, res, next) => {
     }
     console.log("User Active : ", user.isActive);
 
-    if (!user.isActive) {
-      return res.status(301).json({ message: "Inactive 112" });
+    if (user.isActive == false) {
+      return res
+        .status(403)
+        .json({ message: "User is inactive. Access denied." });
     }
 
     next();
@@ -31,7 +33,7 @@ const verifyToken = async (req, res, next) => {
     console.error("Error verifying token:", err.message);
 
     if (err.name === "JsonWebTokenError" || err.name === "TokenExpiredError") {
-      return res.status(400).json({ message: "Invalid or expired token" });
+      return res.status(401).json({ message: "Invalid or expired token" });
     }
 
     res

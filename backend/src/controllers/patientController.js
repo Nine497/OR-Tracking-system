@@ -294,9 +294,8 @@ exports.getPatientData = async (req, res) => {
         "status.status_id",
         "status.description",
         "surgery_type.surgery_type_name",
-        "surgery_case.estimate_start_time",
-        "surgery_case.estimate_duration",
-        "surgery_case.surgery_date"
+        "surgery_case.surgery_start_time",
+        "surgery_case.surgery_end_time"
       )
       .where("surgery_case.surgery_case_id", surgery_case_id)
       .first();
@@ -312,31 +311,41 @@ exports.getPatientData = async (req, res) => {
   }
 };
 
-exports.getAllStatuses = async () => {
+exports.getAllStatuses = async (req, res) => {
   try {
+    const language_code = req.query.language_code || "en";
+
     const statuses = await db("status")
       .select(
         "status.status_id",
         "status.status_name",
         "status.description",
+        "translations.language_code",
         "translations.translated_name",
         "translations.translated_des"
       )
       .leftJoin("translations", function () {
         this.on("translations.ref_id", "=", "status.status_id")
-          .andOn("translations.language_code", "=", db.raw("'th'"))
-          .andOn("translations.section", "=", db.raw("'status'"));
+          .andOn("translations.section", "=", db.raw("'status'"))
+          .andOn(
+            "translations.language_code",
+            "=",
+            db.raw("?", [language_code])
+          );
       })
       .orderBy("status.status_id");
 
     if (!statuses || statuses.length === 0) {
-      return { message: "No statuses found" };
+      return res.status(404).json({ message: "No statuses found" });
     }
 
-    return statuses;
+    return res.json(statuses);
   } catch (error) {
     console.error("Error in getAllStatuses:", error);
-    return { message: "Failed to retrieve statuses", details: error.message };
+    return res.status(500).json({
+      message: "Failed to retrieve statuses",
+      details: error.message,
+    });
   }
 };
 

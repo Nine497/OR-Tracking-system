@@ -1,16 +1,21 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { Form, Input, Button, notification } from "antd";
 import IMask from "imask";
 import Logo from "../assets/Logo.png";
 import { axiosInstancePatient } from "../../admin/api/axiosInstance";
 import { usePatient } from "../context/PatientContext";
 import { useNavigate } from "react-router-dom";
+import LanguageSelector from "./LanguageSelector";
+import { Icon } from "@iconify/react";
 
 const LoginForm = ({ t, link }) => {
   const [loading, setLoading] = useState(false);
-  const hnInputRef = React.useRef(null);
-  const dobInputRef = React.useRef(null);
+  const hnInputRef = useRef(null);
+  const dobInputRef = useRef(null);
   const { surgery_case_id, setPatient, setSurgeryCase } = usePatient();
+  const dayRef = useRef(null);
+  const monthRef = useRef(null);
+  const yearRef = useRef(null);
   const navigate = useNavigate();
 
   const onFinish = async (values) => {
@@ -69,18 +74,29 @@ const LoginForm = ({ t, link }) => {
     }
   }, []);
 
+  const handleInputChange = (currentRef, nextRef, maxLength) => (e) => {
+    const value = e.target.value;
+    if (value.length === maxLength && nextRef) {
+      nextRef.current.focus();
+    }
+  };
+
   return (
     <div className="min-h-screen flex flex-col">
-      {/* เนื้อหาหลัก */}
-      <div className="flex-grow w-full flex flex-col items-center justify-center py-8">
-        <div className="w-full max-w-full mx-auto px-4 sm:px-6 md:px-8">
-          {/* <h2 className="text-lg sm:text-xl md:text-2xl font-semibold text-center mb-6 text-blue-800">
-            {t("login.TITLE")}
-          </h2> */}
-          <div className="mb-8">
+      {/* Header */}
+      <header className="w-full bg-white">
+        <div className="container mx-auto px-4 sm:px-6 md:px-8 py-4 flex justify-end">
+          <LanguageSelector t={t} />
+        </div>
+      </header>
+
+      {/* Content */}
+      <main className="flex-grow w-full flex items-center justify-center py-8">
+        <div className="w-full max-w-md mx-auto px-4 sm:px-6 md:px-8">
+          <div className="mb-8 text-center">
             <img
               src={Logo}
-              className="w-40 sm:w-32 md:w-64 mx-auto"
+              className="w-40 sm:w-48 md:w-56 mx-auto"
               alt="Hospital Logo"
             />
           </div>
@@ -116,7 +132,7 @@ const LoginForm = ({ t, link }) => {
 
             <Form.Item
               label={
-                <span className="text-base font-medium text-gray-700">
+                <span className="text-sm sm:text-base font-medium text-gray-700">
                   {t("login.DOB")}
                 </span>
               }
@@ -138,9 +154,12 @@ const LoginForm = ({ t, link }) => {
                     type="number"
                     placeholder="DD"
                     maxLength={2}
-                    className="p-2 text-center text-sm sm:text-base rounded-lg border border-gray-300 focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+                    ref={dayRef}
+                    onChange={handleInputChange(dayRef, monthRef, 2)}
+                    className="flex-1 p-2 text-center text-sm sm:text-base rounded-lg border border-gray-300 focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
                   />
                 </Form.Item>
+
                 {/* ช่องเดือน */}
                 <Form.Item
                   name="dob_month"
@@ -157,7 +176,9 @@ const LoginForm = ({ t, link }) => {
                     type="number"
                     placeholder="MM"
                     maxLength={2}
-                    className="p-2 text-center text-sm sm:text-base rounded-lg border border-gray-300 focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+                    ref={monthRef}
+                    onChange={handleInputChange(monthRef, yearRef, 2)}
+                    className="flex-1 p-2 text-center text-sm sm:text-base rounded-lg border border-gray-300 focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
                   />
                 </Form.Item>
 
@@ -177,7 +198,9 @@ const LoginForm = ({ t, link }) => {
                     type="number"
                     placeholder="YYYY"
                     maxLength={4}
-                    className="p-2 text-center text-sm sm:text-base rounded-lg border border-gray-300 focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+                    ref={yearRef}
+                    onChange={handleInputChange(yearRef, null, 4)}
+                    className="flex-1 p-2 text-center text-sm sm:text-base rounded-lg border border-gray-300 focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
                   />
                 </Form.Item>
               </Input.Group>
@@ -185,24 +208,26 @@ const LoginForm = ({ t, link }) => {
 
             <Form.Item className="mb-0">
               <Button
+                size="large"
                 htmlType="submit"
-                className="w-full p-4 bg-blue-500 hover:bg-blue-600 text-white text-sm sm:text-base font-medium rounded-md shadow-lg transition-all duration-300"
+                className="w-full p-3 bg-blue-500 hover:bg-blue-600 text-white text-sm sm:text-base font-medium rounded-md shadow-lg transition-all duration-300"
                 disabled={loading}
+                icon={<Icon icon="mdi:check-circle" />}
               >
-                {loading ? t("login.LOADING") : t("login.SUBMIT")}
+                {loading ? t("login.LOADING") : t("login.VERIFY")}
               </Button>
             </Form.Item>
           </Form>
         </div>
-      </div>
+      </main>
 
       {/* Footer */}
-      <footer className="w-full bg-white mt-auto py-4">
-        <div className="text-center text-gray-600">
+      <footer className="w-full bg-white shadow-sm py-4">
+        <div className="container mx-auto px-4 sm:px-6 md:px-8 text-center text-gray-600">
           <p className="text-sm mt-2">
             Lorem ipsum dolor sit amet, consectetur.
           </p>
-          <p className="text-xs mt-4">
+          <p className="text-xs mt-2">
             © 2025 Lorem ipsum dolor. All rights reserved.
           </p>
         </div>

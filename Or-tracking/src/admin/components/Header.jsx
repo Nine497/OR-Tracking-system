@@ -84,7 +84,7 @@ const StyledDropdown = () => {
         className=" rounded-full bg-white
                flex items-center justify-center 
                 border-none shadow-md 
-               transition-all duration-300 ease-out 
+               transition-all duration-300 ease-out  
                "
       >
         <Icon icon="line-md:menu" className="text-black text-lg" />

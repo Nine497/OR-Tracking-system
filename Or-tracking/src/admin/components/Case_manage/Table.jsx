@@ -224,7 +224,9 @@ function CaseTable() {
     const fetchStatusData = async () => {
       setLoading(true);
       try {
-        const response = await axiosInstanceStaff.get("patient/getAllStatus");
+        const response = await axiosInstanceStaff.get(
+          "patient/getAllStatus?language_code=th"
+        );
         if (response.status === 200 && response.data) {
           console.log("response.data:", response.data);
           setAllStatus(response.data);

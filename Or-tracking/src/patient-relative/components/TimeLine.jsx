@@ -65,8 +65,10 @@ const StatusTimeline = ({
   };
 
   const timelineItems = useMemo(() => {
+    console.log("statusData", statusData);
+
     const filteredStatusData = statusData.filter(
-      (status) => status.status_name !== "Pending"
+      (status) => status.status_id !== 0
     );
 
     return filteredStatusData.map((status) => {
@@ -113,18 +115,31 @@ const StatusTimeline = ({
                 {dayjs(historyEntry.updated_at).format("HH:mm DD/MM/YYYY")}
               </Text>
             )}
-            <div className="flex flex-row items-center gap-2 md:gap-6">
-              <Text
-                className={`text-sm md:text-base ${
-                  isLatestStatus
-                    ? "text-blue-600"
-                    : isPastStatus
-                    ? "text-green-600"
-                    : "text-gray-600"
-                } font-medium flex-2`}
-              >
-                {status.status_name}
-              </Text>
+            <div className="flex flex-row gap-2 md:gap-6">
+              <div className="flex flex-col gap-1">
+                <Text
+                  className={`text-sm md:text-base ${
+                    isLatestStatus
+                      ? "text-blue-600"
+                      : isPastStatus
+                      ? "text-green-600"
+                      : "text-gray-600"
+                  } font-medium flex-2`}
+                >
+                  {status.translated_name}
+                </Text>
+                <Text
+                  className={`text-xs md:text-base ${
+                    isLatestStatus
+                      ? "text-blue-300"
+                      : isPastStatus
+                      ? "text-green-300"
+                      : "text-gray-300"
+                  } font-medium flex-2`}
+                >
+                  {status.translated_des}
+                </Text>
+              </div>
               <div className="flex items-center flex-1 justify-end">
                 {isLatestStatus && (
                   <Tag
@@ -153,7 +168,7 @@ const StatusTimeline = ({
 
   return (
     <>
-      <div className="px-5 pt-6">
+      <div className="px-2 pt-6 items-start">
         <Timeline items={timelineItems} className="max-w-3xl mx-auto" />
       </div>
       <Modal

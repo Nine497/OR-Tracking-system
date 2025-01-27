@@ -33,10 +33,56 @@ axiosInstanceStaff.interceptors.response.use(
       console.log("Response Status:", status);
       console.log("Response Data:", data);
 
+      if (status === 403) {
+        Modal.error({
+          title: "บัญชีถูกระงับ",
+          content: "บัญชีของคุณถูกระงับ กรุณาเข้าสู่ระบบอีกครั้ง.",
+          okText: "ไปยังหน้าล็อกอิน",
+          onOk: () => {
+            localStorage.removeItem("jwtToken");
+            window.location.href = "/login";
+          },
+        });
+      } else if (status === 401) {
+        Modal.error({
+          title: "เซสชันหมดอายุ",
+          content: "เซสชันของคุณหมดอายุ กรุณาเข้าสู่ระบบใหม่อีกครั้ง.",
+          okText: "ไปยังหน้าล็อกอิน",
+          onOk: () => {
+            localStorage.removeItem("jwtToken");
+            window.location.href = "/login";
+          },
+        });
+      }
+    }
+
+    return Promise.reject(error);
+  }
+);
+
+axiosInstancePatient.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (error.response) {
+      const { status, data } = error.response;
+
+      console.log("Response Status:", status);
+      console.log("Response Data:", data);
+
       if (status === 301) {
         Modal.error({
           title: "บัญชีถูกระงับ",
           content: "บัญชีของคุณถูกระงับ กรุณาเข้าสู่ระบบอีกครั้ง.",
+          okText: "ไปยังหน้าล็อกอิน",
+          onOk: () => {
+            localStorage.removeItem("jwtToken");
+            window.location.href = "/login";
+          },
+        });
+      } else if (status === 401) {
+        Modal.error({
+          title: "เซสชันหมดอายุ",
+          content: "เซสชันของคุณหมดอายุ กรุณาเข้าสู่ระบบใหม่อีกครั้ง.",
           okText: "ไปยังหน้าล็อกอิน",
           onOk: () => {
             localStorage.removeItem("jwtToken");

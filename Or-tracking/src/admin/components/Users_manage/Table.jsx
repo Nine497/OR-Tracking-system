@@ -17,7 +17,7 @@ function UsersTable() {
   const [modalVisible, setModalVisible] = useState(false);
   const [selectedUser, setSelectedUser] = useState(null);
   const [dataLastestUpdated, setDataLastestUpdated] = useState(null);
-  const { permissions } = useAuth();
+  const { permissions, user } = useAuth();
 
   const handleSearch = async (value) => {
     setSearchTerm(value);
@@ -40,7 +40,11 @@ function UsersTable() {
           }))
         : [];
 
-      setFilteredData(dataWithKeys);
+      const filteredUsers = dataWithKeys.filter(
+        (userData) => userData.staff_id !== user.id
+      );
+
+      setFilteredData(filteredUsers);
       setPagination({
         ...pagination,
         total: response.data.totalRecords,
@@ -110,8 +114,11 @@ function UsersTable() {
               key: item.staff_id,
             }))
           : [];
+        const filteredUsers = dataWithKeys.filter(
+          (userData) => userData.staff_id !== user.id
+        );
 
-        setFilteredData(dataWithKeys);
+        setFilteredData(filteredUsers);
         setPagination({
           ...pagination,
           total: response.data.totalRecords,
@@ -186,7 +193,7 @@ function UsersTable() {
       key: "created_at",
       render: (text) => (
         <span className="text-base font-normal">
-          {new Date(text).toLocaleString()}
+          {dayjs(text).format("YYYY/MM/DD HH:mm")}
         </span>
       ),
     },

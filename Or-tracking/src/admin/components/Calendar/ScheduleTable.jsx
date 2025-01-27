@@ -13,7 +13,7 @@ function ScheduleTable({ events }) {
   useEffect(() => {
     if (dateRange[0] && dateRange[1]) {
       const filtered = events.filter((event) => {
-        const surgeryDate = dayjs(event.surgery_date);
+        const surgeryDate = dayjs(event.surgery_start_time);
         return surgeryDate.isBetween(dateRange[0], dateRange[1], "day", "[]");
       });
       setFilteredEvents(filtered);
@@ -21,6 +21,10 @@ function ScheduleTable({ events }) {
       setFilteredEvents(events);
     }
   }, [dateRange, events]);
+
+  useEffect(() => {
+    console.log("events", events);
+  }, [filteredEvents]);
 
   const columns = [
     {
@@ -31,29 +35,35 @@ function ScheduleTable({ events }) {
     },
     {
       title: "Surgery Date",
-      dataIndex: "surgery_date",
-      key: "surgery_date",
+      dataIndex: "surgery_start_time",
+      key: "surgery_start_time",
       render: (date) => (
-        <span className="font-normal">{dayjs(date).format("DD/MM/YYYY")}</span>
+        <span className="font-normal">{dayjs(date).format("YYYY/MM/DD")}</span>
       ),
       sorter: (a, b) =>
-        dayjs(a.surgery_date).isBefore(dayjs(b.surgery_date)) ? -1 : 1,
+        dayjs(a.surgery_start_time).isBefore(dayjs(b.surgery_start_time))
+          ? -1
+          : 1,
     },
     {
-      title: "Estimated Start Time",
-      dataIndex: "estimate_start_time",
-      key: "estimate_start_time",
-      render: (time) => (
+      title: "Time",
+      dataIndex: ["surgery_start_time", "surgery_end_time"],
+      key: "surgery_time",
+      render: (text, record) => (
         <span className="font-normal">
-          {dayjs(time, "HH:mm").format("HH:mm")} น.
+          {dayjs(record.surgery_start_time).format("HH:mm")} -{" "}
+          {dayjs(record.surgery_end_time).format("HH:mm")}
         </span>
       ),
     },
+
     {
-      title: "Room",
-      dataIndex: "room_name",
-      key: "room_name",
-      render: (room) => <span className="font-normal">{room}</span>,
+      title: "Doctor",
+      dataIndex: "doctor_fullname",
+      key: "doctor_fullname",
+      render: (doctor_fullname) => (
+        <span className="font-normal">{doctor_fullname}</span>
+      ),
     },
     {
       title: "Status",

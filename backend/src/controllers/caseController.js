@@ -147,14 +147,45 @@ exports.updateSurgeryCase = async (req, res) => {
     if (
       !surgeryCaseData.surgery_type_id ||
       !surgeryCaseData.doctor_id ||
-      !surgeryCaseData.surgery_date ||
-      !surgeryCaseData.estimate_start_time ||
-      !surgeryCaseData.estimate_duration ||
+      !surgeryCaseData.surgery_start_time ||
+      !surgeryCaseData.surgery_end_time ||
       !surgeryCaseData.operating_room_id
     ) {
       return res
         .status(400)
         .json({ message: "Please provide all required fields." });
+    }
+
+    const overlappingCases = await db("surgery_case")
+      .where("operating_room_id", surgeryCaseData.operating_room_id)
+      .andWhere(function () {
+        this.whereBetween("surgery_start_time", [
+          surgeryCaseData.surgery_start_time,
+          surgeryCaseData.surgery_end_time,
+        ])
+          .orWhereBetween("surgery_end_time", [
+            surgeryCaseData.surgery_start_time,
+            surgeryCaseData.surgery_end_time,
+          ])
+          .orWhere(function () {
+            this.where(
+              "surgery_start_time",
+              "<=",
+              surgeryCaseData.surgery_start_time
+            ).andWhere(
+              "surgery_end_time",
+              ">=",
+              surgeryCaseData.surgery_end_time
+            );
+          });
+      })
+      .andWhere("surgery_case_id", "<>", surgery_case_id);
+
+    if (overlappingCases.length > 0) {
+      return res.status(400).json({
+        message:
+          "The selected operating room has overlapping cases at this time.",
+      });
     }
 
     console.log("surgeryCaseData : ", surgeryCaseData);
@@ -327,7 +358,6 @@ exports.createSurgeryCase = async (req, res) => {
       return res.status(400).json({ message: "Invalid patient ID" });
     }
 
-    // ตรวจสอบข้อมูลที่จำเป็น
     const requiredFields = [
       "doctor_id",
       "surgery_start_time",
@@ -350,7 +380,39 @@ exports.createSurgeryCase = async (req, res) => {
 
     console.log("surgery_start_time", surgeryCaseData.surgery_start_time);
     console.log("surgery_end_time", surgeryCaseData.surgery_end_time);
-    // สร้างเคสการผ่าตัด
+
+    const overlappingCases = await db("surgery_case")
+      .where("operating_room_id", surgeryCaseData.operating_room_id)
+      .andWhere(function () {
+        this.whereBetween("surgery_start_time", [
+          surgeryCaseData.surgery_start_time,
+          surgeryCaseData.surgery_end_time,
+        ])
+          .orWhereBetween("surgery_end_time", [
+            surgeryCaseData.surgery_start_time,
+            surgeryCaseData.surgery_end_time,
+          ])
+          .orWhere(function () {
+            this.where(
+              "surgery_start_time",
+              "<=",
+              surgeryCaseData.surgery_start_time
+            ).andWhere(
+              "surgery_end_time",
+              ">=",
+              surgeryCaseData.surgery_end_time
+            );
+          });
+      })
+      .then((overlappingCases) => overlappingCases);
+
+    if (overlappingCases.length > 0) {
+      return res.status(400).json({
+        message:
+          "The selected operating room has overlapping cases at this time.",
+      });
+    }
+
     const newSurgeryCase = await db("surgery_case")
       .insert({
         doctor_id: surgeryCaseData.doctor_id,
@@ -364,7 +426,6 @@ exports.createSurgeryCase = async (req, res) => {
         created_at: surgeryCaseData.created_at,
         patient_history: surgeryCaseData.patient_history || "",
       })
-
       .returning("*");
 
     if (!newSurgeryCase || newSurgeryCase.length === 0) {
@@ -373,7 +434,6 @@ exports.createSurgeryCase = async (req, res) => {
 
     const surgeryCaseId = newSurgeryCase[0].surgery_case_id;
 
-    // เพิ่มข้อมูล operation
     if (surgeryCaseData.Operation) {
       await db("operation").insert({
         surgery_case_id: surgeryCaseId,
@@ -381,7 +441,6 @@ exports.createSurgeryCase = async (req, res) => {
       });
     }
 
-    // เพิ่มประวัติสถานะเคส
     await db("surgery_case_status_history").insert({
       surgery_case_id: surgeryCaseId,
       status_id: 0,

@@ -16,6 +16,7 @@ const StatusUpdateForm = ({ record, allStatus, onStatusUpdate }) => {
 
     const fetchData = async () => {
       try {
+        setLoading(true); // Start loading when fetching data
         const response = await axiosInstanceStaff.get(
           `surgery_case/status/${record.surgery_case_id}`
         );
@@ -31,6 +32,8 @@ const StatusUpdateForm = ({ record, allStatus, onStatusUpdate }) => {
           pauseOnHover: true,
           duration: 2,
         });
+      } finally {
+        setLoading(false); // Stop loading when done
       }
     };
 
@@ -94,7 +97,6 @@ const StatusUpdateForm = ({ record, allStatus, onStatusUpdate }) => {
 
   const hasStatusChanged = tempStatus !== selectedStatus;
 
-  // กรองสถานะที่สามารถเลือกได้ โดยเฉพาะสถานะที่ current_status_id < (current_status_id + 1)
   const filteredStatus = allStatus.filter(
     (status) => status.status_id <= selectedStatus + 1
   );
@@ -121,7 +123,7 @@ const StatusUpdateForm = ({ record, allStatus, onStatusUpdate }) => {
           <Select.Option
             key={status.status_id}
             value={status.status_id}
-            disabled={status.status_id > selectedStatus + 1} // Disable option if the status_id is greater than selectedStatus + 1
+            disabled={status.status_id > selectedStatus + 1}
             className="py-1"
           >
             {status.translated_name}

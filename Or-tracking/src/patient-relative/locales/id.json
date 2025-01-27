@@ -1,0 +1,79 @@
+{
+  "errors": {
+    "NO_TOKEN_PROVIDED": "Token diperlukan",
+    "LINK_NOT_FOUND": "Tautan tidak ditemukan",
+    "LINK_INACTIVE": "Tautan tidak aktif",
+    "LINK_EXPIRED": "Tautan kedaluwarsa",
+    "TOKEN_EXPIRED": "Token kedaluwarsa",
+    "INVALID_TOKEN": "Token tidak valid",
+    "TOKEN_NOT_ACTIVE": "Token tidak aktif",
+    "VALIDATION_FAILED": "Validasi token gagal"
+  },
+  "patient_info": {
+    "HN": "HN",
+    "NAME": "Nama Lengkap",
+    "GENDER": "Jenis Kelamin",
+    "SURGEON": "Dokter Bedah",
+    "ROOM": "Ruang Operasi",
+    "SURGERY_TIME": "Waktu Operasi",
+    "SURGERY_DATE": "Tanggal Operasi",
+    "SURGERY_START_TIME": "Waktu Mulai Operasi",
+    "SURGERY_FINSIH_TIME": "Waktu Selesai",
+    "male": "Laki-laki",
+    "female": "Perempuan"
+  },
+  "login": {
+    "TITLE": "Masuk",
+    "HN": "Nomor Rumah Sakit",
+    "HN_REQUIRED": "Harap masukkan Nomor Rumah Sakit",
+    "HN_INVALID": "Nomor Rumah Sakit tidak valid",
+    "DOB": "Tanggal Lahir",
+    "DOB_REQUIRED": "Harap masukkan Tanggal Lahir",
+    "DOB_PLACEHOLDER": "Tanggal Lahir Pasien (DD/MM/YYYY)",
+    "VERIFY": "Verifikasi",
+    "TERMS_TITLE": "Syarat dan Ketentuan Layanan",
+    "POLICY_TEXT": "Dengan menggunakan aplikasi ini, Anda setuju dengan syarat dan ketentuan yang tercantum dalam Kebijakan Privasi kami. Kebijakan ini menjelaskan bagaimana kami mengumpulkan, menggunakan, dan membagikan data pribadi Anda. Ini juga menggambarkan hak Anda terkait data pribadi yang Anda berikan kepada kami dan bagaimana Anda dapat mengelolanya. Kami berkomitmen untuk melindungi privasi Anda dan memastikan keamanan informasi Anda. Harap baca kebijakan ini dengan hati-hati sebelum menggunakan aplikasi kami. Jika Anda tidak setuju dengan syarat tersebut, harap hentikan penggunaan aplikasi. Untuk informasi lebih lanjut, kunjungi situs web resmi kami atau hubungi tim dukungan kami.",
+    "ACCEPT_POLICY": "Setuju",
+    "DECLINE_POLICY": "Tolak",
+    "POLICY_HEAD": "Kebijakan Privasi",
+    "TERMS_HEAD": "Syarat dan Ketentuan Layanan",
+    "TERMS_TEXT": "Ini adalah syarat dan ketentuan layanan untuk menggunakan aplikasi kami. Harap tinjau dengan hati-hati sebelum menggunakan aplikasi.",
+    "AGREE": "Saya setuju dengan "
+  },
+  "or_tracking": {
+    "TITLE": "Pelacakan OR"
+  },
+  "view": {
+    "patient_information": "Informasi Pasien",
+    "surgery_information": "Informasi Operasi",
+    "surgery_timeline": "Status Prosedur",
+    "pending_title": "Operasi Tertunda",
+    "pending_des": "Operasi Anda telah dijadwalkan",
+    "status_updated": "Diperbarui pada"
+  },
+  "timeline": {
+    "TITLE": "Timeline Operasi",
+    "REFRESH": "Segarkan"
+  },
+  "loading": {
+    "LOADING": "Memuat...",
+    "text": "Harap tunggu sementara kami memproses informasi."
+  },
+  "error": {
+    "FAILED_TO_LOAD": "Gagal memuat data"
+  },
+  "review": {
+    "review_title": "Survei Kepuasan Layanan",
+    "submit_review": "Kirim Ulasan",
+    "later": "Nanti",
+    "review_prompt": "Ini adalah survei kepuasan untuk layanan yang diberikan oleh rumah sakit.\nKami akan menggunakan umpan balik Anda untuk meningkatkan layanan yang kami tawarkan\nuntuk mencapai kepuasan terbaik yang mungkin.",
+    "additional_suggestions": "Saran Tambahan (Opsional)",
+    "suggestions_placeholder": "Masukkan saran Anda di sini..."
+  },
+  "common": {
+    "CURRENT": "Sekarang",
+    "COMPLETED": "Selesai",
+    "NEXT": "Selanjutnya",
+    "LOGOUT": "Keluar"
+  }
+}

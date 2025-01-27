@@ -2,7 +2,6 @@ import React from "react";
 import { Dropdown } from "antd";
 import { useTranslation } from "react-i18next";
 import { Icon } from "@iconify/react";
-
 const LanguageSelector = () => {
   const { t, i18n } = useTranslation();
 
@@ -10,7 +9,7 @@ const LanguageSelector = () => {
     {
       code: "en",
       label: "English",
-      flag: "twemoji:flag-united-kingdom",
+      flag: "twemoji:flag-united-states",
     },
     {
       code: "th",
@@ -18,7 +17,7 @@ const LanguageSelector = () => {
       flag: "twemoji:flag-thailand",
     },
     {
-      code: "bs",
+      code: "id",
       label: "Bahasa",
       flag: "twemoji:flag-indonesia",
     },
@@ -60,20 +59,19 @@ const LanguageSelector = () => {
         }}
         trigger={["click"]}
         placement="bottomRight"
-        overlayStyle={{ padding: "8px" }}
       >
         <button
           className="
-            group
-            flex items-center gap-2
-            px-4 py-2.5
-            bg-white/90 hover:bg-white
-            backdrop-blur-sm
-            rounded-xl
-            shadow-lg hover:shadow-xl
-            transition-all duration-200
-            border border-white/20
-          "
+        group
+        flex items-center gap-2
+        px-4 py-2.5
+        bg-white/90 hover:bg-white
+        backdrop-blur-sm
+        rounded-xl
+        shadow-lg hover:shadow-xl
+        transition-all duration-200
+        border border-white/20 focus:outline-none focus:border-none
+      "
         >
           <Icon
             icon={currentLanguage?.flag || "twemoji:globe-showing-americas"}

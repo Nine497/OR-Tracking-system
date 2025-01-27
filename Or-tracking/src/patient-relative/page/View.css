@@ -1,0 +1,16 @@
+/* ปรับพื้นหลังให้เบลอเมื่อ Modal ปรากฏ */
+.background-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5); /* สีพื้นหลัง */
+  backdrop-filter: blur(5px); /* การเบลอ */
+  z-index: 10; /* เปลี่ยนให้เป็นค่าต่ำกว่า Modal */
+  pointer-events: none; /* ป้องกันการคลิกบนพื้นหลัง */
+}
+
+.Policy_modal {
+  z-index: 1000; /* กำหนดให้ Modal อยู่สูงสุด */
+}

@@ -18,7 +18,9 @@
         "SURGERY_TIME": "Surgery Time",
         "SURGERY_DATE": "Surgery Date",
         "SURGERY_START_TIME": "Surgery Start",
-        "SURGERY_FINSIH_TIME": "Finish"
+        "SURGERY_FINSIH_TIME": "Finish",
+        "male": "Male",
+        "female": "Female"
     },
     "login": {
         "TITLE": "Login",
@@ -28,7 +30,7 @@
         "DOB": "Date of Birth",
         "DOB_REQUIRED": "Please enter your Date of Birth",
         "DOB_PLACEHOLDER": "Patient Date of Birth (DD/MM/YYYY)",
-        "SUBMIT": "Submit",
+        "VERIFY": "Verify",
         "TERMS_TITLE": "Terms of Service",
         "POLICY_TEXT": "By using this application, you agree to the terms and conditions outlined in our Privacy Policy. This policy explains how we collect, use, and share your personal data. It also describes your rights regarding the personal data you provide to us and how you can manage it. We are committed to protecting your privacy and ensuring the security of your information. Please read this policy carefully before using our application. If you do not agree with the terms, please discontinue use of the application. For more details, visit our official website or contact our support team.",
         "ACCEPT_POLICY": "Accept",
@@ -50,7 +52,8 @@
         "status_updated": "Updated on"
     },
     "timeline": {
-        "TITLE": "Operation Timeline"
+        "TITLE": "Operation Timeline",
+        "REFRESH": "Refresh"
     },
     "loading": {
         "LOADING": "Loading...",

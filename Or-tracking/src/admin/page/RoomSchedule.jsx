@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, memo } from "react";
 import { Icon } from "@iconify/react";
 import { Spin, Button, Card, Drawer } from "antd";
 import { axiosInstanceStaff } from "../api/axiosInstance";
@@ -16,10 +16,11 @@ const RoomSchedule = () => {
   const [or_rooms, setOr_rooms] = useState([]);
   const [selectedDate, setSelectedDate] = useState(moment().startOf("day"));
   const [events, setEvents] = useState([]);
-  const [drawerVisible, setDrawerVisible] = useState(false); // สถานะการแสดง Drawer
-  const [selectedCase, setSelectedCase] = useState(null); // ข้อมูลเคสที่เลือก
+  const [drawerVisible, setDrawerVisible] = useState(false);
+  const [selectedCase, setSelectedCase] = useState(null);
   const localizer = momentLocalizer(moment);
   const [refresh, setRefresh] = useState(false);
+
   const messages = {
     previous: "ย้อนกลับ",
     next: "ถัดไป",
@@ -108,7 +109,7 @@ const RoomSchedule = () => {
   };
 
   return (
-    <div className="w-full p-6 bg-white rounded-xl shadow-sm min-h-full">
+    <div className="w-full p-6 bg-white rounded-xl min-h-full">
       <div className="flex items-center justify-between mb-8">
         <div className="flex items-center space-x-3">
           <Icon icon="mdi:calendar" className="text-blue-600 w-6 h-6" />
@@ -138,13 +139,17 @@ const RoomSchedule = () => {
           defaultView="day"
           components={{
             timeGutterHeader: CustomTimeGutterHeader,
-            toolbar: (toolbarProps) => (
-              <CustomToolbar
-                {...toolbarProps}
-                onRefresh={handleOnRefresh}
-                loading={loading}
-              />
-            ),
+            toolbar: (toolbarProps) => {
+              console.log("toolbarProps:", toolbarProps);
+              return (
+                <CustomToolbar
+                  date={toolbarProps.date}
+                  onNavigate={toolbarProps.onNavigate}
+                  onRefresh={handleOnRefresh}
+                />
+              );
+            },
+
             event: (props) => (
               <CustomEvent {...props} onClick={handleEventClick} />
             ),
@@ -255,61 +260,58 @@ const RoomSchedule = () => {
   );
 };
 
-const CustomToolbar = ({ toolbar, onRefresh, loading }) => {
-  console.log("toolbar", toolbar);
+const CustomToolbar = memo(({ date, onNavigate, onRefresh }) => {
+  console.log("CustomToolbar rendered");
 
-  const label = dayjs(new Date(toolbar?.date))
+  const label = dayjs(new Date(date || new Date()))
     .locale("th")
-    .format("วันที่ DD MMMM YYYY");
+    .format("DD MMMM YYYY");
 
   return (
-    <div className="flex flex-row items-center justify-between mb-4 p-3 bg-gray-50 rounded-lg">
-      {/* ปุ่มนำทาง */}
-      <div className="flex flex-col sm:flex-row gap-3">
-        <Button
-          type="primary"
-          icon={<Icon icon="mdi:calendar-today" className="h-5" />}
-          onClick={() => toolbar.onNavigate("TODAY")}
-          className="flex items-center gap-1"
+    <div className="flex flex-col sm:flex-row items-center justify-between gap-4 p-4 rounded-lg ">
+      <div className="flex flex-row gap-2 items-center">
+        <button
+          className="flex items-center gap-2 text-base text-black hover:not-focus bg-white border-black hover:bg-gray-300 hover:border-black"
+          onClick={() => onNavigate("TODAY")}
         >
           วันนี้
-        </Button>
+        </button>
 
-        <Button
-          type="primary"
-          icon={<Icon icon="mdi:chevron-left" className="h-5" />}
-          onClick={() => toolbar.onNavigate("PREV")}
-          className="flex items-center gap-1"
-        >
-          ย้อนกลับ
-        </Button>
-        <Button
-          type="primary"
-          onClick={() => toolbar.onNavigate("NEXT")}
-          className="flex items-center gap-1"
-        >
-          ถัดไป
-          <Icon icon="mdi:chevron-right" className="h-5" />
-        </Button>
+        <div className="flex gap-1">
+          <button
+            variant="outline"
+            size="icon"
+            className="h-full w-full bg-white hover:bg-gray-300 flex justify-center items-center rounded-full border-none p-2"
+            onClick={() => onNavigate("PREV")}
+          >
+            <Icon icon="mdi:chevron-left" className="text-3xl" />
+          </button>
+
+          <button
+            variant="outline"
+            size="icon"
+            className="h-full w-full bg-white hover:bg-gray-300 flex justify-center items-center rounded-full border-none p-2"
+            onClick={() => onNavigate("NEXT")}
+          >
+            <Icon icon="mdi:chevron-right" className="text-3xl" />
+          </button>
+        </div>
+        <span className="text-lg font-semibold text-gray-800">{label}</span>
       </div>
 
-      <div className="flex items-center gap-2">
-        <span className="text-lg font-semibold text-gray-800">{label}</span>
+      <div className="flex items-center gap-3 h-full">
         <Button
-          type="default"
-          icon={<Icon icon="mdi:refresh" className="h-5" />}
+          variant="outline"
+          className="flex items-center gap-2 border-gray-200 hover:bg-gray-100 h-full"
           onClick={onRefresh}
-          className={`flex items-center gap-1 ${
-            loading ? "opacity-50 cursor-not-allowed" : ""
-          }`}
-          disabled={loading}
         >
-          {loading ? "Loading..." : "Refresh"}
+          <Icon icon="mdi:refresh" className="text-xl" />
+          <span className="font-medium text-base">อัปเดต</span>
         </Button>
       </div>
     </div>
   );
-};
+});
 
 const CustomTimeGutterHeader = () => {
   return (
@@ -322,16 +324,15 @@ const CustomTimeGutterHeader = () => {
 const CustomEvent = ({ event, onClick }) => {
   return (
     <Card
-      size="small"
-      className="bg-[#FA8072] border-none h-full text-white cursor-pointer"
+      className="bg-blue-200 border-l-8 border-l-blue-600 border-t-0 border-r-0 border-b-0 h-full text-white cursor-pointer rounded-lg transition-colors duration-200"
       onClick={() => onClick(event)}
     >
-      <div className="flex flex-col justify-between h-full">
-        {/* Event ID */}
-        <p className="text-base md:text-lg lg:text-xl font-light">{event.id}</p>
+      <div className="flex flex-col justify-between h-full text-blue-950">
+        <p className="text-base md:text-lg lg:text-xl font-normal">
+          {event.id}
+        </p>
 
-        {/* Event Time */}
-        <div className="flex-grow text-sm md:text-sm lg:text-base">
+        <div className="flex-grow text-sm md:text-sm lg:text-base font-light">
           {moment(event.start).format("HH:mm")} -{" "}
           {moment(event.end).format("HH:mm")}
         </div>

@@ -110,3 +110,7 @@
 .rbc-event-content {
   @apply text-xl font-light tracking-wider;
 }
+
+:where(.css-dev-only-do-not-override-1wwf28x).ant-card .ant-card-body {
+  padding: 10px 10px;
+}

@@ -6,7 +6,6 @@ import FullScreenLoading, {
 } from "../components/FullScreenLoading";
 import { axiosInstancePatient } from "../../admin/api/axiosInstance";
 import { useTranslation } from "react-i18next";
-import Policy from "../components/Policy";
 import { usePatient } from "../context/PatientContext";
 import AccessLinkError from "./accessLinkError";
 
@@ -15,8 +14,6 @@ const PatientMain = () => {
   const location = useLocation();
   const [loading, setLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState("");
-  const [acceptedPolicy, setAcceptedPolicy] = useState(false);
-  const [modalVisible, setModalVisible] = useState(true);
   const queryParams = new URLSearchParams(location.search);
   const { setSurgeryCase, setPatientLink, setPatient } = usePatient();
   const link = queryParams.get("link");

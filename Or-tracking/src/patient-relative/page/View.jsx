@@ -19,7 +19,10 @@ import { motion, time } from "framer-motion";
 import StatusTimeline from "../components/TimeLine";
 import { UserOutlined, ReloadOutlined } from "@ant-design/icons";
 import Policy from "../components/Policy";
-
+import "dayjs/locale/th";
+import "dayjs/locale/en";
+import "dayjs/locale/id";
+import "./View.css";
 const View = () => {
   const { patient_id, surgery_case_id, patient_link } = usePatient();
   const [patientData, setPatientData] = useState(null);
@@ -64,6 +67,7 @@ const View = () => {
     try {
       console.log("surgery_case_id", surgery_case_id);
       console.log("patient_link", patient_link);
+      console.log("i18n.language", i18n.language);
 
       const [patientResponse, statusResponse, statusHisResponse] =
         await Promise.all([
@@ -71,7 +75,9 @@ const View = () => {
             surgery_case_id,
             patient_link,
           }),
-          axiosInstancePatient.get("patient/getAllStatus"),
+          axiosInstancePatient.get(
+            `patient/getAllStatus?language_code=${i18n.language}`
+          ),
           axiosInstancePatient
             .get(`patient/getStatus/${surgery_case_id}`)
             .catch((error) => {
@@ -119,6 +125,7 @@ const View = () => {
           });
 
         if (isMounted) {
+          console.log("tatus", statusData);
           setPatientData(patientData);
           setStatusData(statusData);
           setStatusHistory(statusHistory);
@@ -213,15 +220,6 @@ const View = () => {
     return null;
   }
 
-  const startTime = dayjs(
-    `${dayjs().format("YYYY-MM-DD")} ${patientData.estimate_start_time}`,
-    "YYYY-MM-DD HH:mm:ss"
-  );
-  const endTime = startTime
-    .clone()
-    .add(patientData.estimate_duration, "minutes");
-  const formattedDate = dayjs(patientData.surgery_date).format("DD/MM/YYYY");
-
   const handleRefresh = async () => {
     try {
       setTimelineLoading(true);
@@ -265,15 +263,6 @@ const View = () => {
     setModalVisible(false);
   };
 
-  const handleDeclinePolicy = () => {
-    setErrorMessage(t("errors.POLICY_DECLINED"));
-    setModalVisible(false);
-  };
-
-  const handleCloseModal = () => {
-    setModalVisible(false);
-  };
-
   return (
     <>
       {isLoading ? (
@@ -290,21 +279,20 @@ const View = () => {
           transition={{ duration: 0.6, ease: "easeIn" }}
         >
           <div className="flex flex-col min-h-screen w-full relative font-normal text-base bg-slate-100 overflow-x-hidden">
+            {modalVisible && <div className="background-overlay" />}
+
             <Policy
+              className="Policy_modal"
               t={t}
               handleAcceptPolicy={handleAcceptPolicy}
-              handleDeclinePolicy={handleDeclinePolicy}
               visible={modalVisible}
-              handleCloseModal={handleCloseModal}
               link={patient_link}
             />
-            {/* Responsive gradient background */}
+
             <div className="absolute top-0 left-0 right-0 h-[20vh] md:h-[25vh] bg-gradient-to-r from-blue-500 to-blue-400 rounded-b-[50%_20%] z-0 opacity-90" />
             <div className="absolute bottom-0 left-0 right-0 h-3/4 bg-slate-100 z-0" />
 
-            {/* Main content container */}
             <div className="relative z-10 container mx-auto px-2 sm:px-4 md:px-6 lg:px-8 pb-6 md:pb-10">
-              {/* Header section */}
               <div className="flex flex-row items-center justify-between py-4 sm:py-6 px-2 sm:px-4 md:px-6 space-y-4 sm:space-y-0">
                 <h1 className="font-semibold text-white text-xl sm:text-2xl md:text-3xl lg:text-4xl tracking-tight">
                   {t("or_tracking.TITLE")}
@@ -316,9 +304,7 @@ const View = () => {
                 </div>
               </div>
 
-              {/* Cards grid */}
               <div className="grid gap-3 w-full max-w-4xl mx-auto">
-                {/* Patient Info Card */}
                 <Card
                   className="shadow-lg hover:shadow-xl transition-all duration-300 bg-white rounded-xl sm:rounded-2xl w-full"
                   bordered={false}
@@ -347,11 +333,14 @@ const View = () => {
                         {patientData.patient_last_name}
                       </Text>
                       <Text className="text-black text-sm sm:text-sm md:text-base lg:text-lg font-medium">
-                        {t("patient_info.GENDER")} : {patientData.gender}
+                        {t("patient_info.GENDER")} :{" "}
+                        {patientData.gender === "male"
+                          ? t("patient_info.male")
+                          : t("patient_info.female")}
                       </Text>
-                      <Text className="text-black text-sm sm:text-sm md:text-base lg:text-lg font-medium">
+                      {/* <Text className="text-black text-sm sm:text-sm md:text-base lg:text-lg font-medium">
                         Patient Rights :
-                      </Text>
+                      </Text> */}
                     </div>
                   </div>
                 </Card>
@@ -379,23 +368,50 @@ const View = () => {
                         {" ) "}
                       </Text>
                       <Text className="ml-1 text-black text-sm sm:text-sm md:text-base lg:text-lg font-medium">
-                        {t("patient_info.SURGERY_DATE")} : {formattedDate}
+                        {t("patient_info.SURGERY_DATE")} :{" "}
+                        {dayjs(patientData.surgery_start_time)
+                          .locale(i18n.language)
+                          .format("DD MMMM YYYY")}
                       </Text>
+
                       <div className="inline-flex flex-wrap items-center bg-blue-50 p-2 text-sm sm:text-sm md:text-base lg:text-lg rounded-md gap-2">
                         <span className="text-black font-medium">
                           {t("patient_info.SURGERY_START_TIME")}{" "}
                         </span>
                         <Icon icon="tabler:clock" className="text-black" />
                         <span className="text-blue-500 font-medium">
-                          {startTime.format("HH:mm")}{" "}
+                          {dayjs(patientData.surgery_start_time).format(
+                            "h:mm A"
+                          )}
                         </span>
-                        <span className="text-black font-medium">
-                          {t("patient_info.SURGERY_FINSIH_TIME")}{" "}
-                        </span>
-                        <Icon icon="tabler:clock" className="text-black" />
-                        <span className="text-blue-500 font-medium">
-                          {endTime.format("HH:mm")}
-                        </span>
+
+                        {/* ใช้ conditional rendering */}
+                        {i18n.language === "id" ? (
+                          <div className="inline-flex flex-wrap items-center bg-blue-50 text-sm sm:text-sm md:text-base lg:text-lg rounded-md gap-2">
+                            <span className="text-black font-medium">
+                              {t("patient_info.SURGERY_FINSIH_TIME")}{" "}
+                            </span>
+                            <Icon icon="tabler:clock" className="text-black" />
+                            <span className="text-blue-500 font-medium">
+                              {dayjs(patientData.surgery_end_time).format(
+                                "h:mm A"
+                              )}
+                            </span>
+                          </div>
+                        ) : (
+                          <>
+                            {" "}
+                            <span className="text-black font-medium">
+                              {t("patient_info.SURGERY_FINSIH_TIME")}{" "}
+                            </span>
+                            <Icon icon="tabler:clock" className="text-black" />
+                            <span className="text-blue-500 font-medium">
+                              {dayjs(patientData.surgery_end_time).format(
+                                "h:mm A"
+                              )}
+                            </span>
+                          </>
+                        )}
                       </div>
                     </div>
                   </div>
@@ -410,15 +426,14 @@ const View = () => {
                   >
                     {t("view.surgery_timeline")}
                   </Typography.Title>
-
                   <Button
                     type="primary"
                     icon={<ReloadOutlined />}
                     onClick={handleRefresh}
                     size="small"
-                    className="self-end sm:self-auto"
+                    className="self-end sm:self-auto focus:outline-none focus:border-none"
                   >
-                    Refresh
+                    {t("timeline.REFRESH")}
                   </Button>
                 </div>
 
@@ -430,7 +445,7 @@ const View = () => {
                     body: { padding: 0 },
                   }}
                 >
-                  <div className="relative m-2 sm:m-4">
+                  <div className="relative m-4 sm:m-4">
                     <div className="absolute top-0 right-0 z-10">
                       <Typography.Text
                         type="secondary"
@@ -440,7 +455,7 @@ const View = () => {
                       </Typography.Text>
                     </div>
 
-                    <div className="flex flex-col items-center justify-center pt-5">
+                    <div className="flex flex-col items-center justify-center pt-7">
                       {patientData?.status_id === 0 ? (
                         <div className="text-center p-4 sm:p-6">
                           <p className="text-base sm:text-lg md:text-xl lg:text-2xl font-semibold text-gray-800 mb-2">
