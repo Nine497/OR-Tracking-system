@@ -1,31 +1,44 @@
-import React, { useEffect, useState, memo } from "react";
+import React, { useEffect, useState } from "react";
 import { Icon } from "@iconify/react";
-import { Spin, Button, Card, Drawer } from "antd";
+import { Spin, Drawer } from "antd";
 import { axiosInstanceStaff } from "../api/axiosInstance";
-import { Calendar, momentLocalizer } from "react-big-calendar";
-import "react-big-calendar/lib/css/react-big-calendar.css";
+import { useCalendarApp, ScheduleXCalendar } from "@schedule-x/react";
+import { createViewDay, createViewWeek } from "@schedule-x/calendar";
+import { createEventsServicePlugin } from "@schedule-x/events-service";
+import { createCurrentTimePlugin } from "@schedule-x/current-time";
+import "@schedule-x/theme-default/dist/index.css";
 import moment from "moment";
 import "./BigCalendar.css";
-import "moment/locale/th";
-import "dayjs/locale/th";
-import dayjs from "dayjs";
 
 const RoomSchedule = () => {
   const [loading, setLoading] = useState(true);
-  const [cases, setCases] = useState([]);
-  const [or_rooms, setOr_rooms] = useState([]);
-  const [selectedDate, setSelectedDate] = useState(moment().startOf("day"));
-  const [events, setEvents] = useState([]);
+  const [orRooms, setOrRooms] = useState([]);
   const [drawerVisible, setDrawerVisible] = useState(false);
   const [selectedCase, setSelectedCase] = useState(null);
-  const localizer = momentLocalizer(moment);
-  const [refresh, setRefresh] = useState(false);
 
-  const messages = {
-    previous: "ย้อนกลับ",
-    next: "ถัดไป",
-    today: "วันนี้",
-  };
+  const eventsService = createEventsServicePlugin();
+
+  const calendar = useCalendarApp({
+    views: [createViewDay(), createViewWeek()],
+    selectedDate: moment().format("YYYY-MM-DD"),
+    events: eventsService.events,
+    plugins: [
+      eventsService,
+      createCurrentTimePlugin({
+        fullWeekWidth: true,
+        timeZoneOffset: 120,
+      }),
+    ],
+    resources: orRooms,
+  });
+
+  createCurrentTimePlugin({
+    // Whether the indicator should be displayed in the full width of the week. Defaults to false
+    fullWeekWidth: true,
+
+    // Time zone offset in minutes. Can be any offset valid according to UTC (-720 to 840)
+    timeZoneOffset: 120,
+  });
 
   const fetchData = async () => {
     setLoading(true);
@@ -36,67 +49,63 @@ const RoomSchedule = () => {
       ]);
 
       if (roomResponse.status === 200) {
-        setOr_rooms(roomResponse.data.data || []);
+        setOrRooms(
+          roomResponse.data.data.map((room) => ({
+            id: room.operating_room_id,
+            title: room.room_name,
+          })) || []
+        );
       }
 
       if (caseResponse.status === 200) {
-        console.log("Case ", caseResponse.data.data);
-        setCases(caseResponse.data.data || []);
+        const eventList = caseResponse.data.data
+          .map((c) => {
+            // Validate start and end times
+            const startTime = moment(c.surgery_start_time);
+            const endTime = moment(c.surgery_end_time);
+
+            // Fallback to current time if invalid
+            const validStartTime = startTime.isValid()
+              ? startTime.format("YYYY-MM-DD HH:mm")
+              : moment().format("YYYY-MM-DD HH:mm");
+            const validEndTime = endTime.isValid()
+              ? endTime.format("YYYY-MM-DD HH:mm")
+              : moment(validStartTime)
+                  .add(1, "hour")
+                  .format("YYYY-MM-DD HH:mm");
+
+            return {
+              id: c.hn_code,
+              title: c.hn_code,
+              start: validStartTime,
+              end: validEndTime,
+              resourceId: c.operating_room_id,
+              caseData: c,
+            };
+          })
+          .filter((event) => event.start && event.end); // Filter out invalid events
+
+        // Set events in eventsService
+        if (eventsService) {
+          eventsService.set(eventList);
+        } else {
+          console.error("eventsService is not initialized.");
+        }
       }
     } catch (error) {
       console.error("Error fetching data:", error);
-      setOr_rooms([]);
-      setCases([]);
+      setOrRooms([]);
+      if (eventsService) {
+        eventsService.set([]);
+      }
     } finally {
       setLoading(false);
-      setRefresh(false);
     }
   };
 
   useEffect(() => {
     fetchData();
-  }, [refresh]);
-
-  const handleOnRefresh = () => {
-    setRefresh((prev) => !prev);
-  };
-
-  useEffect(() => {
-    const generateEvents = () => {
-      if (!or_rooms?.length || !cases?.length) return [];
-
-      return or_rooms.flatMap((room) => {
-        return cases
-          .filter((c) => {
-            const surgeryDate = moment(c.surgery_start_time);
-            const isSameDay = surgeryDate.isSame(selectedDate, "day");
-            return c.operating_room_id === room.operating_room_id && isSameDay;
-          })
-          .map((c) => {
-            if (!c.surgery_start_time || !c.surgery_end_time) return null;
-
-            const startTime = moment(c.surgery_start_time).toDate();
-            const endTime = moment(c.surgery_end_time).toDate();
-
-            return {
-              id: c.hn_code,
-              title: c.hn_code,
-              start: startTime,
-              end: endTime,
-              resourceId: c.operating_room_id,
-              caseData: c,
-            };
-          })
-          .filter(Boolean);
-      });
-    };
-
-    setEvents(generateEvents());
-  }, [cases, or_rooms, selectedDate]);
-
-  const handleNavigate = (date) => {
-    setSelectedDate(moment(date).startOf("day"));
-  };
+  }, []);
 
   const handleEventClick = (event) => {
     setSelectedCase(event.caseData);
@@ -124,44 +133,9 @@ const RoomSchedule = () => {
           <Spin size="large" />
         </div>
       ) : (
-        <Calendar
-          localizer={localizer}
-          events={events}
-          startAccessor="start"
-          endAccessor="end"
-          resources={
-            or_rooms?.map((room) => ({
-              id: room.operating_room_id,
-              title: room.room_name,
-            })) || []
-          }
-          views={["day"]}
-          defaultView="day"
-          components={{
-            timeGutterHeader: CustomTimeGutterHeader,
-            toolbar: (toolbarProps) => {
-              console.log("toolbarProps:", toolbarProps);
-              return (
-                <CustomToolbar
-                  date={toolbarProps.date}
-                  onNavigate={toolbarProps.onNavigate}
-                  onRefresh={handleOnRefresh}
-                />
-              );
-            },
-
-            event: (props) => (
-              <CustomEvent {...props} onClick={handleEventClick} />
-            ),
-          }}
-          date={selectedDate.toDate()}
-          onNavigate={handleNavigate}
-          step={60}
-          timeslots={1}
-          resourceIdAccessor={events.resourceId}
-          style={{ height: 700 }}
-          messages={messages}
-          className="scrollbar-thin scrollbar-thumb-blue-500 scrollbar-track-gray-100"
+        <ScheduleXCalendar
+          calendarApp={calendar}
+          onEventClick={handleEventClick}
         />
       )}
 
@@ -189,7 +163,6 @@ const RoomSchedule = () => {
                 </p>
               </div>
             </div>
-
             <div className="bg-white rounded-md p-4 space-y-2">
               <div className="flex justify-between border-b pb-2 border-gray-100">
                 <span className="text-gray-600 text-base">ชื่อผู้ป่วย</span>
@@ -212,132 +185,12 @@ const RoomSchedule = () => {
                 </span>
               </div>
             </div>
-
-            <div className="bg-white  rounded-md p-4 space-y-2">
-              <div className="flex justify-between border-b pb-2 border-gray-100">
-                <span className="text-gray-600 text-base">
-                  เวลาเริ่มการผ่าตัด
-                </span>
-                <span className="font-normal text-blue-800 text-lg">
-                  {dayjs(new Date(selectedCase.surgery_start_time))
-                    .locale("th")
-                    .format("YYYY/MM/DD HH:mm")}
-                </span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-gray-600 text-base">
-                  เวลาสิ้นสุดการผ่าตัด
-                </span>
-                <span className="font-normal text-blue-800 text-lg">
-                  {dayjs(new Date(selectedCase.surgery_end_time))
-                    .locale("th")
-                    .format("YYYY/MM/DD HH:mm")}
-                </span>
-              </div>
-            </div>
-
-            <div className="bg-white rounded-md p-4">
-              <span className="text-gray-500 text-base block mb-2">
-                ประวัติผู้ป่วย
-              </span>
-              <p className="text-gray-800 text-lg">
-                {selectedCase.patient_history || "ไม่มีข้อมูล"}
-              </p>
-            </div>
-
-            <div className="bg-white rounded-md p-4">
-              <span className="text-gray-500 text-base block mb-2">Note</span>
-              <p className="text-gray-800 text-lg">
-                {selectedCase.note || "ไม่มีข้อมูล"}
-              </p>
-            </div>
           </div>
         ) : (
           <p className="text-gray-500 text-center text-lg">ไม่มีข้อมูล</p>
         )}
       </Drawer>
     </div>
-  );
-};
-
-const CustomToolbar = memo(({ date, onNavigate, onRefresh }) => {
-  console.log("CustomToolbar rendered");
-
-  const label = dayjs(new Date(date || new Date()))
-    .locale("th")
-    .format("DD MMMM YYYY");
-
-  return (
-    <div className="flex flex-col sm:flex-row items-center justify-between gap-4 p-4 rounded-lg ">
-      <div className="flex flex-row gap-2 items-center">
-        <button
-          className="flex items-center gap-2 text-base text-black hover:not-focus bg-white border-black hover:bg-gray-300 hover:border-black"
-          onClick={() => onNavigate("TODAY")}
-        >
-          วันนี้
-        </button>
-
-        <div className="flex gap-1">
-          <button
-            variant="outline"
-            size="icon"
-            className="h-full w-full bg-white hover:bg-gray-300 flex justify-center items-center rounded-full border-none p-2"
-            onClick={() => onNavigate("PREV")}
-          >
-            <Icon icon="mdi:chevron-left" className="text-3xl" />
-          </button>
-
-          <button
-            variant="outline"
-            size="icon"
-            className="h-full w-full bg-white hover:bg-gray-300 flex justify-center items-center rounded-full border-none p-2"
-            onClick={() => onNavigate("NEXT")}
-          >
-            <Icon icon="mdi:chevron-right" className="text-3xl" />
-          </button>
-        </div>
-        <span className="text-lg font-semibold text-gray-800">{label}</span>
-      </div>
-
-      <div className="flex items-center gap-3 h-full">
-        <Button
-          variant="outline"
-          className="flex items-center gap-2 border-gray-200 hover:bg-gray-100 h-full"
-          onClick={onRefresh}
-        >
-          <Icon icon="mdi:refresh" className="text-xl" />
-          <span className="font-medium text-base">อัปเดต</span>
-        </Button>
-      </div>
-    </div>
-  );
-});
-
-const CustomTimeGutterHeader = () => {
-  return (
-    <div className="font-medium text-center py-3">
-      <span className="text-sm">Time</span>
-    </div>
-  );
-};
-
-const CustomEvent = ({ event, onClick }) => {
-  return (
-    <Card
-      className="bg-blue-200 border-l-8 border-l-blue-600 border-t-0 border-r-0 border-b-0 h-full text-white cursor-pointer rounded-lg transition-colors duration-200"
-      onClick={() => onClick(event)}
-    >
-      <div className="flex flex-col justify-between h-full text-blue-950">
-        <p className="text-base md:text-lg lg:text-xl font-normal">
-          {event.id}
-        </p>
-
-        <div className="flex-grow text-sm md:text-sm lg:text-base font-light">
-          {moment(event.start).format("HH:mm")} -{" "}
-          {moment(event.end).format("HH:mm")}
-        </div>
-      </div>
-    </Card>
   );
 };
 

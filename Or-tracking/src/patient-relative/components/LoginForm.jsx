@@ -10,8 +10,7 @@ import { Icon } from "@iconify/react";
 
 const LoginForm = ({ t, link }) => {
   const [loading, setLoading] = useState(false);
-  const hnInputRef = useRef(null);
-  const dobInputRef = useRef(null);
+  const pinInputRef = useRef(null);
   const { surgery_case_id, setPatient, setSurgeryCase } = usePatient();
   const dayRef = useRef(null);
   const monthRef = useRef(null);
@@ -21,11 +20,11 @@ const LoginForm = ({ t, link }) => {
   const onFinish = async (values) => {
     try {
       setLoading(true);
-      const { hn, dob_day, dob_month, dob_year } = values;
+      const { pin, dob_day, dob_month, dob_year } = values;
       const patient_link = link;
       const dob = `${dob_year}-${dob_month}-${dob_day}`;
 
-      console.log("hn", hn);
+      console.log("pin", pin);
       console.log("patient_link", patient_link);
       console.log("dob", dob);
 
@@ -39,7 +38,7 @@ const LoginForm = ({ t, link }) => {
       }
 
       const response = await axiosInstancePatient.post("patient/login", {
-        hn,
+        pin,
         dob,
         surgery_case_id,
         link: patient_link,
@@ -62,24 +61,12 @@ const LoginForm = ({ t, link }) => {
   };
 
   useEffect(() => {
-    if (hnInputRef.current) {
-      IMask(hnInputRef.current.input, {
-        mask: "00-00-000000",
-      });
-    }
-    if (dobInputRef.current) {
-      IMask(dobInputRef.current.input, {
-        mask: "00/00/0000",
+    if (pinInputRef.current) {
+      IMask(pinInputRef.current.input, {
+        mask: "000000", // Mask สำหรับ 6 หลัก
       });
     }
   }, []);
-
-  const handleInputChange = (currentRef, nextRef, maxLength) => (e) => {
-    const value = e.target.value;
-    if (value.length === maxLength && nextRef) {
-      nextRef.current.focus();
-    }
-  };
 
   return (
     <div className="min-h-screen flex flex-col">
@@ -110,100 +97,24 @@ const LoginForm = ({ t, link }) => {
             <Form.Item
               label={
                 <span className="text-sm sm:text-base font-medium text-gray-700">
-                  {t("login.HN")}
+                  {t("login.PIN")}
                 </span>
               }
-              name="hn"
+              name="pin"
               rules={[
-                { required: true, message: t("login.HN_REQUIRED") },
+                { required: true, message: t("login.PIN_REQUIRED") },
                 {
-                  pattern: /^\d{2}-\d{2}-\d{6}$/,
-                  message: t("login.HN_INVALID"),
+                  pattern: /^\d{6}$/,
+                  message: t("login.PIN_INVALID"),
                 },
               ]}
             >
               <Input
-                placeholder={t("login.HN")}
-                ref={hnInputRef}
-                maxLength={12}
+                placeholder={t("login.PIN")}
+                ref={pinInputRef}
+                maxLength={6}
                 className="w-full p-2 text-sm sm:text-base border rounded-md"
               />
-            </Form.Item>
-
-            <Form.Item
-              label={
-                <span className="text-sm sm:text-base font-medium text-gray-700">
-                  {t("login.DOB")}
-                </span>
-              }
-            >
-              <Input.Group className="flex">
-                {/* ช่องวัน */}
-                <Form.Item
-                  name="dob_day"
-                  rules={[
-                    { required: true, message: t("login.DOB_DAY_REQUIRED") },
-                    {
-                      pattern: /^\d{2}$/,
-                      message: t("login.DOB_DAY_INVALID"),
-                    },
-                  ]}
-                  noStyle
-                >
-                  <Input
-                    type="number"
-                    placeholder="DD"
-                    maxLength={2}
-                    ref={dayRef}
-                    onChange={handleInputChange(dayRef, monthRef, 2)}
-                    className="flex-1 p-2 text-center text-sm sm:text-base rounded-lg border border-gray-300 focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
-                  />
-                </Form.Item>
-
-                {/* ช่องเดือน */}
-                <Form.Item
-                  name="dob_month"
-                  rules={[
-                    { required: true, message: t("login.DOB_MONTH_REQUIRED") },
-                    {
-                      pattern: /^\d{2}$/,
-                      message: t("login.DOB_MONTH_INVALID"),
-                    },
-                  ]}
-                  noStyle
-                >
-                  <Input
-                    type="number"
-                    placeholder="MM"
-                    maxLength={2}
-                    ref={monthRef}
-                    onChange={handleInputChange(monthRef, yearRef, 2)}
-                    className="flex-1 p-2 text-center text-sm sm:text-base rounded-lg border border-gray-300 focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
-                  />
-                </Form.Item>
-
-                {/* ช่องปี */}
-                <Form.Item
-                  name="dob_year"
-                  rules={[
-                    { required: true, message: t("login.DOB_YEAR_REQUIRED") },
-                    {
-                      pattern: /^\d{4}$/,
-                      message: t("login.DOB_YEAR_INVALID"),
-                    },
-                  ]}
-                  noStyle
-                >
-                  <Input
-                    type="number"
-                    placeholder="YYYY"
-                    maxLength={4}
-                    ref={yearRef}
-                    onChange={handleInputChange(yearRef, null, 4)}
-                    className="flex-1 p-2 text-center text-sm sm:text-base rounded-lg border border-gray-300 focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
-                  />
-                </Form.Item>
-              </Input.Group>
             </Form.Item>
 
             <Form.Item className="mb-0">

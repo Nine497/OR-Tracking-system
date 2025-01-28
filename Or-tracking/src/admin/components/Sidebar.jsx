@@ -112,7 +112,7 @@ const Sidebar = ({ collapsed, setCollapsed, isMobile }) => {
               type="text"
               icon={collapsed ? <RightOutlined /> : <LeftOutlined />}
               onClick={() => setCollapsed(!collapsed)}
-              className="hover:bg-gray-50 w-8 h-8 p-0 flex items-center justify-center rounded-md"
+              className="hover:bg-gray-50 w-8 h-8 p-0 flex items-center justify-center rounded-md focus:outline-none"
             />
           )}
         </div>

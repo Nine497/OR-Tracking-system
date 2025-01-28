@@ -35,6 +35,9 @@ app.use;
 app.use("/api/getTest", (req, res) => {
   res.send("Respond From API Successfully");
 });
+app.post("/api/newSurgeryCase", (req, res) => {
+  
+});
 
 // Start server locally
 if (process.env.NODE_ENV === "development") {
