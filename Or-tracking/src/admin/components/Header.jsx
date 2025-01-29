@@ -32,14 +32,6 @@ const StyledDropdown = () => {
       centered: true,
       onOk: () => {
         logout();
-        notification.success({
-          message: "ออกจากระบบแล้ว",
-          showProgress: true,
-          placement: "topRight",
-          pauseOnHover: true,
-          duration: 2,
-        });
-        navigate("/login");
       },
     });
   };

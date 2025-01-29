@@ -1,0 +1,36 @@
+#calendar {
+  width: 100%;
+  height: 800px;
+  max-height: 90vh;
+}
+.sx-react-calendar-wrapper {
+  max-width: 100vw;
+  height: 800px;
+  max-height: 75vh;
+}
+
+.sx__month-grid-day {
+  @apply hover:cursor-pointer hover:bg-gray-100;
+}
+.sx__event .sx__month-grid-event .sx__month-grid-cell {
+  @apply bg-blue-600;
+}
+
+.sx__month-grid-event-time {
+  @apply font-normal;
+}
+
+.sx__month-grid-event-title {
+}
+
+.sx__time-grid-event-title {
+  @apply text-xl font-medium tracking-wider mb-1;
+}
+
+.sx__time-grid-event-time {
+  @apply text-sm mb-1;
+}
+
+.sx__time-grid-event-location {
+  @apply text-sm;
+}

@@ -1,14 +1,20 @@
 import React, { useEffect, useState } from "react";
 import { Icon } from "@iconify/react";
 import { Spin, Drawer } from "antd";
-import { axiosInstanceStaff } from "../api/axiosInstance";
+import { axiosInstanceStaff } from "../../api/axiosInstance";
 import { useCalendarApp, ScheduleXCalendar } from "@schedule-x/react";
-import { createViewDay, createViewWeek } from "@schedule-x/calendar";
+import {
+  createViewDay,
+  createViewMonthGrid,
+  createViewMonthAgenda,
+} from "@schedule-x/calendar";
 import { createEventsServicePlugin } from "@schedule-x/events-service";
 import { createCurrentTimePlugin } from "@schedule-x/current-time";
+import { createCalendarControlsPlugin } from "@schedule-x/calendar-controls";
 import "@schedule-x/theme-default/dist/index.css";
 import moment from "moment";
 import "./BigCalendar.css";
+const calendarControls = createCalendarControlsPlugin();
 
 const RoomSchedule = () => {
   const [loading, setLoading] = useState(true);
@@ -19,24 +25,36 @@ const RoomSchedule = () => {
   const eventsService = createEventsServicePlugin();
 
   const calendar = useCalendarApp({
-    views: [createViewDay(), createViewWeek()],
-    selectedDate: moment().format("YYYY-MM-DD"),
-    events: eventsService.events,
-    plugins: [
-      eventsService,
-      createCurrentTimePlugin({
-        fullWeekWidth: true,
-        timeZoneOffset: 120,
-      }),
-    ],
-    resources: orRooms,
+    views: [createViewDay(), createViewMonthGrid(), createViewMonthAgenda()],
+    defaultView: "month-grid",
+    locale: "th-TH",
+    firstDayOfWeek: 1,
+    isDark: false,
+
+    isResponsive: true,
+    plugins: [eventsService, calendarControls],
+    callbacks: {
+      onClickDate: (date) => {
+        handleDateClick(date);
+      },
+    },
   });
 
+  const handleDateClick = (date) => {
+    if (calendarControls) {
+      const currentView = calendarControls.getView();
+      console.log("Current View:", currentView);
+
+      if (currentView === "month-grid") {
+        calendarControls.setView("day");
+        calendarControls.setDate(date);
+      }
+    }
+  };
+
   createCurrentTimePlugin({
-    // Whether the indicator should be displayed in the full width of the week. Defaults to false
     fullWeekWidth: true,
 
-    // Time zone offset in minutes. Can be any offset valid according to UTC (-720 to 840)
     timeZoneOffset: 120,
   });
 
@@ -60,11 +78,9 @@ const RoomSchedule = () => {
       if (caseResponse.status === 200) {
         const eventList = caseResponse.data.data
           .map((c) => {
-            // Validate start and end times
             const startTime = moment(c.surgery_start_time);
             const endTime = moment(c.surgery_end_time);
 
-            // Fallback to current time if invalid
             const validStartTime = startTime.isValid()
               ? startTime.format("YYYY-MM-DD HH:mm")
               : moment().format("YYYY-MM-DD HH:mm");
@@ -79,13 +95,17 @@ const RoomSchedule = () => {
               title: c.hn_code,
               start: validStartTime,
               end: validEndTime,
+              location: c.room_name,
               resourceId: c.operating_room_id,
               caseData: c,
+              style: {
+                background: "linear-gradient(45deg, #f91c45, #1c7df9)",
+                opacity: 0.5,
+              },
             };
           })
-          .filter((event) => event.start && event.end); // Filter out invalid events
+          .filter((event) => event.start && event.end);
 
-        // Set events in eventsService
         if (eventsService) {
           eventsService.set(eventList);
         } else {
@@ -118,25 +138,13 @@ const RoomSchedule = () => {
   };
 
   return (
-    <div className="w-full p-6 bg-white rounded-xl min-h-full">
-      <div className="flex items-center justify-between mb-8">
-        <div className="flex items-center space-x-3">
-          <Icon icon="mdi:calendar" className="text-blue-600 w-6 h-6" />
-          <h2 className="text-xl sm:text-2xl font-semibold text-gray-800">
-            ตารางห้องผ่าตัด
-          </h2>
-        </div>
-      </div>
-
+    <div className="w-full bg-white rounded-xl min-h-full">
       {loading ? (
         <div className="flex justify-center items-center min-h-[calc(76vh-theme(spacing.32))] w-full">
           <Spin size="large" />
         </div>
       ) : (
-        <ScheduleXCalendar
-          calendarApp={calendar}
-          onEventClick={handleEventClick}
-        />
+        <ScheduleXCalendar calendarApp={calendar} />
       )}
 
       <Drawer

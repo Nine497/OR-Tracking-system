@@ -1,6 +1,8 @@
 const jwt = require("jsonwebtoken");
 const patientModel = require("../models/patientModel");
+const linkCaseModel = require("../models/linkCaseModel");
 const db = require("../config/database");
+const crypto = require("crypto");
 require("dotenv").config();
 
 exports.validate_link = async (req, res) => {
@@ -167,28 +169,62 @@ exports.createPatient = async (req, res) => {
 };
 
 exports.login = async (req, res) => {
-  const { hn, dob, surgery_case_id, link } = req.body;
+  const { pin, surgery_case_id, link } = req.body;
 
-  const date = new Date(dob);
-  const formattedDob = date.toLocaleDateString("en-CA");
-
-  console.log("DOB", formattedDob);
   console.log("link", link);
   console.log("surgery_case_id", surgery_case_id);
+  console.log("pin", pin);
 
-  if (!hn || !formattedDob || !surgery_case_id) {
+  if (!pin || !surgery_case_id) {
     return res.status(400).json({
       valid: false,
-      error: "NO_HN_OR_DOB_OR_CASEID_PROVIDED",
-      message: "HN, DOB, and CaseId are required",
+      error: "NO_PIN_CASEID_PROVIDED",
+      message: "PIN and CaseId are required",
     });
   }
 
   try {
+    // 1️⃣ ดึงข้อมูล link case ตาม surgery_case_id
+    const linkCase = await linkCaseModel.getLatestActiveLinkCaseBySurgeryCaseId(
+      surgery_case_id
+    );
+
+    if (!linkCase) {
+      return res.status(404).json({
+        valid: false,
+        error: "LINK_CASE_NOT_FOUND",
+        message: "No link case found for this surgery_case_id",
+      });
+    }
+
+    // 2️⃣ ถอดรหัส PIN
+    const decipher = crypto.createDecipheriv(
+      "aes-128-cbc",
+      Buffer.from(process.env.SECRET_KEY, "hex"),
+      Buffer.from(process.env.IV, "hex")
+    );
+
+    let decryptedPin = decipher.update(
+      linkCase.pin_encrypted,
+      "base64",
+      "utf8"
+    );
+    decryptedPin += decipher.final("utf8");
+
+    console.log("Decrypted PIN:", decryptedPin);
+
+    // 3️⃣ ตรวจสอบว่า PIN ที่ป้อนตรงกับที่ถอดรหัสหรือไม่
+    if (pin !== decryptedPin) {
+      return res.status(404).json({
+        valid: false,
+        error: "INVALID_PIN",
+        message: "Incorrect PIN. Please try again.",
+      });
+    }
+
+    // 4️⃣ ตรวจสอบข้อมูลผู้ป่วย
     const patientDetails = await patientModel.getPatientDetailsByCaseId(
-      surgery_case_id,
-      hn,
-      formattedDob
+      surgery_case_id
     );
 
     if (!patientDetails) {
@@ -199,6 +235,7 @@ exports.login = async (req, res) => {
       });
     }
 
+    // 5️⃣ สร้าง JWT Token
     const payload = {
       patient_id: patientDetails.patient_id,
       surgery_case_id: surgery_case_id,

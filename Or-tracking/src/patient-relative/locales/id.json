@@ -23,7 +23,10 @@
     "female": "Perempuan"
   },
   "login": {
-    "TITLE": "Masuk",
+    "TITLE": "OR-Tracking",
+    "PIN": "Kode PIN",
+    "PIN_REQUIRED": "Harap masukkan Kode PIN",
+    "PIN_INVALID": "Kode PIN harus terdiri dari 6 angka",
     "HN": "Nomor Rumah Sakit",
     "HN_REQUIRED": "Harap masukkan Nomor Rumah Sakit",
     "HN_INVALID": "Nomor Rumah Sakit tidak valid",

@@ -1,7 +1,7 @@
 import React, { createContext, useState, useEffect, useContext } from "react";
 import { jwtDecode } from "jwt-decode";
 import { axiosInstanceStaff } from "../api/axiosInstance";
-
+import { notification } from "antd";
 const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
@@ -61,6 +61,7 @@ export const AuthProvider = ({ children }) => {
     setUser(null);
     setPermissions([]);
     localStorage.removeItem("jwtToken");
+    window.location.href = "/login";
   };
 
   return (

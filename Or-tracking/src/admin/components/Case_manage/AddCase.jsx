@@ -281,6 +281,7 @@ function AddCase() {
       content: "คุณแน่ใจหรือไม่ว่าต้องการบันทึกข้อมูลเคสการผ่าตัดนี้?",
       okText: "ใช่, บันทึก",
       cancelText: "ยกเลิก",
+      centered: true,
       onOk: onFinish,
     });
   };

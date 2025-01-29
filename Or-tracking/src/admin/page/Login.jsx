@@ -31,7 +31,7 @@ const Login = () => {
           duration: 2,
         });
         console.log(data);
-        navigate("/admin/room_schedule");
+        navigate("/admin/calendar");
       }
     } catch (error) {
       console.error("ข้อผิดพลาดในการเข้าสู่ระบบ:", error);

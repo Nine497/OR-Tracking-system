@@ -14,7 +14,6 @@ import Users_manage from "./admin/page/Users_manage";
 import Admin from "./admin/page/Admin";
 import Case_manage from "./admin/page/Case_manage";
 import ErrorPage from "./shared/Errorpage";
-import Room_schedule from "./admin/page/RoomSchedule";
 import AddCase from "./admin/components/Case_manage/AddCase";
 import EditCase from "./admin/components/Case_manage/EditCase";
 import PermissionDenied from "./admin/page/permissionDenied";
@@ -35,7 +34,6 @@ function App() {
 
           <Route path="/admin" element={<PrivateRoute />}>
             <Route path="" element={<Admin />}>
-              <Route path="room_schedule" element={<Room_schedule />} />
               <Route path="calendar" element={<Calendar />} />
 
               <Route

@@ -37,10 +37,13 @@ function CaseTable() {
     navigate(`/admin/case_manage/edit_case?id=${record.surgery_case_id}`);
   };
 
-  const copyLink = (linkUrl) => {
-    if (!linkUrl) {
+  const copyLink = (linkUrl, pin_decrypted) => {
+    
+    console.log("record", pin_decrypted);
+
+    if (!linkUrl || !pin_decrypted) {
       notification.warning({
-        message: "ไม่มีลิงก์ให้คัดลอก กรุณาสร้างลิงก์ก่อน",
+        message: "ไม่มีข้อมูลให้คัดลอก กรุณาสร้างลิงก์และ PIN ก่อน",
         showProgress: true,
         placement: "topRight",
         pauseOnHover: true,
@@ -49,8 +52,10 @@ function CaseTable() {
       return;
     }
 
+    const textToCopy = `${linkUrl}, PIN: ${pin_decrypted}`;
+
     const textArea = document.createElement("textarea");
-    textArea.value = linkUrl;
+    textArea.value = textToCopy;
     textArea.style.position = "fixed";
     textArea.style.left = "-9999px";
     document.body.appendChild(textArea);
@@ -60,7 +65,7 @@ function CaseTable() {
       document.execCommand("copy");
 
       notification.success({
-        message: "ลิงก์ได้ถูกคัดลอกไปยังคลิปบอร์ดของคุณแล้ว",
+        message: "ลิงก์และ PIN ได้ถูกคัดลอกไปยังคลิปบอร์ดของคุณแล้ว",
         showProgress: true,
         placement: "topRight",
         pauseOnHover: true,
@@ -68,7 +73,7 @@ function CaseTable() {
       });
     } catch (err) {
       notification.error({
-        message: "ไม่สามารถคัดลอกลิงก์ได้ กรุณาคัดลอกด้วยตนเอง",
+        message: "ไม่สามารถคัดลอกข้อมูลได้ กรุณาคัดลอกด้วยตนเอง",
         showProgress: true,
         placement: "topRight",
         pauseOnHover: true,
@@ -84,7 +89,6 @@ function CaseTable() {
     setSearchTerm(value);
     setLoadingCases(true);
     try {
-      const token = localStorage.getItem("jwtToken");
       const response = await axiosInstanceStaff.get("/surgery_case/", {
         params: {
           search: value,
@@ -153,7 +157,6 @@ function CaseTable() {
   const fetchData = async () => {
     setLoadingCases(true);
     try {
-      const token = localStorage.getItem("jwtToken");
       const response = await axiosInstanceStaff.get("/surgery_case/", {
         params: {
           search: searchTerm,
@@ -355,7 +358,10 @@ function CaseTable() {
                 type="default"
                 icon={<Icon icon="bx:bx-link" />}
                 onClick={() =>
-                  copyLink(`${BASE_URL}ptr?link=${record.link_id}`)
+                  copyLink(
+                    `${BASE_URL}ptr?link=${record.link_id}`,
+                    record.pin_decrypted
+                  )
                 }
                 className="flex items-center gap-1"
                 loading={copyLoading}

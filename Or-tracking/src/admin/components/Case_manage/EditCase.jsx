@@ -367,6 +367,7 @@ function EditCase() {
       content: "คุณแน่ใจไหมว่าต้องการบันทึกข้อมูลเคสการผ่าตัดที่แก้ไขแล้ว?",
       okText: "ใช่, บันทึก",
       cancelText: "ยกเลิก",
+      centered: true,
       onOk: onFinish,
     });
   };

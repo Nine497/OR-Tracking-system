@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { Tabs, Spin } from "antd";
 import Schedule from "../components/Calendar/CalendarSchedule";
+import RoomSchedule from "../components/RoomSchedule/RoomSchedule";
 import Table from "../components/Calendar/ScheduleTable";
 import { axiosInstanceStaff } from "../api/axiosInstance";
 
@@ -32,19 +33,18 @@ export default function Calendar() {
   const items = [
     {
       key: "1",
-      label: <span className="text-xl font-medium">Calendar</span>,
-      children: <Schedule events={events} />,
+      label: <span className="text-xl font-medium">ปฏิทิน</span>,
+      children: <RoomSchedule />,
     },
     {
       key: "2",
-      label: <span className="text-xl font-medium">Table</span>,
+      label: <span className="text-xl font-medium">ตาราง</span>,
       children: <Table events={events} />,
     },
   ];
 
   return (
     <div className="w-full px-4 bg-white rounded-lg min-h-[500px]">
-      <span className="text-xl sm:text-2xl font-semibold">ปฏิทินเคสผ่าตัด</span>
       {loading ? (
         <div className="flex justify-center items-center min-h-[calc(106vh-theme(spacing.32))] w-full">
           <Spin size="large" />

@@ -1,7 +1,8 @@
 const linkCase = require("../models/linkCaseModel");
 const bcrypt = require("bcryptjs");
-require("dotenv").config();
+const crypto = require("crypto");
 const db = require("../config/database");
+require("dotenv").config();
 
 const linkCaseController = {
   // ดึงข้อมูลทั้งหมด
@@ -40,33 +41,50 @@ const linkCaseController = {
     const created_at = new Date().toLocaleString("en-US", {
       timeZone: "Asia/Bangkok",
     });
-
     const timestamp = Date.now();
     const randomValue = Math.floor(Math.random() * 1000);
     const surgery_case_links_id = `${timestamp}${randomValue}`;
-    const saltRounds = 10;
 
     try {
-      const hash = await bcrypt.hash(surgery_case_links_id, saltRounds);
+      const pin = Math.floor(100000 + Math.random() * 900000).toString();
+
+      const cipher = crypto.createCipheriv(
+        "aes-128-cbc",
+        Buffer.from(process.env.SECRET_KEY, "hex"),
+        Buffer.from(process.env.IV, "hex")
+      );
+      let encryptedPin = cipher.update(pin, "utf8", "base64");
+      encryptedPin += cipher.final("base64");
+
+      // สร้าง hash ของ surgery_case_links_id ด้วย bcrypt
+      const hash = await bcrypt.hash(surgery_case_links_id, 10);
       const cleanHash = hash.replace(/[^\w\s]/g, "");
 
       const isactive = true;
 
+      // ข้อมูลที่จะบันทึกลงในฐานข้อมูล
       const linkCaseData = {
         surgery_case_links_id: cleanHash,
         surgery_case_id,
-        created_at: created_at,
+        created_at,
         created_by,
         isactive,
         expiration_time: new Date(expiration_time).toLocaleString("en-US", {
           timeZone: "Asia/Bangkok",
         }),
+        pin_encrypted: encryptedPin,
       };
 
+      // สร้างลิงก์เคสใหม่
       const newLink = await linkCase.createLink(linkCaseData);
-      res.status(201).json(newLink);
+
+      // ส่งข้อมูลกลับไปพร้อมกับ PIN ที่ไม่เข้ารหัส
+      res.status(201).json({
+        ...newLink,
+        pin: pin, // ส่ง PIN ที่ไม่เข้ารหัสให้กับผู้ใช้
+      });
     } catch (error) {
-      console.error("Error creating token:", error);
+      console.error("Error creating link case:", error);
       res.status(500).json({ message: error.message });
     }
   },

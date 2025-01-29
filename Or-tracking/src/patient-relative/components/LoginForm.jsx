@@ -1,145 +1,201 @@
-import React, { useEffect, useState, useRef } from "react";
-import { Form, Input, Button, notification } from "antd";
-import IMask from "imask";
-import Logo from "../assets/Logo.png";
-import { axiosInstancePatient } from "../../admin/api/axiosInstance";
-import { usePatient } from "../context/PatientContext";
+import React, { useState, useRef, useEffect } from "react";
+import { Form, notification } from "antd";
 import { useNavigate } from "react-router-dom";
 import LanguageSelector from "./LanguageSelector";
-import { Icon } from "@iconify/react";
+import Logo from "../assets/Logo.png";
+import { axiosInstancePatient } from "../../admin/api/axiosInstance";
+const PinInput = ({ length = 6, onChange }) => {
+  const [pins, setPins] = useState(new Array(length).fill(""));
+  const inputRefs = useRef(new Array(length).fill(null));
 
-const LoginForm = ({ t, link }) => {
-  const [loading, setLoading] = useState(false);
-  const pinInputRef = useRef(null);
-  const { surgery_case_id, setPatient, setSurgeryCase } = usePatient();
-  const dayRef = useRef(null);
-  const monthRef = useRef(null);
-  const yearRef = useRef(null);
-  const navigate = useNavigate();
+  const handleChange = (e, index) => {
+    const value = e.target.value.replace(/\D/g, "");
+    if (value.length <= 1) {
+      const newPins = [...pins];
+      newPins[index] = value;
+      setPins(newPins);
+      onChange(newPins.join(""));
 
-  const onFinish = async (values) => {
-    try {
-      setLoading(true);
-      const { pin, dob_day, dob_month, dob_year } = values;
-      const patient_link = link;
-      const dob = `${dob_year}-${dob_month}-${dob_day}`;
-
-      console.log("pin", pin);
-      console.log("patient_link", patient_link);
-      console.log("dob", dob);
-
-      const surgeryCaseResponse = await axiosInstancePatient.get(
-        `link_cases/${patient_link}`
-      );
-      const surgery_case_id = surgeryCaseResponse?.data?.surgery_case_id;
-
-      if (!surgery_case_id) {
-        throw new Error(t("login.INVALID_CASE"));
+      if (value && index < length - 1) {
+        inputRefs.current[index + 1].focus();
       }
-
-      const response = await axiosInstancePatient.post("patient/login", {
-        pin,
-        dob,
-        surgery_case_id,
-        link: patient_link,
-      });
-
-      if (response.data.valid) {
-        localStorage.setItem("token", response.data.token);
-        navigate("/ptr/view");
-      } else {
-        notification.error({ message: t("login.FAILED") });
-      }
-    } catch (error) {
-      console.error("Login error:", error);
-      const errorMessage =
-        error.response?.data?.message || error.message || t("login.FAILED");
-      notification.error({ message: errorMessage });
-    } finally {
-      setLoading(false);
     }
   };
 
-  useEffect(() => {
-    if (pinInputRef.current) {
-      IMask(pinInputRef.current.input, {
-        mask: "000000", // Mask สำหรับ 6 หลัก
-      });
+  const handleKeyDown = (e, index) => {
+    if (e.key === "Backspace" && !pins[index] && index > 0) {
+      inputRefs.current[index - 1].focus();
     }
-  }, []);
+  };
+
+  const handlePaste = (e) => {
+    e.preventDefault();
+    const pastedData = e.clipboardData
+      .getData("text")
+      .replace(/\D/g, "")
+      .slice(0, length);
+    const newPins = [...pins];
+    pastedData.split("").forEach((value, index) => {
+      if (index < length) {
+        newPins[index] = value;
+      }
+    });
+    setPins(newPins);
+    onChange(newPins.join(""));
+    if (pastedData.length > 0) {
+      inputRefs.current[Math.min(pastedData.length, length - 1)].focus();
+    }
+  };
 
   return (
-    <div className="min-h-screen flex flex-col">
+    <div className="flex gap-2 justify-center">
+      {pins.map((pin, index) => (
+        <input
+          key={index}
+          type="text"
+          inputMode="numeric"
+          ref={(el) => (inputRefs.current[index] = el)}
+          value={pin}
+          onChange={(e) => handleChange(e, index)}
+          onKeyDown={(e) => handleKeyDown(e, index)}
+          onPaste={handlePaste}
+          className="w-12 h-12 text-center text-2xl font-semibold border-2 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-200 focus:outline-none transition-colors"
+          maxLength={1}
+        />
+      ))}
+    </div>
+  );
+};
+
+const LoginForm = ({ t, link }) => {
+  const [loading, setLoading] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
+  const navigate = useNavigate();
+
+  const handlePinComplete = async (pin) => {
+    if (pin.length === 6) {
+      try {
+        setLoading(true);
+        setErrorMessage("");
+        const patient_link = link;
+
+        console.log("pin", pin);
+        console.log("patient_link", patient_link);
+
+        const surgeryCaseResponse = await axiosInstancePatient.get(
+          `link_cases/${patient_link}`
+        );
+        const surgery_case_id = surgeryCaseResponse?.data?.surgery_case_id;
+
+        if (!surgery_case_id) {
+          throw new Error(t("login.INVALID_CASE"));
+        }
+
+        const response = await axiosInstancePatient.post("patient/login", {
+          pin,
+          surgery_case_id,
+          link: patient_link,
+        });
+
+        if (response.data.valid) {
+          localStorage.setItem("token", response.data.token);
+          navigate("/ptr/view");
+        } else {
+          setErrorMessage(t("login.FAILED"));
+        }
+      } catch (error) {
+        console.error("Login error:", error);
+        const errorMsg =
+          error.response?.data?.message || error.message || t("login.FAILED");
+        setErrorMessage(errorMsg);
+      } finally {
+        setLoading(false);
+      }
+    }
+  };
+
+  return (
+    <div className="min-h-screen flex flex-col bg-gradient-to-b from-gray-50 to-white w-full">
       {/* Header */}
-      <header className="w-full bg-white">
-        <div className="container mx-auto px-4 sm:px-6 md:px-8 py-4 flex justify-end">
+      <header className="w-full bg-white shadow-lg">
+        <div className="w-full px-4 sm:px-6 lg:px-8 py-4 sm:py-5 flex justify-between items-center">
+          <img
+            src={Logo}
+            alt="Hospital Logo"
+            className="h-8 sm:h-10 md:h-12 w-auto transition-transform duration-200 hover:scale-105"
+          />
           <LanguageSelector t={t} />
         </div>
       </header>
 
-      {/* Content */}
-      <main className="flex-grow w-full flex items-center justify-center py-8">
-        <div className="w-full max-w-md mx-auto px-4 sm:px-6 md:px-8">
-          <div className="mb-8 text-center">
-            <img
-              src={Logo}
-              className="w-40 sm:w-48 md:w-56 mx-auto"
-              alt="Hospital Logo"
-            />
-          </div>
-
-          <Form
-            name="login"
-            onFinish={onFinish}
-            layout="vertical"
-            className="space-y-6"
+      {/* Main content */}
+      <main className="flex-grow flex items-center justify-center w-full">
+        <div className="w-full px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
+          <div
+            className="w-full max-w-3xl mx-auto
+                         py-10 sm:py-12 px-6 sm:px-8 lg:px-12
+                         transform transition-all duration-300"
           >
-            <Form.Item
-              label={
-                <span className="text-sm sm:text-base font-medium text-gray-700">
-                  {t("login.PIN")}
-                </span>
-              }
-              name="pin"
-              rules={[
-                { required: true, message: t("login.PIN_REQUIRED") },
-                {
-                  pattern: /^\d{6}$/,
-                  message: t("login.PIN_INVALID"),
-                },
-              ]}
+            <h1
+              className="text-2xl sm:text-3xl lg:text-4xl font-bold text-center text-gray-800 
+                         mb-8 sm:mb-10 bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-blue-800"
             >
-              <Input
-                placeholder={t("login.PIN")}
-                ref={pinInputRef}
-                maxLength={6}
-                className="w-full p-2 text-sm sm:text-base border rounded-md"
-              />
-            </Form.Item>
+              {t("login.TITLE")}
+            </h1>
 
-            <Form.Item className="mb-0">
-              <Button
-                size="large"
-                htmlType="submit"
-                className="w-full p-3 bg-blue-500 hover:bg-blue-600 text-white text-sm sm:text-base font-medium rounded-md shadow-lg transition-all duration-300"
-                disabled={loading}
-                icon={<Icon icon="mdi:check-circle" />}
-              >
-                {loading ? t("login.LOADING") : t("login.VERIFY")}
-              </Button>
-            </Form.Item>
-          </Form>
+            <Form layout="vertical" className="w-full max-w-2xl mx-auto">
+              <div className="space-y-8">
+                <label
+                  className="block text-base sm:text-lg font-medium text-gray-700 text-center 
+                               mb-6 sm:mb-8 tracking-wide"
+                >
+                  {t("login.PIN")}
+                </label>
+                <PinInput length={6} onChange={handlePinComplete} />
+              </div>
+            </Form>
+
+            {loading && (
+              <div className="mt-8 text-center">
+                <div className="inline-flex items-center px-4 py-2 bg-blue-50 text-blue-700 rounded-lg">
+                  <svg
+                    className="animate-spin h-5 w-5 mr-2"
+                    viewBox="0 0 24 24"
+                  >
+                    <circle
+                      className="opacity-25"
+                      cx="12"
+                      cy="12"
+                      r="10"
+                      stroke="currentColor"
+                      strokeWidth="4"
+                      fill="none"
+                    />
+                    <path
+                      className="opacity-75"
+                      fill="currentColor"
+                      d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
+                    />
+                  </svg>
+                  Processing...
+                </div>
+              </div>
+            )}
+            {errorMessage && (
+              <div className="mt-8 text-center">
+                <div className="mt-4 text-red-600">{errorMessage}</div>
+              </div>
+            )}
+          </div>
         </div>
       </main>
 
       {/* Footer */}
-      <footer className="w-full bg-white shadow-sm py-4">
-        <div className="container mx-auto px-4 sm:px-6 md:px-8 text-center text-gray-600">
-          <p className="text-sm mt-2">
-            Lorem ipsum dolor sit amet, consectetur.
-          </p>
-          <p className="text-xs mt-2">
-            © 2025 Lorem ipsum dolor. All rights reserved.
+      <footer className="w-full bg-white shadow-md">
+        <div className="w-full px-4 sm:px-6 lg:px-8 py-4 sm:py-5 text-center text-gray-600">
+          <p className="text-sm sm:text-base">
+            &copy; 2025 Lorem Ipsum.{" "}
+            <span className="text-blue-600">All rights reserved.</span>
           </p>
         </div>
       </footer>

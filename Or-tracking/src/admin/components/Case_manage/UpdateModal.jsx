@@ -5,53 +5,52 @@ import LinkForm from "./LinkForm";
 
 function UpdateModal({ visible, record, onClose, type }) {
   const [formLink] = Form.useForm();
+  useEffect(() => {
+    console.log("UpdateModal record ", record);
+  }, []);
 
-  const handleCopyLink = (link) => {
-    const fallbackCopy = () => {
-      const textArea = document.createElement("textarea");
-      textArea.value = link;
-      textArea.style.position = "fixed";
-      textArea.style.left = "-9999px";
-      document.body.appendChild(textArea);
+  const handleCopyLink = (linkUrl, pin_decrypted) => {
+    if (!linkUrl || !pin_decrypted) {
+      notification.warning({
+        message: "ไม่มีข้อมูลให้คัดลอก กรุณาสร้างลิงก์และ PIN ก่อน",
+        showProgress: true,
+        placement: "topRight",
+        pauseOnHover: true,
+        duration: 2,
+      });
+      return;
+    }
 
-      try {
-        textArea.select();
-        document.execCommand("copy");
-        notification.success({
-          message: "ลิงก์ได้ถูกคัดลอกไปยังคลิปบอร์ดของคุณแล้ว",
-          showProgress: true,
-          placement: "topRight",
-          pauseOnHover: true,
-          duration: 2,
-        });
-      } catch (err) {
-        notification.error({
-          message: "ไม่สามารถคัดลอกลิงก์ได้",
-          showProgress: true,
-          placement: "topRight",
-          pauseOnHover: true,
-          duration: 2,
-        });
-      }
+    const textToCopy = `${linkUrl}, PIN: ${pin_decrypted}`;
 
+    const textArea = document.createElement("textarea");
+    textArea.value = textToCopy;
+    textArea.style.position = "fixed";
+    textArea.style.left = "-9999px";
+    document.body.appendChild(textArea);
+
+    try {
+      textArea.select();
+      document.execCommand("copy");
+
+      notification.success({
+        message: "ลิงก์และ PIN ได้ถูกคัดลอกไปยังคลิปบอร์ดของคุณแล้ว",
+        showProgress: true,
+        placement: "topRight",
+        pauseOnHover: true,
+        duration: 2,
+      });
+    } catch (err) {
+      notification.error({
+        message: "ไม่สามารถคัดลอกข้อมูลได้ กรุณาคัดลอกด้วยตนเอง",
+        showProgress: true,
+        placement: "topRight",
+        pauseOnHover: true,
+        duration: 2,
+      });
+      console.error("Copy Error:", err);
+    } finally {
       document.body.removeChild(textArea);
-    };
-
-    if (navigator.clipboard && navigator.clipboard.writeText) {
-      navigator.clipboard
-        .writeText(link)
-        .then(() => {
-          notification.success({
-            message: "ลิงก์ได้ถูกคัดลอกไปยังคลิปบอร์ดของคุณแล้ว",
-            showProgress: true,
-            placement: "topRight",
-            pauseOnHover: true,
-            duration: 2,
-          });
-        })
-        .catch(fallbackCopy);
-    } else {
-      fallbackCopy();
     }
   };
 

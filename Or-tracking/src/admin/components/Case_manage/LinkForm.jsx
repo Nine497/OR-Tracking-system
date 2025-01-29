@@ -92,16 +92,25 @@ function doDownload(url, fileName) {
   document.body.removeChild(a);
 }
 
-const LinkDisplay = ({ link, handleCopyLink, onCancelLink, isActive }) => {
-  const qrCanvasRef = useRef(null);
+const LinkDisplay = ({
+  link,
+  handleCopyLink,
+  onCancelLink,
+  isActive,
+  record,
+}) => {
+  // const qrCanvasRef = useRef(null);
 
-  const downloadQRCode = () => {
-    const canvas = document.querySelector("canvas");
-    if (canvas) {
-      const url = canvas.toDataURL("image/png");
-      doDownload(url, "QRCode.png");
-    }
-  };
+  // const downloadQRCode = () => {
+  //   const canvas = document.querySelector("canvas");
+  //   if (canvas) {
+  //     const url = canvas.toDataURL("image/png");
+  //     doDownload(url, "QRCode.png");
+  //   }
+  // };
+  useEffect(() => {
+    console.log("record", record);
+  }, []);
 
   return (
     <div className="w-full max-w-full bg-gray-50 rounded-xl p-4 sm:p-5 lg:p-6 space-y-4 shadow-sm border border-gray-100">
@@ -136,7 +145,7 @@ const LinkDisplay = ({ link, handleCopyLink, onCancelLink, isActive }) => {
           <Tooltip title="Copy Link">
             <Button
               icon={<Icon icon="bx:bx-copy" className="text-lg" />}
-              onClick={() => handleCopyLink(link)}
+              onClick={() => handleCopyLink(link, record.pin_decrypted)}
               className="flex items-center gap-1.5 hover:border-blue-400 hover:text-blue-500 transition-colors 
                   h-8 md:h-9 px-2 md:px-3 text-sm md:text-base w-full sm:w-auto"
             >
@@ -240,6 +249,7 @@ const InfoItem = ({ label, value, children, isActive, isCount }) => (
 
 const ActiveLinkComponent = ({
   link,
+  record,
   linkData,
   handleCopyLink,
   onCancelLink,
@@ -285,6 +295,7 @@ const ActiveLinkComponent = ({
         handleCopyLink={handleCopyLink}
         onCancelLink={onCancelLink}
         isActive={true}
+        record={record}
       />
 
       <div className="bg-gray-50 rounded-lg p-4 space-y-4">
@@ -377,6 +388,7 @@ const ExpiredLinkComponent = ({
       handleCopyLink={handleCopyLink}
       onCancelLink={() => onCancelLink(linkData.surgery_case_links_id)}
       isActive={false}
+      linkData={linkData}
     />
 
     <div className="bg-gray-50 rounded-lg p-4 space-y-4">
@@ -415,7 +427,7 @@ const ExpiredLinkComponent = ({
   </LinkContainer>
 );
 
-const LinkForm = ({ formLink, onClose, handleCopyLink, record }) => {
+const LinkForm = ({ formLink, handleCopyLink, record }) => {
   const { user } = useAuth();
   const [linkData, setLinkData] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -423,8 +435,6 @@ const LinkForm = ({ formLink, onClose, handleCopyLink, record }) => {
   const BASE_URL = import.meta.env.VITE_BASE_URL;
 
   useEffect(() => {
-    console.log(record);
-
     const fetchData = async () => {
       setLoading(true);
       try {
@@ -470,7 +480,6 @@ const LinkForm = ({ formLink, onClose, handleCopyLink, record }) => {
   const createLink = async (linkData) => {
     setLoading(true);
     try {
-      const token = localStorage.getItem("jwtToken");
       const response = await axiosInstanceStaff.post("/link_cases/", linkData);
       if (response.data) {
         setLinkData(response.data);
@@ -576,13 +585,14 @@ const LinkForm = ({ formLink, onClose, handleCopyLink, record }) => {
           dayjs(linkData.expiration_time).isBefore(dayjs()) ? (
             <ExpiredLinkComponent
               link={linkUrl}
-              linkData={linkData}
+              record={record}
               handleCopyLink={handleCopyLink}
               onCancelLink={() => setIsModalVisible(true)}
             />
           ) : (
             <ActiveLinkComponent
               link={linkUrl}
+              record={record}
               linkData={linkData}
               handleCopyLink={handleCopyLink}
               onCancelLink={() => setIsModalVisible(true)}

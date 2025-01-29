@@ -7,7 +7,7 @@ function BreadcrumbComponent() {
 
   const getSectionNameInThai = (section) => {
     const nameMapping = {
-      roomSchedule: "ห้องผ่าตัด",
+      // roomSchedule: "ห้องผ่าตัด",
       calendar: "ปฏิทิน",
       caseManage: "การจัดการเคสผ่าตัด",
       usersManage: "การจัดการผู้ใช้งาน",

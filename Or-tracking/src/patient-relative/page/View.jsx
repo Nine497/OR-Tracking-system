@@ -109,11 +109,6 @@ const View = () => {
         startLoading();
 
         if (!patient_id || !surgery_case_id || !patient_link) {
-          console.log("Missing data:", {
-            patient_id,
-            surgery_case_id,
-            patient_link,
-          });
           setIsDataReady(false);
           return;
         }

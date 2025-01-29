@@ -24,8 +24,6 @@ const patient = {
       .join("patients", "surgery_case.patient_id", "=", "patients.patient_id")
       .select("patients.hn_code", "patients.dob", "patients.patient_id")
       .where("surgery_case.surgery_case_id", surgery_case_id)
-      .where("patients.hn_code", hn)
-      .where("patients.dob", dob)
       .first();
   },
 

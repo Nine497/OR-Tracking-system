@@ -9,12 +9,12 @@ import Logo from "../assets/Logo.png";
 import { axiosInstanceStaff } from "../api/axiosInstance";
 
 const items = [
-  {
-    label: "ห้องผ่าตัด",
-    to: "/admin/room_schedule",
-    icon: <Icon icon="ic:baseline-home" className="text-lg" />,
-    key: "room_schedule",
-  },
+  // {
+  //   label: "ห้องผ่าตัด",
+  //   to: "/admin/room_schedule",
+  //   icon: <Icon icon="ic:baseline-home" className="text-lg" />,
+  //   key: "room_schedule",
+  // },
   {
     label: "ปฏิทิน",
     to: "/admin/calendar",

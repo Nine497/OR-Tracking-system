@@ -8,35 +8,43 @@ function AddUserModal({ visible, onClose }) {
   const { user } = useAuth();
 
   const handleFinish = async (values) => {
-    try {
-      console.log("values: ", { ...values, created_by: user.id });
+    Modal.confirm({
+      title: "ยืนยันการบันทึกข้อมูล",
+      content: "คุณแน่ใจหรือไม่ว่าต้องการบันทึกข้อมูลนี้?",
+      okText: "ยืนยัน",
+      cancelText: "ยกเลิก",
+      centered: true,
+      onOk: async () => {
+        try {
+          console.log("values: ", { ...values, created_by: user.id });
 
-      const token = localStorage.getItem("jwtToken");
-      const response = await axiosInstanceStaff.post("/staff", {
-        ...values,
-        created_by: user.id,
-      });
+          const response = await axiosInstanceStaff.post("/staff", {
+            ...values,
+            created_by: user.id,
+          });
 
-      if (response.status === 200) {
-        notification.success({
-          message: "ข้อมูลผู้ใช้ได้ถูกบันทึกสำเร็จแล้ว",
-          showProgress: true,
-          placement: "topRight",
-          pauseOnHover: true,
-          duration: 2,
-        });
-        onClose();
-      }
-    } catch (error) {
-      console.error("Error saving user details:", error);
-      notification.error({
-        message: "ไม่สามารถบันทึกข้อมูลผู้ใช้ได้ กรุณาลองใหม่อีกครั้ง",
-        showProgress: true,
-        placement: "topRight",
-        pauseOnHover: true,
-        duration: 2,
-      });
-    }
+          if (response.status === 201) {
+            notification.success({
+              message: "ข้อมูลผู้ใช้ได้ถูกบันทึกสำเร็จแล้ว",
+              showProgress: true,
+              placement: "topRight",
+              pauseOnHover: true,
+              duration: 2,
+            });
+            onClose();
+          }
+        } catch (error) {
+          console.error("Error saving user details:", error);
+          notification.error({
+            message: "ไม่สามารถบันทึกข้อมูลผู้ใช้ได้ กรุณาลองใหม่อีกครั้ง",
+            showProgress: true,
+            placement: "topRight",
+            pauseOnHover: true,
+            duration: 2,
+          });
+        }
+      },
+    });
   };
 
   return (

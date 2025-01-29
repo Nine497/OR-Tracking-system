@@ -1,6 +1,8 @@
 import axios from "axios";
 import { Modal } from "antd";
+import { PatientProvider } from "../../patient-relative/context/PatientContext";
 
+const patient_link = PatientProvider.patient_link;
 const axiosInstanceStaff = axios.create({
   baseURL: import.meta.env.VITE_BASE_API_URL || "http://localhost:3000/api/",
   timeout: 15000,
@@ -75,8 +77,8 @@ axiosInstancePatient.interceptors.response.use(
           content: "บัญชีของคุณถูกระงับ กรุณาเข้าสู่ระบบอีกครั้ง.",
           okText: "ไปยังหน้าล็อกอิน",
           onOk: () => {
-            localStorage.removeItem("jwtToken");
-            window.location.href = "/login";
+            localStorage.removeItem("token");
+            window.location.href = `/ptr?link=${patient_link}`;
           },
         });
       } else if (status === 401) {
@@ -85,8 +87,8 @@ axiosInstancePatient.interceptors.response.use(
           content: "เซสชันของคุณหมดอายุ กรุณาเข้าสู่ระบบใหม่อีกครั้ง.",
           okText: "ไปยังหน้าล็อกอิน",
           onOk: () => {
-            localStorage.removeItem("jwtToken");
-            window.location.href = "/login";
+            localStorage.removeItem("token");
+            window.location.href = `/ptr?link=${patient_link}`;
           },
         });
       }

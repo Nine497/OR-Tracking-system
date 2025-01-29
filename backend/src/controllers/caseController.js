@@ -1,162 +1,127 @@
 const SurgeryCase = require("../models/caseModel");
 const db = require("../config/database");
+const crypto = require("crypto");
+const SECRET_KEY = process.env.SECRET_KEY;
+const IV = process.env.IV;
+require("dotenv").config();
 
 exports.newSurgerycaseFromAPI = async (req, res) => {
   const surgeryCaseData = req.body;
-  console.log("surgeryCaseData", surgeryCaseData);
+  if (!Array.isArray(surgeryCaseData) || surgeryCaseData.length === 0) {
+    return res.status(400).json({ message: "Invalid input data" });
+  }
 
   try {
-    for (let data of surgeryCaseData) {
-      const existingSurgeryType = await db("surgery_type")
-        .where("surgery_type_name", data.op_type)
-        .first();
+    await Promise.all(
+      surgeryCaseData.map(async (data) => {
+        const [surgeryType] = await db("surgery_type")
+          .where("surgery_type_name", data.op_type)
+          .select("surgery_type_id");
 
-      let surgeryTypeId;
-      if (existingSurgeryType) {
-        surgeryTypeId = existingSurgeryType.surgery_type_id;
-        console.log("Found existing surgery type:", surgeryTypeId);
-      } else {
-        const newSurgeryType = await db("surgery_type")
-          .insert({
-            surgery_type_name: data.op_type,
-          })
-          .returning("surgery_type_id");
-        surgeryTypeId = newSurgeryType[0].surgery_type_id;
-        console.log("Created new surgery type:", surgeryTypeId);
-      }
+        const surgeryTypeId = surgeryType
+          ? surgeryType.surgery_type_id
+          : (
+              await db("surgery_type")
+                .insert({ surgery_type_name: data.op_type })
+                .returning("surgery_type_id")
+            )[0].surgery_type_id;
 
-      // เช็คและดึง operating_room_id
-      const existingOperatingRoom = await db("operating_room")
-        .where("room_name", data.room)
-        .first();
+        const [operatingRoom] = await db("operating_room")
+          .where("room_name", data.room)
+          .select("operating_room_id");
 
-      let operatingRoomId;
-      if (existingOperatingRoom) {
-        operatingRoomId = existingOperatingRoom.operating_room_id;
-        console.log("Found existing operating room:", operatingRoomId);
-      } else {
-        const newOperatingRoom = await db("operating_room")
-          .insert({
-            room_name: data.room,
-          })
-          .returning("operating_room_id");
-        operatingRoomId = newOperatingRoom[0].operating_room_id;
-        console.log("Created new operating room:", operatingRoomId);
-      }
+        const operatingRoomId = operatingRoom
+          ? operatingRoom.operating_room_id
+          : (
+              await db("operating_room")
+                .insert({ room_name: data.room })
+                .returning("operating_room_id")
+            )[0].operating_room_id;
 
-      // เช็คและดึง operation_id
-      const existingOperation = await db("operation")
-        .where("operation_name", data.operation)
-        .first();
-
-      let operationId;
-      if (existingOperation) {
-        operationId = existingOperation.operation_id;
-        console.log("Found existing operation:", operationId);
-      } else {
-        const newOperation = await db("operation")
-          .insert({
-            operation_name: data.operation,
-          })
-          .returning("operation_id");
-        operationId = newOperation[0].operation_id;
-        console.log("Created new operation:", operationId);
-      }
-
-      // เช็คและดึง doctor_id
-      const existingDoctor = await db("doctors")
-        .where("firstname", data.firstname_doctor)
-        .andWhere("lastname", data.lastname_doctor)
-        .first();
-
-      let doctorId;
-      if (existingDoctor) {
-        doctorId = existingDoctor.doctor_id;
-        console.log("Found existing doctor:", doctorId);
-      } else {
-        const newDoctor = await db("doctors")
-          .insert({
+        const [doctor] = await db("doctors")
+          .where({
             firstname: data.firstname_doctor,
             lastname: data.lastname_doctor,
-            prefix: data.prefix_doctor,
           })
-          .returning("doctor_id");
-        doctorId = newDoctor[0].doctor_id;
-        console.log("Created new doctor:", doctorId);
-      }
+          .select("doctor_id");
 
-      // เช็คและดึง patient_id
-      const existingPatient = await db("patients")
-        .where("hn_code", data.HN)
-        .first();
+        const doctorId = doctor
+          ? doctor.doctor_id
+          : (
+              await db("doctors")
+                .insert({
+                  firstname: data.firstname_doctor,
+                  lastname: data.lastname_doctor,
+                  prefix: data.prefix_doctor,
+                })
+                .returning("doctor_id")
+            )[0].doctor_id;
 
-      let patientId;
-      if (existingPatient) {
-        patientId = existingPatient.patient_id;
-        console.log("Found existing patient:", patientId);
-      } else {
-        const newPatient = await db("patients")
-          .insert({
-            hn_code: data.HN,
-            firstname: data.firstname,
-            lastname: data.lastname,
-          })
-          .returning("patient_id");
-        patientId = newPatient[0].patient_id;
-        console.log("Created new patient:", patientId);
-      }
+        const [patient] = await db("patients")
+          .where("hn_code", data.HN)
+          .select("patient_id");
 
-      // เช็ค op_set_id กับ surgery_case_id และสร้างหรืออัปเดต surgery_case
-      const existingSurgeryCase = await db("surgery_case")
-        .where("op_set_id", data.op_set_id)
-        .first();
+        const patientId = patient
+          ? patient.patient_id
+          : (
+              await db("patients")
+                .insert({
+                  hn_code: data.HN,
+                  firstname: data.firstname,
+                  lastname: data.lastname,
+                })
+                .returning("patient_id")
+            )[0].patient_id;
 
-      if (existingSurgeryCase) {
-        // ถ้ามีแล้วให้ทำการ update
-        await db("surgery_case")
-          .where("surgery_case_id", existingSurgeryCase.surgery_case_id)
-          .update({
-            set_datetime: data.set_datetime,
-            op_datetime: data.op_datetime,
-            estimate_finish: data.estimate_finish,
-            operation: data.operation,
-            note: data.note,
-            op_type: data.op_type,
-            room: data.room,
-            status: data.status,
-            surgery_type_id: surgeryTypeId,
-            operating_room_id: operatingRoomId,
-            doctor_id: doctorId,
-            patient_id: patientId,
-          });
-        console.log("Updated existing surgery case");
-      } else {
-        // ถ้าไม่มีให้ทำการ create
-        await db("surgery_case").insert({
-          op_set_id: data.op_set_id,
-          set_datetime: data.set_datetime,
-          op_datetime: data.op_datetime,
-          estimate_finish: data.estimate_finish,
-          operation: data.operation,
-          note: data.note,
-          op_type: data.op_type,
-          room: data.room,
-          status: data.status,
-          surgery_type_id: surgeryTypeId,
-          operating_room_id: operatingRoomId,
-          doctor_id: doctorId,
-          patient_id: patientId,
+        const [existingSurgeryCase] = await db("surgery_case")
+          .where("surgery_case_id", data.op_set_id)
+          .select("surgery_case_id");
+
+        let surgeryCaseId;
+        if (existingSurgeryCase) {
+          await db("surgery_case")
+            .where("surgery_case_id", existingSurgeryCase.surgery_case_id)
+            .update({
+              created_at: data.set_datetime,
+              surgery_start_time: data.op_datetime,
+              surgery_end_time: data.estimate_finish,
+              note: data.note,
+              surgery_type_id: surgeryTypeId,
+              operating_room_id: operatingRoomId,
+              doctor_id: doctorId,
+              patient_id: patientId,
+            });
+          surgeryCaseId = existingSurgeryCase.surgery_case_id;
+        } else {
+          const [newSurgeryCase] = await db("surgery_case")
+            .insert({
+              created_at: data.set_datetime,
+              surgery_start_time: data.op_datetime,
+              surgery_end_time: data.estimate_finish,
+              note: data.note,
+              surgery_type_id: surgeryTypeId,
+              operating_room_id: operatingRoomId,
+              doctor_id: doctorId,
+              patient_id: patientId,
+            })
+            .returning("surgery_case_id");
+          surgeryCaseId = newSurgeryCase.surgery_case_id;
+        }
+
+        await db("operation").insert({
+          operation_name: data.operation,
+          surgery_case_id: surgeryCaseId,
         });
-        console.log("Created new surgery case");
-      }
-    }
+
+        console.log(`Processed surgery case ${surgeryCaseId} successfully`);
+      })
+    );
 
     res.status(200).json({
-      message:
-        "Surgery case, patient, doctor, surgery type, operating room, and operation processed successfully",
+      message: "Surgery cases processed successfully",
     });
   } catch (err) {
-    console.error(err);
+    console.error("Error processing surgery cases:", err);
     res.status(500).json({
       message: "Server error",
       error: err.message,
@@ -445,7 +410,8 @@ exports.getAllCase = async (req, res) => {
         "status.status_name as status_name",
         "surgery_case_links.surgery_case_links_id as link_id",
         "surgery_case_links.isactive as link_active",
-        "surgery_case_links.expiration_time as link_expiration"
+        "surgery_case_links.expiration_time as link_expiration",
+        "surgery_case_links.pin_encrypted as pin_encrypted"
       )
       .leftJoin("patients", "surgery_case.patient_id", "patients.patient_id")
       .leftJoin("doctors", "surgery_case.doctor_id", "doctors.doctor_id")
@@ -477,8 +443,37 @@ exports.getAllCase = async (req, res) => {
       .limit(Number(limit))
       .offset(offset);
 
+    // ถอดรหัส pin_encrypted ที่ได้รับ
+    const decryptedSurgeryCases = surgeryCases.map((caseRecord) => {
+      try {
+        const key = Buffer.from(SECRET_KEY, "hex");
+        const iv = Buffer.from(IV, "hex");
+
+        const decipher = crypto.createDecipheriv("aes-128-cbc", key, iv);
+
+        let decryptedPin = decipher.update(
+          caseRecord.pin_encrypted,
+          "base64",
+          "utf8"
+        );
+
+        decryptedPin += decipher.final("utf8");
+
+        return {
+          ...caseRecord,
+          pin_decrypted: decryptedPin,
+        };
+      } catch (err) {
+        console.error("Error decrypting PIN:", err);
+        return {
+          ...caseRecord,
+          pin_decrypted: "Error",
+        };
+      }
+    });
+
     res.status(200).json({
-      data: surgeryCases,
+      data: decryptedSurgeryCases,
       totalRecords,
       filteredCount,
     });

@@ -60,12 +60,8 @@ const PatientMain = () => {
 
   return (
     <div className="min-h-screen w-screen flex items-center justify-center bg-white">
-      <div className="w-full max-w-7xl px-4 h-full flex flex-col items-center">
-        <div className="flex-1 w-full flex items-center justify-center px-0">
-          <div className="w-full max-w-md">
-            <LoginForm t={t} link={link} />
-          </div>
-        </div>
+      <div className="flex-1 w-full flex items-center justify-center px-0">
+        <LoginForm t={t} link={link} />
       </div>
     </div>
   );

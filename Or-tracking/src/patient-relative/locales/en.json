@@ -23,8 +23,11 @@
         "female": "Female"
     },
     "login": {
-        "TITLE": "Login",
+        "TITLE": "OR-Tracking",
         "HN": "Hospital Number",
+        "PIN": "PIN Code",
+        "PIN_REQUIRED": "Please enter your PIN code",
+        "PIN_INVALID": "PIN code must be 6 digits",
         "HN_REQUIRED": "Please enter your HN",
         "HN_INVALID": "Invalid HN",
         "DOB": "Date of Birth",
