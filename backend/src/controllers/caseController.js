@@ -7,121 +7,231 @@ require("dotenv").config();
 
 exports.newSurgerycaseFromAPI = async (req, res) => {
   const surgeryCaseData = req.body;
-  if (!Array.isArray(surgeryCaseData) || surgeryCaseData.length === 0) {
-    return res.status(400).json({ message: "Invalid input data" });
-  }
+  let errors = [];
 
   try {
     await Promise.all(
       surgeryCaseData.map(async (data) => {
-        const [surgeryType] = await db("surgery_type")
-          .where("surgery_type_name", data.op_type)
-          .select("surgery_type_id");
+        try {
+          const existingSurgeryType = await SurgeryCase.getSurgeryTypeByName(
+            data.op_type
+          );
+          let surgeryTypeId = existingSurgeryType
+            ? existingSurgeryType.surgery_type_id
+            : await SurgeryCase.createSurgeryType(data.op_type);
 
-        const surgeryTypeId = surgeryType
-          ? surgeryType.surgery_type_id
-          : (
-              await db("surgery_type")
-                .insert({ surgery_type_name: data.op_type })
-                .returning("surgery_type_id")
-            )[0].surgery_type_id;
+          // if (surgeryTypeId) {
+          //   console.log("surgeryTypeId", surgeryTypeId);
+          // }
+          const existingOperatingRoom =
+            await SurgeryCase.getOperatingRoomByName(data.room);
+          let operatingRoomId = existingOperatingRoom
+            ? existingOperatingRoom.operating_room_id
+            : await SurgeryCase.createOperatingRoom(data.room);
 
-        const [operatingRoom] = await db("operating_room")
-          .where("room_name", data.room)
-          .select("operating_room_id");
+          // if (operatingRoomId) {
+          //   console.log("operatingRoomId", operatingRoomId);
+          // }
+          const existingDoctor = await SurgeryCase.getDoctorByEmpId(
+            data.emp_id
+          );
+          let doctorId = existingDoctor
+            ? await SurgeryCase.updateDoctor(existingDoctor.doctor_id, data)
+            : await SurgeryCase.createDoctor(data);
+          // if (doctorId) {
+          //   console.log("doctorId", doctorId);
+          // }
+          const existingPatient = await SurgeryCase.getPatientByHnCode(data.HN);
+          let patientId = existingPatient
+            ? await SurgeryCase.updatePatient(existingPatient.patient_id, data)
+            : await SurgeryCase.createPatient(data);
+          if (doctorId) {
+            console.log("data.op_set_id", data.op_set_id);
+          }
 
-        const operatingRoomId = operatingRoom
-          ? operatingRoom.operating_room_id
-          : (
-              await db("operating_room")
-                .insert({ room_name: data.room })
-                .returning("operating_room_id")
-            )[0].operating_room_id;
+          const existingSurgeryCase = await SurgeryCase.getSurgeryCaseById(
+            data.op_set_id
+          );
+          let surgeryCaseId;
 
-        const [doctor] = await db("doctors")
-          .where({
-            firstname: data.firstname_doctor,
-            lastname: data.lastname_doctor,
-          })
-          .select("doctor_id");
+          if (existingSurgeryCase) {
+            await SurgeryCase.updateSurgeryCase(
+              existingSurgeryCase.surgery_case_id,
+              {
+                doctor_id: doctorId,
+                surgery_type_id: surgeryTypeId,
+                operating_room_id: operatingRoomId,
+                patient_id: patientId,
+                status_id: data?.status_id || 0,
+                created_by: data?.created_by || 1,
+                created_at: data.set_datetime,
+                note: data.note,
+                surgery_start_time: data.op_datetime,
+                surgery_end_time: data.estimate_finish,
+              }
+            );
 
-        const doctorId = doctor
-          ? doctor.doctor_id
-          : (
-              await db("doctors")
-                .insert({
-                  firstname: data.firstname_doctor,
-                  lastname: data.lastname_doctor,
-                  prefix: data.prefix_doctor,
-                })
-                .returning("doctor_id")
-            )[0].doctor_id;
-
-        const [patient] = await db("patients")
-          .where("hn_code", data.HN)
-          .select("patient_id");
-
-        const patientId = patient
-          ? patient.patient_id
-          : (
-              await db("patients")
-                .insert({
-                  hn_code: data.HN,
-                  firstname: data.firstname,
-                  lastname: data.lastname,
-                })
-                .returning("patient_id")
-            )[0].patient_id;
-
-        const [existingSurgeryCase] = await db("surgery_case")
-          .where("surgery_case_id", data.op_set_id)
-          .select("surgery_case_id");
-
-        let surgeryCaseId;
-        if (existingSurgeryCase) {
-          await db("surgery_case")
-            .where("surgery_case_id", existingSurgeryCase.surgery_case_id)
-            .update({
-              created_at: data.set_datetime,
-              surgery_start_time: data.op_datetime,
-              surgery_end_time: data.estimate_finish,
-              note: data.note,
+            surgeryCaseId = existingSurgeryCase.surgery_case_id;
+          } else {
+            surgeryCaseId = await SurgeryCase.createSurgeryCase({
+              surgery_case_id: data.op_set_id,
+              doctor_id: doctorId,
               surgery_type_id: surgeryTypeId,
               operating_room_id: operatingRoomId,
-              doctor_id: doctorId,
               patient_id: patientId,
+              status_id: data?.status_id || 0,
+              created_by: data?.created_by || 1,
+              created_at: data.set_datetime,
+              note: data.note,
+              surgery_start_time: data.op_datetime,
+              surgery_end_time: data.estimate_finish,
             });
-          surgeryCaseId = existingSurgeryCase.surgery_case_id;
-        } else {
-          const [newSurgeryCase] = await db("surgery_case")
-            .insert({
-              created_at: data.set_datetime,
-              surgery_start_time: data.op_datetime,
-              surgery_end_time: data.estimate_finish,
-              note: data.note,
-              surgery_type_id: surgeryTypeId,
-              operating_room_id: operatingRoomId,
-              doctor_id: doctorId,
-              patient_id: patientId,
-            })
-            .returning("surgery_case_id");
-          surgeryCaseId = newSurgeryCase.surgery_case_id;
+          }
+          // if (surgeryCaseId) {
+          //   console.log("surgeryCaseId", surgeryCaseId);
+          // }
+
+          const existingOperation = await SurgeryCase.getOperationByCaseId(
+            surgeryCaseId
+          );
+
+          let operationId;
+          if (existingOperation) {
+            operationId = await SurgeryCase.updateOperation(
+              existingOperation.operation_id,
+              data.operation
+            );
+          } else {
+            operationId = await SurgeryCase.createOperation(
+              data.operation,
+              surgeryCaseId
+            );
+          }
+
+          console.log(`Processed surgery case ${surgeryCaseId} successfully`);
+        } catch (err) {
+          errors.push(err.message);
+          console.error("❌ Error processing surgery case:", err);
         }
-
-        await db("operation").insert({
-          operation_name: data.operation,
-          surgery_case_id: surgeryCaseId,
-        });
-
-        console.log(`Processed surgery case ${surgeryCaseId} successfully`);
       })
     );
 
-    res.status(200).json({
-      message: "Surgery cases processed successfully",
+    if (errors.length > 0) {
+      res.status(500).json({ message: "Some surgery cases failed", errors });
+    } else {
+      res.status(200).json({ message: "Surgery cases processed successfully" });
+    }
+  } catch (err) {
+    console.error("❌ Error processing surgery cases:", err);
+    res.status(500).json({ message: "Server error", error: err.message });
+  }
+};
+
+exports.createSurgeryCase = async (req, res) => {
+  const { patient_id } = req.params;
+  const surgeryCaseData = req.body;
+
+  try {
+    const parsedPatientId = parseInt(patient_id, 10);
+    if (!parsedPatientId || isNaN(parsedPatientId)) {
+      return res.status(400).json({ message: "Invalid patient ID" });
+    }
+
+    const requiredFields = [
+      "doctor_id",
+      "surgery_start_time",
+      "surgery_end_time",
+      "surgery_type_id",
+      "operating_room_id",
+      "status_id",
+    ];
+
+    const missingFields = requiredFields.filter(
+      (field) => !surgeryCaseData[field]
+    );
+
+    if (missingFields.length > 0) {
+      return res.status(400).json({
+        message: `Missing required fields: ${missingFields.join(", ")}`,
+      });
+    }
+
+    console.log("surgery_start_time", surgeryCaseData.surgery_start_time);
+    console.log("surgery_end_time", surgeryCaseData.surgery_end_time);
+
+    const overlappingCases = await db("surgery_case")
+      .where("operating_room_id", surgeryCaseData.operating_room_id)
+      .andWhere(function () {
+        this.whereBetween("surgery_start_time", [
+          surgeryCaseData.surgery_start_time,
+          surgeryCaseData.surgery_end_time,
+        ])
+          .orWhereBetween("surgery_end_time", [
+            surgeryCaseData.surgery_start_time,
+            surgeryCaseData.surgery_end_time,
+          ])
+          .orWhere(function () {
+            this.where(
+              "surgery_start_time",
+              "<=",
+              surgeryCaseData.surgery_start_time
+            ).andWhere(
+              "surgery_end_time",
+              ">=",
+              surgeryCaseData.surgery_end_time
+            );
+          });
+      })
+      .then((overlappingCases) => overlappingCases);
+
+    if (overlappingCases.length > 0) {
+      return res.status(400).json({
+        message:
+          "The selected operating room has overlapping cases at this time.",
+      });
+    }
+
+    const newSurgeryCase = await db("surgery_case")
+      .insert({
+        doctor_id: surgeryCaseData.doctor_id,
+        surgery_end_time: surgeryCaseData.surgery_end_time,
+        surgery_start_time: surgeryCaseData.surgery_start_time,
+        surgery_type_id: surgeryCaseData.surgery_type_id,
+        operating_room_id: surgeryCaseData.operating_room_id,
+        status_id: surgeryCaseData.status_id,
+        created_by: surgeryCaseData.created_by,
+        patient_id: parsedPatientId,
+        created_at: surgeryCaseData.created_at,
+        patient_history: surgeryCaseData.patient_history || "",
+      })
+      .returning("*");
+
+    if (!newSurgeryCase || newSurgeryCase.length === 0) {
+      return res.status(500).json({ message: "Failed to create surgery case" });
+    }
+
+    const surgeryCaseId = newSurgeryCase[0].surgery_case_id;
+
+    if (surgeryCaseData.Operation) {
+      await db("operation").insert({
+        surgery_case_id: surgeryCaseId,
+        operation_name: surgeryCaseData.Operation,
+      });
+    }
+
+    await db("surgery_case_status_history").insert({
+      surgery_case_id: surgeryCaseId,
+      status_id: 0,
+      updated_at: new Date().toISOString(),
+      updated_by: surgeryCaseData.created_by,
+    });
+
+    res.status(201).json({
+      message: "Surgery case created successfully",
+      data: newSurgeryCase[0],
     });
   } catch (err) {
-    console.error("Error processing surgery cases:", err);
+    console.error(err);
     res.status(500).json({
       message: "Server error",
       error: err.message,
@@ -496,119 +606,6 @@ exports.getCaseById = async (req, res) => {
     res.status(200).json({
       message: "Surgery case fetched successfully",
       data: surgeryCase,
-    });
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({
-      message: "Server error",
-      error: err.message,
-    });
-  }
-};
-
-exports.createSurgeryCase = async (req, res) => {
-  const { patient_id } = req.params;
-  const surgeryCaseData = req.body;
-
-  try {
-    const parsedPatientId = parseInt(patient_id, 10);
-    if (!parsedPatientId || isNaN(parsedPatientId)) {
-      return res.status(400).json({ message: "Invalid patient ID" });
-    }
-
-    const requiredFields = [
-      "doctor_id",
-      "surgery_start_time",
-      "surgery_end_time",
-      "surgery_type_id",
-      "operating_room_id",
-      "status_id",
-      "created_by",
-    ];
-
-    const missingFields = requiredFields.filter(
-      (field) => !surgeryCaseData[field]
-    );
-
-    if (missingFields.length > 0) {
-      return res.status(400).json({
-        message: `Missing required fields: ${missingFields.join(", ")}`,
-      });
-    }
-
-    console.log("surgery_start_time", surgeryCaseData.surgery_start_time);
-    console.log("surgery_end_time", surgeryCaseData.surgery_end_time);
-
-    const overlappingCases = await db("surgery_case")
-      .where("operating_room_id", surgeryCaseData.operating_room_id)
-      .andWhere(function () {
-        this.whereBetween("surgery_start_time", [
-          surgeryCaseData.surgery_start_time,
-          surgeryCaseData.surgery_end_time,
-        ])
-          .orWhereBetween("surgery_end_time", [
-            surgeryCaseData.surgery_start_time,
-            surgeryCaseData.surgery_end_time,
-          ])
-          .orWhere(function () {
-            this.where(
-              "surgery_start_time",
-              "<=",
-              surgeryCaseData.surgery_start_time
-            ).andWhere(
-              "surgery_end_time",
-              ">=",
-              surgeryCaseData.surgery_end_time
-            );
-          });
-      })
-      .then((overlappingCases) => overlappingCases);
-
-    if (overlappingCases.length > 0) {
-      return res.status(400).json({
-        message:
-          "The selected operating room has overlapping cases at this time.",
-      });
-    }
-
-    const newSurgeryCase = await db("surgery_case")
-      .insert({
-        doctor_id: surgeryCaseData.doctor_id,
-        surgery_end_time: surgeryCaseData.surgery_end_time,
-        surgery_start_time: surgeryCaseData.surgery_start_time,
-        surgery_type_id: surgeryCaseData.surgery_type_id,
-        operating_room_id: surgeryCaseData.operating_room_id,
-        status_id: surgeryCaseData.status_id,
-        created_by: surgeryCaseData.created_by,
-        patient_id: parsedPatientId,
-        created_at: surgeryCaseData.created_at,
-        patient_history: surgeryCaseData.patient_history || "",
-      })
-      .returning("*");
-
-    if (!newSurgeryCase || newSurgeryCase.length === 0) {
-      return res.status(500).json({ message: "Failed to create surgery case" });
-    }
-
-    const surgeryCaseId = newSurgeryCase[0].surgery_case_id;
-
-    if (surgeryCaseData.Operation) {
-      await db("operation").insert({
-        surgery_case_id: surgeryCaseId,
-        operation_name: surgeryCaseData.Operation,
-      });
-    }
-
-    await db("surgery_case_status_history").insert({
-      surgery_case_id: surgeryCaseId,
-      status_id: 0,
-      updated_at: new Date().toISOString(),
-      updated_by: surgeryCaseData.created_by,
-    });
-
-    res.status(201).json({
-      message: "Surgery case created successfully",
-      data: newSurgeryCase[0],
     });
   } catch (err) {
     console.error(err);

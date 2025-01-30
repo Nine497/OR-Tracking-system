@@ -34,3 +34,16 @@
 .sx__time-grid-event-location {
   @apply text-sm;
 }
+.sx__month-grid-event-time {
+  @apply font-medium;
+}
+
+.sx__date-picker-popup {
+  @apply max-h-none;
+}
+
+.sx__event {
+  border-left: 4px solid #1c7df9 !important;
+  background-color: #d2e7ff !important;
+  color: #00008b !important;
+}

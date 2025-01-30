@@ -37,6 +37,9 @@ const RoomSchedule = () => {
       onClickDate: (date) => {
         handleDateClick(date);
       },
+      onEventClick: (event) => {
+        handleEventClick(event);
+      },
     },
   });
 
