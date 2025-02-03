@@ -1,6 +1,9 @@
 import React, { useState } from "react";
 import BreadcrumbComponent from "../components/Breadcrumb";
-
+import { useAuth } from "../context/AuthContext";
+import { useNavigate } from "react-router-dom";
+import { Icon } from "@iconify/react";
+import { Dropdown, Button, Modal } from "antd";
 function Header() {
   return (
     <div className="text-gray-700 flex justify-between items-center px-10 py-2 bg-gray-200">
@@ -8,7 +11,7 @@ function Header() {
         <BreadcrumbComponent />
       </div>
       <div className="flex items-center space-x-4">
-        {/* <StyledDropdown /> */}
+        <StyledDropdown />
       </div>
     </div>
   );
@@ -16,67 +19,82 @@ function Header() {
 
 export default Header;
 
-// const StyledDropdown = () => {
-//   const { user, logout } = useAuth();
-//   const navigate = useNavigate();
+const StyledDropdown = () => {
+  const { user, logout } = useAuth();
+  const navigate = useNavigate();
 
-//   const handleLogout = () => {
-//     Modal.confirm({
-//       title: "คุณแน่ใจไหมว่าต้องการออกจากระบบ?",
-//       okText: "ออกจากระบบ",
-//       cancelText: "ยกเลิก",
-//       centered: true,
-//       onOk: () => {
-//         logout();
-//       },
-//     });
-//   };
+  const handleLogout = () => {
+    Modal.confirm({
+      title: "คุณแน่ใจไหมว่าต้องการออกจากระบบ?",
+      okText: "ออกจากระบบ",
+      cancelText: "ยกเลิก",
+      centered: true,
+      className: "font-sans",
+      okButtonProps: {
+        className: "bg-red-500 hover:bg-red-600",
+      },
+      onOk: () => {
+        logout();
+      },
+    });
+  };
 
-//   const menuItems = [
-//     {
-//       key: "user_info",
-//       label: (
-//         <span className="text-gray-700 font-medium text-base">
-//           {`${user.firstname} ${user.lastname}`}
-//         </span>
-//       ),
-//       disabled: true,
-//     },
-//     {
-//       type: "divider",
-//     },
-//     {
-//       key: "profile_setting",
-//       label: <span className="text-sm font-normal">การตั้งค่าบัญชี</span>,
-//       icon: <Icon icon="weui:setting-outlined" className="text-xl" />,
-//       onClick: () => navigate("admin/profile"),
-//     },
-//     {
-//       type: "divider",
-//     },
-//     {
-//       key: "logout",
-//       label: <span className="text-sm font-normal">ออกจากระบบ</span>,
-//       icon: <Icon icon="mdi:logout" className="text-xl" />,
-//       onClick: handleLogout,
-//     },
-//   ];
+  const menuItems = [
+    {
+      key: "profile_setting",
+      label: (
+        <div className="flex items-center px-1 py-1 hover:text-blue-600 transition-colors duration-200">
+          <Icon icon="weui:setting-outlined" className="w-4 h-4 mr-2" />
+          <span className="font-medium">การตั้งค่าบัญชี</span>
+        </div>
+      ),
+      onClick: () => navigate("admin/profile"),
+    },
+    {
+      type: "divider",
+      className: "my-1",
+    },
+    {
+      key: "logout",
+      label: (
+        <div className="flex items-center px-1 py-1 text-red-500 hover:text-red-600 transition-colors duration-200">
+          <Icon icon="mdi:logout" className="w-4 h-4 mr-2" />
+          <span className="font-medium">ออกจากระบบ</span>
+        </div>
+      ),
+      onClick: handleLogout,
+    },
+  ];
 
-//   return (
-//     <Dropdown
-//       menu={{ items: menuItems }}
-//       trigger={["click"]}
-//       placement="bottomRight"
-//     >
-//       <Button
-//         className="rounded-full bg-white
-//             flex items-center justify-center
-//             border-none shadow-md
-//             transition-all duration-300 ease-out
-//             focus:outline-none focus:ring-none"
-//       >
-//         <Icon icon="iconoir:user" className="text-black text-lg" />
-//       </Button>
-//     </Dropdown>
-//   );
-// };
+  return (
+    <Dropdown
+      menu={{
+        items: menuItems,
+        className: "w-48 p-1 shadow-lg rounded-xl",
+      }}
+      trigger={["click"]}
+      placement="bottomRight"
+    >
+      <Button
+        className="rounded-full bg-white
+          flex items-center justify-center gap-2
+          border-none shadow-md 
+          group hover:text-blue-500
+          transition-all duration-300 ease-out
+          focus:outline-none focus:ring-0
+          px-4 py-2"
+      >
+        <span className="font-medium">
+          {`${user.firstname} ${user.lastname}`}
+        </span>
+        <span className="mx-1 text-gray-300">|</span>
+        <Icon
+          icon="iconoir:user"
+          className="text-xl cursor-pointer
+            text-gray-700 group-hover:text-blue-500
+            transition-colors duration-300 font-medium"
+        />
+      </Button>
+    </Dropdown>
+  );
+};

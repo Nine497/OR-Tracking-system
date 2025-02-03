@@ -33,7 +33,6 @@ const PatientMain = () => {
           setErrorMessage(t("error.INVALID_LINK"));
         } else {
           setPatientLink(link);
-          setPatientLink(link);
         }
       } catch (error) {
         console.error("Error validating link:", error);

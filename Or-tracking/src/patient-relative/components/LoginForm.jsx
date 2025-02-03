@@ -1,12 +1,31 @@
 import React, { useState, useRef, useEffect } from "react";
-import { Form, notification } from "antd";
+import { Form, notification, Input } from "antd";
 import { useNavigate } from "react-router-dom";
 import LanguageSelector from "./LanguageSelector";
 import Logo from "../assets/Logo.png";
 import { axiosInstancePatient } from "../../admin/api/axiosInstance";
-const PinInput = ({ length = 6, onChange }) => {
+import { usePatient } from "../context/PatientContext";
+
+const PinInput = ({ length = 6, onChange, disabled }) => {
   const [pins, setPins] = useState(new Array(length).fill(""));
   const inputRefs = useRef(new Array(length).fill(null));
+
+  useEffect(() => {
+    if (disabled) {
+      inputRefs.current.forEach((input) => input?.blur());
+    } else {
+      focusCorrectInput();
+    }
+  }, [disabled, pins]);
+
+  const focusCorrectInput = () => {
+    const firstEmptyIndex = pins.findIndex((pin) => pin === "");
+    if (firstEmptyIndex !== -1) {
+      inputRefs.current[firstEmptyIndex]?.focus();
+    } else {
+      inputRefs.current[length - 1]?.focus(); // โฟกัสช่องสุดท้ายถ้ากรอกครบ
+    }
+  };
 
   const handleChange = (e, index) => {
     const value = e.target.value.replace(/\D/g, "");
@@ -16,15 +35,13 @@ const PinInput = ({ length = 6, onChange }) => {
       setPins(newPins);
       onChange(newPins.join(""));
 
-      if (value && index < length - 1) {
-        inputRefs.current[index + 1].focus();
-      }
+      focusCorrectInput();
     }
   };
 
   const handleKeyDown = (e, index) => {
     if (e.key === "Backspace" && !pins[index] && index > 0) {
-      inputRefs.current[index - 1].focus();
+      inputRefs.current[index - 1]?.focus();
     }
   };
 
@@ -35,22 +52,22 @@ const PinInput = ({ length = 6, onChange }) => {
       .replace(/\D/g, "")
       .slice(0, length);
     const newPins = [...pins];
+
     pastedData.split("").forEach((value, index) => {
       if (index < length) {
         newPins[index] = value;
       }
     });
+
     setPins(newPins);
     onChange(newPins.join(""));
-    if (pastedData.length > 0) {
-      inputRefs.current[Math.min(pastedData.length, length - 1)].focus();
-    }
+    focusCorrectInput();
   };
 
   return (
     <div className="flex gap-2 justify-center">
       {pins.map((pin, index) => (
-        <input
+        <Input
           key={index}
           type="text"
           inputMode="numeric"
@@ -59,8 +76,14 @@ const PinInput = ({ length = 6, onChange }) => {
           onChange={(e) => handleChange(e, index)}
           onKeyDown={(e) => handleKeyDown(e, index)}
           onPaste={handlePaste}
-          className="w-12 h-12 text-center text-2xl font-semibold border-2 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-200 focus:outline-none transition-colors"
+          className="w-12 h-12 text-center text-2xl font-semibold 
+                    border-2 rounded-lg 
+                    bg-white text-black
+                    dark:bg-white dark:text-black
+                    focus:border-blue-500 focus:ring-2 focus:ring-blue-200 focus:outline-none 
+                    transition-colors appearance-none"
           maxLength={1}
+          disabled={disabled}
         />
       ))}
     </div>
@@ -71,30 +94,30 @@ const LoginForm = ({ t, link }) => {
   const [loading, setLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
   const navigate = useNavigate();
+  const { patient_id, surgery_case_id, patient_link } = usePatient();
 
   const handlePinComplete = async (pin) => {
     if (pin.length === 6) {
       try {
         setLoading(true);
         setErrorMessage("");
-        const patient_link = link;
 
-        console.log("pin", pin);
-        console.log("patient_link", patient_link);
+        if (!link) {
+          throw new Error(t("login.INVALID_LINK"));
+        }
 
         const surgeryCaseResponse = await axiosInstancePatient.get(
-          `link_cases/${patient_link}`
+          `link_cases/${link}`
         );
-        const surgery_case_id = surgeryCaseResponse?.data?.surgery_case_id;
 
-        if (!surgery_case_id) {
+        if (!surgeryCaseResponse?.data?.surgery_case_id) {
           throw new Error(t("login.INVALID_CASE"));
         }
 
         const response = await axiosInstancePatient.post("patient/login", {
           pin,
-          surgery_case_id,
-          link: patient_link,
+          surgery_case_id: surgeryCaseResponse.data.surgery_case_id,
+          link,
         });
 
         if (response.data.valid) {
@@ -151,7 +174,11 @@ const LoginForm = ({ t, link }) => {
                 >
                   {t("login.PIN")}
                 </label>
-                <PinInput length={6} onChange={handlePinComplete} />
+                <PinInput
+                  length={6}
+                  onChange={handlePinComplete}
+                  disabled={loading}
+                />
               </div>
             </Form>
 
@@ -202,5 +229,4 @@ const LoginForm = ({ t, link }) => {
     </div>
   );
 };
-
 export default LoginForm;

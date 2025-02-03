@@ -112,7 +112,7 @@ const StatusTimeline = ({
           <div className="flex flex-col">
             {historyEntry && (
               <Text className="font-semibold text-sm md:text-base text-gray-600 bg-gray-50 px-2 md:px-3 py-1 rounded-md w-fit mb-4">
-                {dayjs(historyEntry.updated_at).format("HH:mm DD/MM/YYYY")}
+                {dayjs(historyEntry.updated_at).format("DD/MM/YYYY, HH:mm")}
               </Text>
             )}
             <div className="flex flex-row gap-2 md:gap-6">

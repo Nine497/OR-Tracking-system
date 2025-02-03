@@ -24,15 +24,15 @@
 }
 
 .sx__time-grid-event-title {
-  @apply text-xl font-medium tracking-wider mb-1;
+  @apply text-sm font-medium tracking-wider mb-1;
 }
 
 .sx__time-grid-event-time {
-  @apply text-sm mb-1;
+  @apply text-xs mb-1;
 }
 
 .sx__time-grid-event-location {
-  @apply text-sm;
+  @apply text-xs;
 }
 .sx__month-grid-event-time {
   @apply font-medium;

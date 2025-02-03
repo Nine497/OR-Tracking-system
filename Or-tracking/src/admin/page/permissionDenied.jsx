@@ -13,10 +13,11 @@ export default function PermissionDenied() {
           <LockOutlined className="text-6xl text-red-500" />
         </div>
 
-        <h2 className="text-3xl font-bold text-gray-800 mb-3">Access Denied</h2>
+        <h2 className="text-3xl font-bold text-gray-800 mb-3">
+          การเข้าถึงถูกปฏิเสธ
+        </h2>
         <p className="text-gray-600 mb-8 font-normal text-lg">
-          Sorry, you don't have permission to access this page. Please contact
-          your administrator.
+          คุณไม่มีสิทธิ์เข้าถึงหน้านี้ กรุณาติดต่อผู้ดูแลระบบของคุณ
         </p>
 
         <div className="flex gap-4 justify-center">
@@ -27,14 +28,7 @@ export default function PermissionDenied() {
             onClick={() => navigate("/")}
             className="bg-blue-600 font-normal text-lg"
           >
-            Go to Home
-          </Button>
-          <Button
-            size="large"
-            onClick={() => navigate("/admin/room_schedule")}
-            className="font-normal text-lg"
-          >
-            Go Back
+            ไปที่หน้าล็อกอิน
           </Button>
         </div>
       </div>

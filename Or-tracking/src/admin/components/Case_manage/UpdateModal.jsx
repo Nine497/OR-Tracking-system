@@ -9,7 +9,7 @@ function UpdateModal({ visible, record, onClose, type }) {
     console.log("UpdateModal record ", record);
   }, []);
 
-  const handleCopyLink = (linkUrl, pin_decrypted) => {
+  const handleCopyLink = (linkUrl, pin_decrypted, patient_fullname) => {
     if (!linkUrl || !pin_decrypted) {
       notification.warning({
         message: "ไม่มีข้อมูลให้คัดลอก กรุณาสร้างลิงก์และ PIN ก่อน",
@@ -21,7 +21,8 @@ function UpdateModal({ visible, record, onClose, type }) {
       return;
     }
 
-    const textToCopy = `${linkUrl}, PIN: ${pin_decrypted}`;
+    // เปลี่ยนแปลงตรงนี้
+    const textToCopy = `คุณ ${patient_fullname}\nURL: ${linkUrl}\nPIN: ${pin_decrypted}`;
 
     const textArea = document.createElement("textarea");
     textArea.value = textToCopy;

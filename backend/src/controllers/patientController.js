@@ -15,6 +15,8 @@ exports.validate_link = async (req, res) => {
       error: "NO_LINK_PROVIDED",
       message: "LINK is required",
     });
+  } else {
+    console.log("trimmedLink", trimmedLink);
   }
 
   try {

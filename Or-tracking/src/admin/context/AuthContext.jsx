@@ -14,9 +14,16 @@ export const AuthProvider = ({ children }) => {
     if (token) {
       try {
         const decodedUser = jwtDecode(token);
-        console.log("Decoded User:", decodedUser);
-        setUser(decodedUser);
-        fetchPermissions(decodedUser.id);
+        const currentTime = Date.now() / 1000;
+
+        if (decodedUser.exp < currentTime) {
+          console.warn("Token หมดอายุแล้ว");
+          logout();
+        } else {
+          console.log("Decoded User:", decodedUser);
+          setUser(decodedUser);
+          fetchPermissions(decodedUser.id);
+        }
       } catch (err) {
         console.error("Invalid token", err);
         localStorage.removeItem("jwtToken");

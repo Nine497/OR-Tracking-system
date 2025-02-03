@@ -205,16 +205,11 @@ const CustomCheckbox = memo(({ value, label, staff, onChange, des }) => {
 
   return (
     <div
-      className="flex flex-col cursor-pointer p-3 border rounded-lg hover:bg-blue-50 transition-colors"
+      className="flex flex-col cursor-pointer p-3 border rounded-lg"
       onClick={handleClick}
     >
       <div className="flex items-center space-x-2">
-        <input
-          type="checkbox"
-          checked={isChecked}
-          readOnly
-          className="w-4 h-4"
-        />
+        <Checkbox checked={isChecked} className="w-4 h-4" />
         <span className="text-base font-medium text-gray-700 ml-2">
           {label}
         </span>

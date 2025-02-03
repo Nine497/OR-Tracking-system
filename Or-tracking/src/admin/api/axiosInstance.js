@@ -44,6 +44,8 @@ axiosInstanceStaff.interceptors.response.use(
             localStorage.removeItem("jwtToken");
             window.location.href = "/login";
           },
+          keyboard: false,
+          closable: false,
         });
       } else if (status === 401) {
         Modal.error({
@@ -54,12 +56,27 @@ axiosInstanceStaff.interceptors.response.use(
             localStorage.removeItem("jwtToken");
             window.location.href = "/login";
           },
+          keyboard: false,
+          closable: false,
         });
       }
     }
 
     return Promise.reject(error);
   }
+);
+
+axiosInstancePatient.interceptors.request.use(
+  (config) => {
+    const token = localStorage.getItem("token");
+
+    if (token) {
+      config.headers["Authorization"] = `Bearer ${token}`;
+    }
+
+    return config;
+  },
+  (error) => Promise.reject(error)
 );
 
 axiosInstancePatient.interceptors.response.use(

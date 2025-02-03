@@ -37,8 +37,7 @@ function CaseTable() {
     navigate(`/admin/case_manage/edit_case?id=${record.surgery_case_id}`);
   };
 
-  const copyLink = (linkUrl, pin_decrypted) => {
-    
+  const copyLink = (linkUrl, pin_decrypted, patient_fullname) => {
     console.log("record", pin_decrypted);
 
     if (!linkUrl || !pin_decrypted) {
@@ -52,7 +51,8 @@ function CaseTable() {
       return;
     }
 
-    const textToCopy = `${linkUrl}, PIN: ${pin_decrypted}`;
+    // เปลี่ยนแปลงตรงนี้
+    const textToCopy = `คุณ ${patient_fullname}\nURL: ${linkUrl}\nPIN: ${pin_decrypted}`;
 
     const textArea = document.createElement("textarea");
     textArea.value = textToCopy;
@@ -258,17 +258,17 @@ function CaseTable() {
       align: "left",
       render: (text) => <span className="text-base font-normal">{text}</span>,
     },
-    {
-      title: <span className="text-base font-semibold">ชื่อผู้ป่วย</span>,
-      dataIndex: "patientName",
-      key: "patientName",
-      align: "left",
-      render: (text, record) => (
-        <span className="text-base font-normal">
-          {record.patient_firstname} {record.patient_lastname}
-        </span>
-      ),
-    },
+    // {
+    //   title: <span className="text-base font-semibold">ชื่อผู้ป่วย</span>,
+    //   dataIndex: "patientName",
+    //   key: "patientName",
+    //   align: "left",
+    //   render: (text, record) => (
+    //     <span className="text-base font-normal">
+    //       {record.patient_firstname} {record.patient_lastname}
+    //     </span>
+    //   ),
+    // },
     {
       title: <span className="text-base font-semibold">แพทย์</span>,
       dataIndex: "doctorName",
@@ -360,7 +360,8 @@ function CaseTable() {
                 onClick={() =>
                   copyLink(
                     `${BASE_URL}ptr?link=${record.link_id}`,
-                    record.pin_decrypted
+                    record.pin_decrypted,
+                    `${record.patient_firstname} ${record.patient_lastname}`
                   )
                 }
                 className="flex items-center gap-1"

@@ -86,6 +86,13 @@ exports.newSurgerycaseFromAPI = async (req, res) => {
               surgery_start_time: data.op_datetime,
               surgery_end_time: data.estimate_finish,
             });
+
+            await db("surgery_case_status_history").insert({
+              surgery_case_id: surgeryCaseId,
+              status_id: 0,
+              updated_at: new Date().toISOString(),
+              updated_by: data?.created_by || 1,
+            });
           }
           // if (surgeryCaseId) {
           //   console.log("surgeryCaseId", surgeryCaseId);
@@ -521,7 +528,20 @@ exports.getAllCase = async (req, res) => {
         "surgery_case_links.surgery_case_links_id as link_id",
         "surgery_case_links.isactive as link_active",
         "surgery_case_links.expiration_time as link_expiration",
-        "surgery_case_links.pin_encrypted as pin_encrypted"
+        "surgery_case_links.pin_encrypted as pin_encrypted",
+        "surgery_type.surgery_type_name as surgery_type_name",
+        "translations.translated_name as status_th",
+        "operation.operation_name as operation_name"
+      )
+      .leftJoin(
+        "operation",
+        "surgery_case.surgery_case_id",
+        "operation.surgery_case_id"
+      )
+      .leftJoin(
+        "surgery_type",
+        "surgery_case.surgery_type_id",
+        "surgery_type.surgery_type_id"
       )
       .leftJoin("patients", "surgery_case.patient_id", "patients.patient_id")
       .leftJoin("doctors", "surgery_case.doctor_id", "doctors.doctor_id")
@@ -531,6 +551,13 @@ exports.getAllCase = async (req, res) => {
         "operating_room.operating_room_id"
       )
       .leftJoin("status", "surgery_case.status_id", "status.status_id")
+      .leftJoin("translations", function () {
+        this.on("status.status_id", "=", "translations.ref_id").andOn(
+          "translations.language_code",
+          "=",
+          db.raw("'th'")
+        );
+      })
       .leftJoin("surgery_case_links", function () {
         this.on(
           "surgery_case.surgery_case_id",
@@ -553,12 +580,17 @@ exports.getAllCase = async (req, res) => {
       .limit(Number(limit))
       .offset(offset);
 
-    // ถอดรหัส pin_encrypted ที่ได้รับ
     const decryptedSurgeryCases = surgeryCases.map((caseRecord) => {
       try {
+        if (!caseRecord.pin_encrypted) {
+          return {
+            ...caseRecord,
+            pin_decrypted: null,
+          };
+        }
+
         const key = Buffer.from(SECRET_KEY, "hex");
         const iv = Buffer.from(IV, "hex");
-
         const decipher = crypto.createDecipheriv("aes-128-cbc", key, iv);
 
         let decryptedPin = decipher.update(
@@ -574,10 +606,14 @@ exports.getAllCase = async (req, res) => {
           pin_decrypted: decryptedPin,
         };
       } catch (err) {
-        console.error("Error decrypting PIN:", err);
+        console.error(
+          "Error decrypting PIN for case ID:",
+          caseRecord.surgery_case_id,
+          err
+        );
         return {
           ...caseRecord,
-          pin_decrypted: "Error",
+          pin_decrypted: null,
         };
       }
     });

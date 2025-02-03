@@ -12,7 +12,7 @@ import { createEventsServicePlugin } from "@schedule-x/events-service";
 import { createCurrentTimePlugin } from "@schedule-x/current-time";
 import { createCalendarControlsPlugin } from "@schedule-x/calendar-controls";
 import "@schedule-x/theme-default/dist/index.css";
-import moment from "moment";
+import moment from "moment-timezone";
 import "./BigCalendar.css";
 const calendarControls = createCalendarControlsPlugin();
 
@@ -131,6 +131,8 @@ const RoomSchedule = () => {
   }, []);
 
   const handleEventClick = (event) => {
+    console.log("event", event);
+
     setSelectedCase(event.caseData);
     setDrawerVisible(true);
   };
@@ -139,6 +141,25 @@ const RoomSchedule = () => {
     setDrawerVisible(false);
     setSelectedCase(null);
   };
+
+  const StatusBadge = ({ status }) => (
+    <span className="px-3 py-1 rounded-full text-lg font-medium bg-green-100 text-green-800">
+      {status}
+    </span>
+  );
+
+  const InfoRow = ({ label, value, hasBorder = true }) => (
+    <div
+      className={`flex items-center justify-between py-3 ${
+        hasBorder ? "border-b border-gray-100" : ""
+      }`}
+    >
+      <span className="text-gray-600 text-base font-medium">{label}</span>
+      <span className="font-medium text-gray-900 text-base">
+        {value || "-"}
+      </span>
+    </div>
+  );
 
   return (
     <div className="w-full bg-white rounded-xl min-h-full">
@@ -155,50 +176,71 @@ const RoomSchedule = () => {
         onClose={handleCloseDrawer}
         width={600}
         className="custom-case-drawer"
+        title={
+          <div className="text-lg font-semibold text-gray-900">
+            รายละเอียดการผ่าตัด
+          </div>
+        }
       >
         {selectedCase ? (
-          <div className="space-y-4 p-4 rounded-lg text-lg font-normal">
-            <div className="grid grid-cols-2 gap-2">
-              <div className="bg-white rounded-md p-3">
-                <span className="text-base text-gray-500 block mb-1">HN</span>
-                <p className="font-medium text-blue-800 text-xl tracking-wider">
+          <div className="space-y-6">
+            {/* Header Cards */}
+            <div className="grid grid-cols-2 gap-4">
+              <div className="bg-blue-50 rounded-xl p-4 transition-all hover:shadow-md">
+                <span className="text-sm text-blue-600 block mb-1 font-medium">
+                  HN
+                </span>
+                <p className="font-semibold text-blue-900 text-xl">
                   {selectedCase.hn_code}
                 </p>
               </div>
-              <div className="bg-white rounded-md p-3">
-                <span className="text-base text-gray-500 block mb-1">
+              <div className="bg-green-50 rounded-xl p-4 transition-all hover:shadow-md">
+                <span className="text-sm text-green-600 block mb-1 font-medium">
                   สถานะ
                 </span>
-                <p className="font-medium text-green-700 text-xl">
-                  {selectedCase.status_name}
-                </p>
+                <StatusBadge status={selectedCase.status_th} />
               </div>
             </div>
-            <div className="bg-white rounded-md p-4 space-y-2">
-              <div className="flex justify-between border-b pb-2 border-gray-100">
-                <span className="text-gray-600 text-base">ชื่อผู้ป่วย</span>
-                <span className="font-normal text-gray-700 text-lg">
-                  {selectedCase.patient_firstname}{" "}
-                  {selectedCase.patient_lastname}
-                </span>
-              </div>
-              <div className="flex justify-between border-b pb-2 border-gray-100">
-                <span className="text-gray-600 text-base">แพทย์</span>
-                <span className="font-normal text-gray-900 text-lg">
-                  {selectedCase.doctor_prefix} {selectedCase.doctor_firstname}{" "}
-                  {selectedCase.doctor_lastname}
-                </span>
-              </div>
-              <div className="flex justify-between border-b pb-2 border-gray-100">
-                <span className="text-gray-600 text-base">ห้องผ่าตัด</span>
-                <span className="font-normal text-gray-900 text-lg">
-                  {selectedCase.room_name}
-                </span>
-              </div>
+
+            {/* Main Information Card */}
+            <div className="bg-white rounded-xl p-6 shadow-sm space-y-4">
+              <InfoRow
+                label="ชื่อผู้ป่วย"
+                value={`${selectedCase.patient_firstname} ${selectedCase.patient_lastname}`}
+              />
+              <InfoRow
+                label="แพทย์"
+                value={`${selectedCase.doctor_prefix} ${selectedCase.doctor_firstname} ${selectedCase.doctor_lastname}`}
+              />
+              <InfoRow label="ห้องผ่าตัด" value={selectedCase.room_name} />
+              <InfoRow
+                label="วันผ่าตัด"
+                value={moment(selectedCase.surgery_start_time).format(
+                  "YYYY/MM/DD"
+                )}
+              />
+              <InfoRow
+                label="เวลาผ่าตัด"
+                value={`${moment(selectedCase.surgery_start_time).format(
+                  "HH:mm"
+                )} - ${moment(selectedCase.surgery_end_time).format("HH:mm")}`}
+              />
+              <InfoRow
+                label="ประเภทการผ่าตัด"
+                value={selectedCase.surgery_type_name}
+              />
+              <InfoRow label="การผ่าตัด" value={selectedCase.operation_name} />
+              <InfoRow
+                label="Note"
+                value={selectedCase.note}
+                hasBorder={false}
+              />
             </div>
           </div>
         ) : (
-          <p className="text-gray-500 text-center text-lg">ไม่มีข้อมูล</p>
+          <div className="h-full flex items-center justify-center">
+            <p className="text-gray-500 text-lg">ไม่มีข้อมูล</p>
+          </div>
         )}
       </Drawer>
     </div>

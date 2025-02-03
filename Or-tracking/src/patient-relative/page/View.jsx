@@ -38,7 +38,7 @@ const View = () => {
   const [patient_currentStatus, setPatient_currentStatus] = useState([]);
   const { isLoading, startLoading, exitLoading } = useLoading();
   const [TimelineLoading, setTimelineLoading] = useState(false);
-  const [lastUpdated, setLastUpdated] = useState(dayjs().format("HH:mm A"));
+  const [lastUpdated, setLastUpdated] = useState(dayjs().format("HH:mm"));
   const [modalVisible, setModalVisible] = useState(true);
   const [acceptedPolicy, setAcceptedPolicy] = useState(false);
 
@@ -357,10 +357,7 @@ const View = () => {
                         {patientData.doctor_last_name}
                       </Text>
                       <Text className="ml-1 text-black text-sm sm:text-sm md:text-base lg:text-lg font-medium">
-                        {t("patient_info.ROOM")} : {patientData.room_name}{" "}
-                        {" ( "}
-                        {patientData.location}
-                        {" ) "}
+                        {t("patient_info.ROOM")} : {patientData.room_name}
                       </Text>
                       <Text className="ml-1 text-black text-sm sm:text-sm md:text-base lg:text-lg font-medium">
                         {t("patient_info.SURGERY_DATE")} :{" "}
@@ -376,7 +373,7 @@ const View = () => {
                         <Icon icon="tabler:clock" className="text-black" />
                         <span className="text-blue-500 font-medium">
                           {dayjs(patientData.surgery_start_time).format(
-                            "h:mm A"
+                            "HH:mm"
                           )}
                         </span>
 
@@ -389,7 +386,7 @@ const View = () => {
                             <Icon icon="tabler:clock" className="text-black" />
                             <span className="text-blue-500 font-medium">
                               {dayjs(patientData.surgery_end_time).format(
-                                "h:mm A"
+                                "HH:mm"
                               )}
                             </span>
                           </div>
@@ -402,7 +399,7 @@ const View = () => {
                             <Icon icon="tabler:clock" className="text-black" />
                             <span className="text-blue-500 font-medium">
                               {dayjs(patientData.surgery_end_time).format(
-                                "h:mm A"
+                                "HH:mm"
                               )}
                             </span>
                           </>

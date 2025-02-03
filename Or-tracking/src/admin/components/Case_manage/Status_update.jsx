@@ -110,14 +110,6 @@ const StatusUpdateForm = ({ record, allStatus, onStatusUpdate }) => {
         className="w-full custom-select"
         value={tempStatus}
         onChange={handleStatusChange}
-        style={{
-          width: "100%",
-          "& .ant-select-selection-item": {
-            fontSize: "0.8rem",
-            color: "#333",
-            padding: "5px 10px",
-          },
-        }}
       >
         {allStatus.map((status) => (
           <Select.Option

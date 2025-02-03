@@ -1,21 +1,13 @@
 import React, { useEffect, useState } from "react";
-import { Layout, Menu, Button, Modal } from "antd";
+import { Layout, Menu, Button } from "antd";
 import { useLocation, NavLink } from "react-router-dom";
 import { RightOutlined, LeftOutlined } from "@ant-design/icons";
 import { Icon } from "@iconify/react";
 import { useAuth } from "../context/AuthContext";
-import { useNavigate } from "react-router-dom";
 
 import Logo from "../assets/Logo.png";
-import { axiosInstanceStaff } from "../api/axiosInstance";
 
 const items = [
-  // {
-  //   label: "ห้องผ่าตัด",
-  //   to: "/admin/room_schedule",
-  //   icon: <Icon icon="ic:baseline-home" className="text-lg" />,
-  //   key: "room_schedule",
-  // },
   {
     label: "ปฏิทิน",
     to: "/admin/calendar",
@@ -122,12 +114,10 @@ const Sidebar = ({ collapsed, setCollapsed, isMobile }) => {
             }
           `}</style>
         </Menu>
-        {/* SidebarFooterMenu placed at the bottom */}
         <div className="flex-grow" />
-        <SidebarFooterMenu collapsed={collapsed} />
         {/* Footer Section */}
         <div
-          className={`flex-none min-h-[4rem] w-full px-4 py-3 mt-auto border-t border-gray-100 text-center bg-white/95 transition-all duration-300 ${
+          className={`flex-none min-h-[4rem] w-full px-4 py-3 mt-auto border-t border-gray-300 text-center bg-gray-100 transition-all duration-300 ${
             collapsed ? "opacity-0" : "opacity-100"
           }`}
         >
@@ -148,103 +138,6 @@ const Sidebar = ({ collapsed, setCollapsed, isMobile }) => {
         />
       )}
     </Layout.Sider>
-  );
-};
-
-const SidebarFooterMenu = ({ collapsed }) => {
-  const { user, logout } = useAuth();
-  const navigate = useNavigate();
-  const [modalVisible, setModalVisible] = useState(false);
-
-  const handleLogout = () => {
-    setModalVisible(true);
-  };
-
-  const handleOk = () => {
-    logout();
-    setModalVisible(false);
-  };
-
-  const handleCancel = () => {
-    setModalVisible(false);
-  };
-
-  return (
-    <>
-      {/* Footer Menu */}
-      <footer className="border-t border-gray-100 bg-white/95">
-        <div className="flex flex-col">
-          {/* User Info Section - Top */}
-          <div
-            className={`bg-gray-50 px-4 py-3 border-b border-gray-100 transition-all duration-300 ease-in-out ${
-              collapsed ? "px-2 text-center" : "px-4"
-            }`}
-          >
-            {!collapsed && (
-              <div className="flex flex-col">
-                <span className="text-gray-700 font-medium text-base truncate">
-                  {`${user.firstname} ${user.lastname}`}
-                </span>
-                <span className="text-gray-500 text-sm truncate">
-                  {user.email || "ผู้ใช้งานระบบ"}
-                </span>
-              </div>
-            )}
-            {collapsed && (
-              <span className="text-gray-700 font-medium text-base">
-                {`${user.firstname.charAt(0)}${user.lastname.charAt(0)}`}
-              </span>
-            )}
-          </div>
-
-          {/* Actions Section - Bottom */}
-          <div className="flex flex-col">
-            {/* Profile Setting */}
-            <button
-              onClick={() => navigate("admin/profile")}
-              className={`flex items-center transition-all duration-300 space-x-2 py-3 text-sm font-normal bg-white text-gray-700 border-none hover:bg-gray-100 focus:outline-none
-                ${collapsed ? "justify-center px-2" : "px-4"}`}
-            >
-              <Icon
-                icon="weui:setting-outlined"
-                className={`text-xl ${collapsed ? "mx-auto" : ""}`}
-              />
-              <span className={collapsed ? "hidden" : "block"}>
-                การตั้งค่าบัญชี
-              </span>
-            </button>
-
-            {/* Logout */}
-            <button
-              onClick={handleLogout}
-              className={`flex rounded-none
- items-center transition-all duration-300 space-x-2 py-3 text-sm font-normal text-white bg-red-500 border-none hover:bg-red-600 focus:outline-none
-                ${collapsed ? "justify-center px-2" : "px-4"}`}
-            >
-              <Icon
-                icon="mdi:logout"
-                className={`text-xl ${collapsed ? "mx-auto" : ""}`}
-              />
-              <span className={collapsed ? "hidden" : "block"}>ออกจากระบบ</span>
-            </button>
-          </div>
-        </div>
-      </footer>
-
-      {/* Modal Confirm */}
-      <Modal
-        title="คุณแน่ใจไหมว่าต้องการออกจากระบบ?"
-        open={modalVisible}
-        onOk={handleOk}
-        onCancel={handleCancel}
-        okText="ออกจากระบบ"
-        cancelText="ยกเลิก"
-        centered
-        okButtonProps={{
-          className: "bg-red-500 hover:bg-red-600 border-red-500",
-        }}
-      />
-    </>
   );
 };
 

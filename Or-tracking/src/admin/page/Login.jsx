@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Form, Input, Button, notification } from "antd";
 import { useAuth } from "../context/AuthContext";
 import { useNavigate } from "react-router-dom";
@@ -7,9 +7,15 @@ import LoginImg from "../assets/Login.jpg";
 import { Icon } from "@iconify/react";
 
 const Login = () => {
-  const { login } = useAuth();
+  const { login, user } = useAuth();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    if (user) {
+      navigate("/admin/calendar");
+    }
+  }, [user, navigate]);
 
   const handleSubmit = async (values) => {
     setLoading(true);
@@ -23,14 +29,6 @@ const Login = () => {
 
       if (data.token) {
         login(data.token);
-        notification.success({
-          message: "เข้าสู่ระบบสำเร็จ",
-          showProgress: true,
-          placement: "topRight",
-          pauseOnHover: true,
-          duration: 2,
-        });
-        console.log(data);
         navigate("/admin/calendar");
       }
     } catch (error) {

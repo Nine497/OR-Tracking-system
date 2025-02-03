@@ -145,7 +145,13 @@ const LinkDisplay = ({
           <Tooltip title="Copy Link">
             <Button
               icon={<Icon icon="bx:bx-copy" className="text-lg" />}
-              onClick={() => handleCopyLink(link, record.pin_decrypted)}
+              onClick={() =>
+                handleCopyLink(
+                  link,
+                  record.pin_decrypted,
+                  `${record.patient_firstname} ${record.patient_lastname}`
+                )
+              }
               className="flex items-center gap-1.5 hover:border-blue-400 hover:text-blue-500 transition-colors 
                   h-8 md:h-9 px-2 md:px-3 text-sm md:text-base w-full sm:w-auto"
             >
