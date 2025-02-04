@@ -83,6 +83,20 @@ const linkCase = {
         throw new Error(`Error submitting review: ${error.message}`);
       });
   },
+  updateAttemptCount: (surgery_case_id, newAttemptCount, lastAttemptTime) => {
+    return db("surgery_case_links")
+      .where("surgery_case_id", surgery_case_id)
+      .update({
+        attempt_count: newAttemptCount,
+        last_attempt_time: new Date(lastAttemptTime),
+      });
+  },
+
+  resetAttemptCount: (surgery_case_id) => {
+    return db("surgery_case_links")
+      .where("surgery_case_id", surgery_case_id)
+      .update({ attempt_count: 0 });
+  },
 };
 
 module.exports = linkCase;

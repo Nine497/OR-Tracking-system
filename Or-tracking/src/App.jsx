@@ -23,6 +23,7 @@ import "./patient-relative/page/i18n";
 import { PatientProvider } from "./patient-relative/context/PatientContext";
 import View from "./patient-relative/page/View";
 import PatientRoute from "./patient-relative/context/PatientRoute";
+import Room_schedule from "./admin/page/RoomSchedule";
 
 function App() {
   return (
@@ -34,6 +35,7 @@ function App() {
 
           <Route path="/admin" element={<PrivateRoute />}>
             <Route path="" element={<Admin />}>
+              <Route path="room_schedule" element={<Room_schedule />} />
               <Route path="calendar" element={<Calendar />} />
 
               <Route

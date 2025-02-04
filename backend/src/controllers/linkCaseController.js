@@ -31,7 +31,6 @@ const linkCaseController = {
   },
 
   createLinkCase: async (req, res) => {
-    console.log(req.body);
     const { surgery_case_id, expiration_time, created_by } = req.body;
 
     if (!surgery_case_id || !expiration_time) {
@@ -42,11 +41,11 @@ const linkCaseController = {
       timeZone: "Asia/Bangkok",
     });
     const timestamp = Date.now();
-    const randomValue = Math.floor(Math.random() * 1000);
+    const randomValue = crypto.randomInt(0, 1000);
     const surgery_case_links_id = `${timestamp}${randomValue}`;
 
     try {
-      const pin = Math.floor(100000 + Math.random() * 900000).toString();
+      const pin = crypto.randomInt(100000, 999999).toString();
 
       const cipher = crypto.createCipheriv(
         "aes-128-cbc",

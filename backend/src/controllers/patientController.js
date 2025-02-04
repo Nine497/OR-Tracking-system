@@ -170,6 +170,9 @@ exports.createPatient = async (req, res) => {
   }
 };
 
+const MAX_ATTEMPTS = 5;
+const BLOCK_TIME = 10 * 60 * 1000; // 10 นาที
+
 exports.login = async (req, res) => {
   const { pin, surgery_case_id, link } = req.body;
 
@@ -199,7 +202,24 @@ exports.login = async (req, res) => {
       });
     }
 
-    // 2️⃣ ถอดรหัส PIN
+    const { attempt_count, last_attempt_time } = linkCase;
+    const now = Date.now();
+
+    // 2️⃣ เช็คว่าผู้ใช้ล็อกอยู่หรือไม่
+    if (attempt_count >= MAX_ATTEMPTS) {
+      const remainingTime =
+        BLOCK_TIME - (now - new Date(last_attempt_time).getTime());
+      if (remainingTime > 0) {
+        return res.status(429).json({
+          valid: false,
+          error: "TOO_MANY_ATTEMPTS",
+          message: `Too many incorrect attempts. Please try again later.`,
+          remaining_time: Math.ceil(remainingTime / 1000), // ส่งค่าเวลาเป็นวินาที
+        });
+      }
+    }
+
+    // 3️⃣ ถอดรหัส PIN
     const decipher = crypto.createDecipheriv(
       "aes-128-cbc",
       Buffer.from(process.env.SECRET_KEY, "hex"),
@@ -215,16 +235,27 @@ exports.login = async (req, res) => {
 
     console.log("Decrypted PIN:", decryptedPin);
 
-    // 3️⃣ ตรวจสอบว่า PIN ที่ป้อนตรงกับที่ถอดรหัสหรือไม่
+    // 4️⃣ ตรวจสอบว่า PIN ที่ป้อนถูกต้องหรือไม่
     if (pin !== decryptedPin) {
-      return res.status(404).json({
+      // อัปเดตจำนวนครั้งที่กรอกผิดและเวลา
+      await linkCaseModel.updateAttemptCount(
+        surgery_case_id,
+        attempt_count + 1,
+        now
+      );
+
+      return res.status(401).json({
         valid: false,
         error: "INVALID_PIN",
         message: "Incorrect PIN. Please try again.",
+        remaining_attempts: MAX_ATTEMPTS - (attempt_count + 1),
       });
     }
 
-    // 4️⃣ ตรวจสอบข้อมูลผู้ป่วย
+    // 5️⃣ รีเซ็ตค่า attempt_count เมื่อกรอกถูก
+    await linkCaseModel.resetAttemptCount(surgery_case_id);
+
+    // 6️⃣ ตรวจสอบข้อมูลผู้ป่วย
     const patientDetails = await patientModel.getPatientDetailsByCaseId(
       surgery_case_id
     );
@@ -237,7 +268,7 @@ exports.login = async (req, res) => {
       });
     }
 
-    // 5️⃣ สร้าง JWT Token
+    // 7️⃣ สร้าง JWT Token
     const payload = {
       patient_id: patientDetails.patient_id,
       surgery_case_id: surgery_case_id,

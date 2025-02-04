@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { Tabs, Spin } from "antd";
 import Schedule from "../components/Calendar/CalendarSchedule";
-import RoomSchedule from "../components/RoomSchedule/RoomSchedule";
+import RoomSchedule from "../components/Calendar/RoomSchedule";
 import Table from "../components/Calendar/ScheduleTable";
 import { axiosInstanceStaff } from "../api/axiosInstance";
 

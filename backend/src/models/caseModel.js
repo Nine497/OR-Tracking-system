@@ -76,7 +76,13 @@ const SurgeryCase = {
         "doctors.lastname as doctor_lastname",
         "operating_room.room_name as room_name",
         "status.status_name as status_name",
-        "surgery_type.surgery_type_name as surgery_type_name"
+        "surgery_type.surgery_type_name as surgery_type_name",
+        "operation.operation_name as operation_name"
+      )
+      .leftJoin(
+        "operation",
+        "surgery_case.surgery_case_id",
+        "operation.surgery_case_id"
       )
       .leftJoin("patients", "surgery_case.patient_id", "patients.patient_id")
       .leftJoin("doctors", "surgery_case.doctor_id", "doctors.doctor_id")
@@ -92,6 +98,7 @@ const SurgeryCase = {
         "surgery_type.surgery_type_id"
       )
       .where("surgery_case.operating_room_id", operating_room_id);
+    // .whereRaw("DATE(surgery_case.surgery_start_time) = CURRENT_DATE");
   },
 
   // เพิ่มกรณีการผ่าตัดใหม่
@@ -252,6 +259,7 @@ const SurgeryCase = {
         hn_code: data.HN,
         firstname: data.firstname,
         lastname: data.lastname,
+        gender: data.gender,
       })
       .returning("patient_id")
       .then(([newPatient]) => newPatient.patient_id);

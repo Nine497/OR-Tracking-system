@@ -20,27 +20,19 @@ exports.newSurgerycaseFromAPI = async (req, res) => {
             ? existingSurgeryType.surgery_type_id
             : await SurgeryCase.createSurgeryType(data.op_type);
 
-          // if (surgeryTypeId) {
-          //   console.log("surgeryTypeId", surgeryTypeId);
-          // }
           const existingOperatingRoom =
             await SurgeryCase.getOperatingRoomByName(data.room);
           let operatingRoomId = existingOperatingRoom
             ? existingOperatingRoom.operating_room_id
             : await SurgeryCase.createOperatingRoom(data.room);
 
-          // if (operatingRoomId) {
-          //   console.log("operatingRoomId", operatingRoomId);
-          // }
           const existingDoctor = await SurgeryCase.getDoctorByEmpId(
             data.emp_id
           );
           let doctorId = existingDoctor
             ? await SurgeryCase.updateDoctor(existingDoctor.doctor_id, data)
             : await SurgeryCase.createDoctor(data);
-          // if (doctorId) {
-          //   console.log("doctorId", doctorId);
-          // }
+
           const existingPatient = await SurgeryCase.getPatientByHnCode(data.HN);
           let patientId = existingPatient
             ? await SurgeryCase.updatePatient(existingPatient.patient_id, data)
@@ -94,9 +86,6 @@ exports.newSurgerycaseFromAPI = async (req, res) => {
               updated_by: data?.created_by || 1,
             });
           }
-          // if (surgeryCaseId) {
-          //   console.log("surgeryCaseId", surgeryCaseId);
-          // }
 
           const existingOperation = await SurgeryCase.getOperationByCaseId(
             surgeryCaseId

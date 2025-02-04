@@ -20,13 +20,13 @@ import Logo from "../../assets/Logo2.png";
 
 const CancelLinkModal = ({ visible, onCancel, onConfirm }) => (
   <Modal
-    title="Cancel Link Confirmation"
+    title="ยืนยันการยกเลิกลิงก์"
     open={visible}
     centered
     onCancel={onCancel}
     footer={[
       <Button key="back" onClick={onCancel} className="min-w-[80px]">
-        No
+        ไม่
       </Button>,
       <Button
         key="submit"
@@ -35,14 +35,14 @@ const CancelLinkModal = ({ visible, onCancel, onConfirm }) => (
         onClick={onConfirm}
         className="min-w-[80px]"
       >
-        Yes
+        ใช่
       </Button>,
     ]}
   >
     <div className="space-y-2">
-      <p className="text-base">Are you sure you want to cancel the link?</p>
+      <p className="text-base">คุณแน่ใจหรือไม่ว่าต้องการยกเลิกลิงก์นี้?</p>
       <p className="text-base text-red-500">
-        This link will no longer be valid and can only be created new.
+        ลิงก์นี้จะไม่สามารถใช้งานได้อีก และต้องสร้างใหม่เท่านั้น
       </p>
     </div>
   </Modal>

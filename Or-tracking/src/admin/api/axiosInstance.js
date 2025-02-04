@@ -105,6 +105,7 @@ axiosInstancePatient.interceptors.response.use(
           okText: "ไปยังหน้าล็อกอิน",
           onOk: () => {
             localStorage.removeItem("token");
+            console.log("patient_link", patient_link);
             window.location.href = `/ptr?link=${patient_link}`;
           },
         });

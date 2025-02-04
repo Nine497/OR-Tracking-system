@@ -20,7 +20,7 @@ function PermissionModal({ visible, staff, onClose }) {
         const [allPermissionsRes, staffPermissionsRes] = await Promise.all([
           axiosInstanceStaff.get("staff/permissions"),
           staff
-            ? axiosInstanceStaff.get(`staff/permissions/${staff.staff_id}`)
+            ? axiosInstanceStaff.get(`staff/getPermissions/${staff.staff_id}`)
             : Promise.resolve({ data: [] }),
         ]);
 
