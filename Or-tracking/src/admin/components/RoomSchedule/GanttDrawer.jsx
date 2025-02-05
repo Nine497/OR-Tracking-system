@@ -1,5 +1,13 @@
-import React, { useEffect, useState } from "react";
-import { Drawer, Card, Typography, Empty, Select } from "antd";
+import React, { useEffect, useState, useMemo } from "react";
+import {
+  Drawer,
+  Card,
+  Typography,
+  Empty,
+  Select,
+  Radio,
+  DatePicker,
+} from "antd";
 import dayjs from "dayjs";
 import { Gantt, ViewMode } from "gantt-task-react";
 import "gantt-task-react/dist/index.css";
@@ -134,6 +142,141 @@ const GanttDrawer = ({ cases, isOpen, onClose }) => {
         </div>
       </div>
     </Drawer>
+  );
+};
+
+const generateTimeSlots = (startDate, endDate, view) => {
+  const slots = [];
+  let current = dayjs(startDate);
+  const end = dayjs(endDate);
+
+  while (current.isBefore(end) || current.isSame(end, view)) {
+    slots.push(current);
+    switch (view) {
+      case "day":
+        current = current.add(1, "day");
+        break;
+      case "month":
+        current = current.add(1, "month");
+        break;
+      case "year":
+        current = current.add(1, "year");
+        break;
+    }
+  }
+  return slots;
+};
+
+const GanttChart = ({ tasks }) => {
+  const [view, setView] = useState("month");
+  const [startDate, setStartDate] = useState(() => {
+    return dayjs.min(tasks.map((task) => dayjs(task.start)));
+  });
+  const [endDate, setEndDate] = useState(() => {
+    return dayjs.max(tasks.map((task) => dayjs(task.end)));
+  });
+
+  // Generate time slots based on view
+  const timeSlots = useMemo(() => {
+    return generateTimeSlots(startDate, endDate, view);
+  }, [startDate, endDate, view]);
+
+  // Calculate task positions
+  const getTaskStyle = (task) => {
+    const taskStart = dayjs(task.start);
+    const taskEnd = dayjs(task.end);
+
+    const totalDays = endDate.diff(startDate, "day");
+    const taskStartDays = dayjs(task.start).diff(startDate, "day");
+    const taskDuration = taskEnd.diff(taskStart, "day");
+
+    const left = (taskStartDays / totalDays) * 100;
+    const width = (taskDuration / totalDays) * 100;
+
+    return {
+      left: `${left}%`,
+      width: `${width}%`,
+    };
+  };
+
+  const formatTimeSlot = (date) => {
+    switch (view) {
+      case "day":
+        return date.format("DD MMM");
+      case "month":
+        return date.format("MMM YYYY");
+      case "year":
+        return date.format("YYYY");
+      default:
+        return date.format("DD MMM YYYY");
+    }
+  };
+
+  return (
+    <div className="w-full max-w-6xl mx-auto p-4">
+      <div className="flex justify-between items-center mb-6">
+        <Radio.Group
+          value={view}
+          onChange={(e) => setView(e.target.value)}
+          className="mb-4"
+        >
+          <Radio.Button value="day">Daily</Radio.Button>
+          <Radio.Button value="month">Monthly</Radio.Button>
+          <Radio.Button value="year">Yearly</Radio.Button>
+        </Radio.Group>
+
+        <div className="flex gap-4">
+          <DatePicker
+            value={startDate}
+            onChange={setStartDate}
+            placeholder="Start Date"
+          />
+          <DatePicker
+            value={endDate}
+            onChange={setEndDate}
+            placeholder="End Date"
+          />
+        </div>
+      </div>
+
+      <div className="overflow-x-auto">
+        <div className="min-w-full">
+          {/* Header */}
+          <div className="flex border-b border-gray-200">
+            <div className="w-48 flex-shrink-0 p-2 font-bold">Task Name</div>
+            <div className="flex-grow flex">
+              {timeSlots.map((slot, index) => (
+                <div
+                  key={index}
+                  className="flex-1 p-2 text-center text-sm border-l border-gray-200"
+                >
+                  {formatTimeSlot(slot)}
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Tasks */}
+          {tasks.map((task, index) => (
+            <div key={index} className="flex relative group hover:bg-gray-50">
+              <div className="w-48 flex-shrink-0 p-2 border-b border-gray-200">
+                {task.name}
+              </div>
+              <div className="flex-grow relative h-12 border-b border-gray-200">
+                <div
+                  className="absolute top-1 h-10 bg-blue-500 rounded-md opacity-80 group-hover:opacity-100 transition-opacity"
+                  style={getTaskStyle(task)}
+                >
+                  <div className="h-full flex items-center justify-center text-white text-xs px-2 truncate">
+                    {task.name}
+                  </div>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
   );
 };
 

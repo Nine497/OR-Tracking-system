@@ -24,7 +24,7 @@ export const PatientProvider = ({ children }) => {
   };
 
   useEffect(() => {
-    const token = localStorage.getItem("token");
+    const token = localStorage.getItem("jwtToken");
     if (token) {
       try {
         const payload = jwtDecode(token);

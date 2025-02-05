@@ -92,10 +92,20 @@ const linkCase = {
       });
   },
 
-  resetAttemptCount: (surgery_case_id) => {
+  updateAttemptCount: (link, attempt_count, lock_until) => {
     return db("surgery_case_links")
-      .where("surgery_case_id", surgery_case_id)
-      .update({ attempt_count: 0 });
+      .where("surgery_case_links_id", link)
+      .update({
+        attempt_count,
+        lock_until: lock_until,
+      })
+      .returning("lock_until");
+  },
+
+  resetAttemptCount: (link) => {
+    return db("surgery_case_links")
+      .where("surgery_case_links_id", link)
+      .update({ attempt_count: 0, lock_until: null });
   },
 };
 

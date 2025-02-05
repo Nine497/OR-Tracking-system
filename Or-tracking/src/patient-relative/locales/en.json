@@ -41,7 +41,10 @@
         "POLICY_HEAD": "Privacy Policy",
         "TERMS_HEAD": "Terms of Service",
         "TERMS_TEXT": "These are the terms of service for using our application. Please review them carefully before using the app.",
-        "AGREE": "I agree to the "
+        "AGREE": "I agree to the ",
+        "errorMsgRemainingAttempts": "You have {{remainingAttempts}} attempts left to enter the PIN incorrectly",
+        "errorMsgExceededAttempts": "You have entered the wrong PIN {{attemptCount}} times. Please try again later.",
+        "waitForPin": "Please wait for {{minutes}} m and {{seconds}} s\nbefore entering the PIN again."
     },
     "or_tracking": {
         "TITLE": "OR-Tracking"

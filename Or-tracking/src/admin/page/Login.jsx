@@ -13,7 +13,7 @@ const Login = () => {
 
   useEffect(() => {
     if (user) {
-      navigate("/admin/calendar");
+      navigate("/admin/room_schedule");
     }
   }, [user, navigate]);
 
@@ -29,7 +29,7 @@ const Login = () => {
 
       if (data.token) {
         login(data.token);
-        navigate("/admin/calendar");
+        navigate("/admin/room_schedule");
       }
     } catch (error) {
       console.error("ข้อผิดพลาดในการเข้าสู่ระบบ:", error);

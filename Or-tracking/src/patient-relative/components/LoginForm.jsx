@@ -5,7 +5,12 @@ import LanguageSelector from "./LanguageSelector";
 import Logo from "../assets/Logo.png";
 import { axiosInstancePatient } from "../../admin/api/axiosInstance";
 import { usePatient } from "../context/PatientContext";
+import dayjs from "dayjs";
+import utc from "dayjs/plugin/utc";
+import timezone from "dayjs/plugin/timezone";
 
+dayjs.extend(utc);
+dayjs.extend(timezone);
 const PinInput = ({ length = 6, onChange, disabled }) => {
   const [pins, setPins] = useState(new Array(length).fill(""));
   const inputRefs = useRef(new Array(length).fill(null));
@@ -23,7 +28,7 @@ const PinInput = ({ length = 6, onChange, disabled }) => {
     if (firstEmptyIndex !== -1) {
       inputRefs.current[firstEmptyIndex]?.focus();
     } else {
-      inputRefs.current[length - 1]?.focus(); // โฟกัสช่องสุดท้ายถ้ากรอกครบ
+      inputRefs.current[length - 1]?.focus();
     }
   };
 
@@ -90,11 +95,93 @@ const PinInput = ({ length = 6, onChange, disabled }) => {
   );
 };
 
-const LoginForm = ({ t, link }) => {
+const LoginForm = ({ t, link, lock_until, pinRemaining }) => {
   const [loading, setLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
+  const [pinDisabled, setPinDisabled] = useState(false);
+  const [countdown, setCountdown] = useState(null);
   const navigate = useNavigate();
-  const { patient_id, surgery_case_id, patient_link } = usePatient();
+  const endTimeRef = useRef(null);
+  const timerRef = useRef(null);
+
+  useEffect(() => {
+    if (lock_until) {
+      calRemainingSeconds(lock_until);
+    }
+    console.log("pinRemaining", pinRemaining);
+
+    let errorMsg = "";
+    if (pinRemaining) {
+      const remainder = pinRemaining % 5;
+      const remainingAttempts = 5 - remainder;
+
+      if (remainingAttempts != 5) {
+        if (remainingAttempts > 0) {
+          errorMsg = `${t("login.errorMsgRemainingAttempts", {
+            remainingAttempts,
+          })}`;
+        } else {
+          errorMsg = `${t("login.errorMsgExceededAttempts", {
+            pinRemaining,
+          })}`;
+        }
+      }
+    }
+
+    setErrorMessage(errorMsg);
+  }, [lock_until, pinRemaining]);
+
+  useEffect(() => {
+    setPinDisabled(countdown !== null && countdown > 0);
+  }, [countdown]);
+
+  const calRemainingSeconds = (lock_until) => {
+    setLoading(true);
+    const lockTime = dayjs(lock_until).tz("Asia/Bangkok");
+    const currentTime = dayjs().tz("Asia/Bangkok");
+
+    console.log(
+      "lock_until (หลังแปลงเป็น dayjs UTC+7)",
+      lockTime.format("YYYY-MM-DD HH:mm:ss")
+    );
+    console.log("Current Time", currentTime.format("YYYY-MM-DD HH:mm:ss"));
+
+    const remainingSeconds = lockTime.diff(currentTime, "second");
+    console.log("remainingSeconds", remainingSeconds);
+
+    if (remainingSeconds > 0) {
+      startCountdown(remainingSeconds);
+    }
+
+    setLoading(false);
+  };
+
+  const startCountdown = (remainingSeconds) => {
+    if (remainingSeconds <= 0) {
+      setCountdown(null);
+      return;
+    }
+
+    endTimeRef.current = Date.now() + remainingSeconds * 1000;
+    setCountdown(remainingSeconds);
+
+    clearInterval(timerRef.current);
+
+    timerRef.current = setInterval(() => {
+      const now = Date.now();
+      const remaining = Math.max(
+        Math.round((endTimeRef.current - now) / 1000),
+        0
+      );
+
+      if (remaining <= 0) {
+        clearInterval(timerRef.current);
+        setCountdown(null);
+      } else {
+        setCountdown(remaining);
+      }
+    }, 1000);
+  };
 
   const handlePinComplete = async (pin) => {
     if (pin.length === 6) {
@@ -128,8 +215,33 @@ const LoginForm = ({ t, link }) => {
         }
       } catch (error) {
         console.error("Login error:", error);
-        const errorMsg =
-          error.response?.data?.message || error.message || t("login.FAILED");
+        const attemptCount = error.response?.data?.attempt_count;
+        let errorMsg = "";
+        const lockData = error.response?.data?.lock_until;
+
+        if (lockData && lockData[0]?.lock_until) {
+          const lockUntil = dayjs(lockData[0].lock_until)
+            .add(7, "hour")
+            .format("MM-DD-YYYY HH:mm:ss");
+
+          calRemainingSeconds(lockUntil);
+        } else if (attemptCount !== undefined) {
+          console.log("attemptCount", attemptCount);
+
+          const remainder = attemptCount % 5;
+          const remainingAttempts = 5 - remainder;
+
+          if (remainingAttempts > 0) {
+            errorMsg = `${t("login.errorMsgRemainingAttempts", {
+              remainingAttempts,
+            })}`;
+          } else {
+            errorMsg = `${t("login.errorMsgExceededAttempts", {
+              attemptCount,
+            })}`;
+          }
+        }
+
         setErrorMessage(errorMsg);
       } finally {
         setLoading(false);
@@ -154,30 +266,20 @@ const LoginForm = ({ t, link }) => {
       {/* Main content */}
       <main className="flex-grow flex items-center justify-center w-full">
         <div className="w-full px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
-          <div
-            className="w-full max-w-3xl mx-auto
-                         py-10 sm:py-12 px-6 sm:px-8 lg:px-12
-                         transform transition-all duration-300"
-          >
-            <h1
-              className="text-2xl sm:text-3xl lg:text-4xl font-bold text-center text-gray-800 
-                         mb-8 sm:mb-10 bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-blue-800"
-            >
+          <div className="w-full max-w-3xl mx-auto py-10 sm:py-12 px-6 sm:px-8 lg:px-12">
+            <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-center text-gray-800 mb-8 sm:mb-10 bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-blue-800">
               {t("login.TITLE")}
             </h1>
 
             <Form layout="vertical" className="w-full max-w-2xl mx-auto">
               <div className="space-y-8">
-                <label
-                  className="block text-base sm:text-lg font-medium text-gray-700 text-center 
-                               mb-6 sm:mb-8 tracking-wide"
-                >
+                <label className="block text-base sm:text-lg font-medium text-gray-700 text-center mb-6 sm:mb-8 tracking-wide">
                   {t("login.PIN")}
                 </label>
                 <PinInput
                   length={6}
                   onChange={handlePinComplete}
-                  disabled={loading}
+                  disabled={loading || pinDisabled}
                 />
               </div>
             </Form>
@@ -208,9 +310,28 @@ const LoginForm = ({ t, link }) => {
                 </div>
               </div>
             )}
+
             {errorMessage && (
               <div className="mt-8 text-center">
                 <div className="mt-4 text-red-600">{errorMessage}</div>
+              </div>
+            )}
+
+            {pinDisabled && countdown !== null && (
+              <div className="mt-4 text-center text-gray-700">
+                <p>
+                  {t("login.waitForPin", {
+                    minutes: Math.floor(countdown / 60),
+                    seconds: countdown % 60,
+                  })
+                    .split("\n")
+                    .map((text, index) => (
+                      <React.Fragment key={index}>
+                        {text}
+                        <br />
+                      </React.Fragment>
+                    ))}
+                </p>
               </div>
             )}
           </div>
@@ -229,4 +350,5 @@ const LoginForm = ({ t, link }) => {
     </div>
   );
 };
+
 export default LoginForm;

@@ -39,7 +39,13 @@ const patient = {
 
   getLinkStatusById: (surgery_case_links_id) => {
     return db("surgery_case_links")
-      .select("surgery_case_id", "isactive", "expiration_time")
+      .select(
+        "surgery_case_id",
+        "isactive",
+        "expiration_time",
+        "lock_until",
+        "attempt_count"
+      )
       .where("surgery_case_links_id", surgery_case_links_id)
       .first();
   },

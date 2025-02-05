@@ -41,7 +41,10 @@
     "POLICY_HEAD": "Kebijakan Privasi",
     "TERMS_HEAD": "Syarat dan Ketentuan Layanan",
     "TERMS_TEXT": "Ini adalah syarat dan ketentuan layanan untuk menggunakan aplikasi kami. Harap tinjau dengan hati-hati sebelum menggunakan aplikasi.",
-    "AGREE": "Saya setuju dengan "
+    "AGREE": "Saya setuju dengan ",
+    "errorMsgRemainingAttempts": "Anda memiliki {{remainingAttempts}} kesempatan lagi untuk memasukkan PIN yang salah",
+    "errorMsgExceededAttempts": "Anda telah memasukkan PIN yang salah sebanyak {{attemptCount}} kali. Silakan coba lagi nanti.",
+    "waitForPin": "Harap tunggu selama {{minutes}} menit {{seconds}} detik\nsebelum memasukkan PIN lagi."
   },
   "or_tracking": {
     "TITLE": "Pelacakan OR"

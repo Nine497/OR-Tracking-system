@@ -38,8 +38,6 @@ function CaseTable() {
   };
 
   const copyLink = (linkUrl, pin_decrypted, patient_fullname) => {
-    console.log("record", pin_decrypted);
-
     if (!linkUrl || !pin_decrypted) {
       notification.warning({
         message: "ไม่มีข้อมูลให้คัดลอก กรุณาสร้างลิงก์และ PIN ก่อน",
@@ -51,7 +49,6 @@ function CaseTable() {
       return;
     }
 
-    // เปลี่ยนแปลงตรงนี้
     const textToCopy = `คุณ ${patient_fullname}\nURL: ${linkUrl}\nPIN: ${pin_decrypted}`;
 
     const textArea = document.createElement("textarea");
@@ -171,6 +168,7 @@ function CaseTable() {
             key: item.surgery_case_id,
           }))
         : [];
+      console.log("Data : ", dataWithKeys);
 
       setFilteredData(dataWithKeys);
       setPagination({
@@ -353,7 +351,7 @@ function CaseTable() {
             </Button>
             {record.link_id &&
             record.link_active === true &&
-            new Date(record.link_expiration) > Date.now() ? (
+            new Date(record.expiration_time) > Date.now() ? (
               <Button
                 type="default"
                 icon={<Icon icon="bx:bx-link" />}

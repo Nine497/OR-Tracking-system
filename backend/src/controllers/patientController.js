@@ -3,6 +3,7 @@ const patientModel = require("../models/patientModel");
 const linkCaseModel = require("../models/linkCaseModel");
 const db = require("../config/database");
 const crypto = require("crypto");
+const dayjs = require("dayjs");
 require("dotenv").config();
 
 exports.validate_link = async (req, res) => {
@@ -21,14 +22,13 @@ exports.validate_link = async (req, res) => {
 
   try {
     const linkStatus = await patientModel.getLinkStatusById(trimmedLink);
-    console.log("link : ", trimmedLink);
-    console.log("linkStatus : ", linkStatus);
 
     if (!linkStatus || !linkStatus.isactive) {
       return res.status(403).json({
         valid: false,
         error: "LINK_INACTIVE_OR_NOT_FOUND",
         message: "Link is inactive or not found",
+        isactive: linkStatus.isactive,
       });
     }
 
@@ -62,15 +62,11 @@ exports.validate_link = async (req, res) => {
       linkStatus: {
         isactive: linkStatus.isactive,
         expirationTime: expirationTime,
+        lock_until: linkStatus.lock_until,
+        attempt_count: linkStatus.attempt_count,
       },
     });
   } catch (error) {
-    console.error("Detailed error information:");
-    console.error("Error name:", error.name);
-    console.error("Error message:", error.message);
-    console.error("Error stack:", error.stack);
-    console.error("Full error object:", JSON.stringify(error, null, 2));
-
     return res.status(500).json({
       valid: false,
       error: "SERVER_ERROR",
@@ -170,15 +166,8 @@ exports.createPatient = async (req, res) => {
   }
 };
 
-const MAX_ATTEMPTS = 5;
-const BLOCK_TIME = 10 * 60 * 1000; // 10 นาที
-
 exports.login = async (req, res) => {
   const { pin, surgery_case_id, link } = req.body;
-
-  console.log("link", link);
-  console.log("surgery_case_id", surgery_case_id);
-  console.log("pin", pin);
 
   if (!pin || !surgery_case_id) {
     return res.status(400).json({
@@ -189,7 +178,6 @@ exports.login = async (req, res) => {
   }
 
   try {
-    // 1️⃣ ดึงข้อมูล link case ตาม surgery_case_id
     const linkCase = await linkCaseModel.getLatestActiveLinkCaseBySurgeryCaseId(
       surgery_case_id
     );
@@ -202,30 +190,29 @@ exports.login = async (req, res) => {
       });
     }
 
-    const { attempt_count, last_attempt_time } = linkCase;
+    let { attempt_count, lock_until } = linkCase;
     const now = Date.now();
 
-    // 2️⃣ เช็คว่าผู้ใช้ล็อกอยู่หรือไม่
-    if (attempt_count >= MAX_ATTEMPTS) {
-      const remainingTime =
-        BLOCK_TIME - (now - new Date(last_attempt_time).getTime());
-      if (remainingTime > 0) {
-        return res.status(429).json({
-          valid: false,
-          error: "TOO_MANY_ATTEMPTS",
-          message: `Too many incorrect attempts. Please try again later.`,
-          remaining_time: Math.ceil(remainingTime / 1000), // ส่งค่าเวลาเป็นวินาที
-        });
-      }
+    console.log(
+      `Current attempt_count: ${attempt_count}, lock_until: ${lock_until}, now: ${now}`
+    );
+
+    if (lock_until && now < lock_until) {
+      return res.status(403).json({
+        valid: false,
+        error: "ACCOUNT_LOCKED",
+        message: "Too many incorrect attempts. Try again later.",
+        lock_until,
+        attempt_count,
+      });
     }
 
-    // 3️⃣ ถอดรหัส PIN
+    // 🔑 ถอดรหัส PIN
     const decipher = crypto.createDecipheriv(
       "aes-128-cbc",
       Buffer.from(process.env.SECRET_KEY, "hex"),
       Buffer.from(process.env.IV, "hex")
     );
-
     let decryptedPin = decipher.update(
       linkCase.pin_encrypted,
       "base64",
@@ -233,29 +220,35 @@ exports.login = async (req, res) => {
     );
     decryptedPin += decipher.final("utf8");
 
-    console.log("Decrypted PIN:", decryptedPin);
+    console.log(`Decrypted PIN: ${decryptedPin}`);
 
-    // 4️⃣ ตรวจสอบว่า PIN ที่ป้อนถูกต้องหรือไม่
     if (pin !== decryptedPin) {
-      // อัปเดตจำนวนครั้งที่กรอกผิดและเวลา
-      await linkCaseModel.updateAttemptCount(
-        surgery_case_id,
-        attempt_count + 1,
-        now
-      );
+      attempt_count += 1;
+      let newLockUntil = null;
 
-      return res.status(401).json({
+      if (attempt_count % 5 === 0) {
+        newLockUntil = dayjs().add(5, "minute").toISOString();
+        console.log(`Locking account until: ${newLockUntil}`);
+      }
+
+      const linkUpdated = await linkCaseModel.updateAttemptCount(
+        link,
+        attempt_count,
+        newLockUntil
+      );
+      console.log("linkUpdated", linkUpdated);
+
+      return res.status(400).json({
         valid: false,
         error: "INVALID_PIN",
         message: "Incorrect PIN. Please try again.",
-        remaining_attempts: MAX_ATTEMPTS - (attempt_count + 1),
+        attempt_count,
+        lock_until: linkUpdated,
       });
     }
 
-    // 5️⃣ รีเซ็ตค่า attempt_count เมื่อกรอกถูก
-    await linkCaseModel.resetAttemptCount(surgery_case_id);
+    await linkCaseModel.resetAttemptCount(link);
 
-    // 6️⃣ ตรวจสอบข้อมูลผู้ป่วย
     const patientDetails = await patientModel.getPatientDetailsByCaseId(
       surgery_case_id
     );
@@ -268,11 +261,11 @@ exports.login = async (req, res) => {
       });
     }
 
-    // 7️⃣ สร้าง JWT Token
+    // 🔥 สร้าง JWT Token
     const payload = {
       patient_id: patientDetails.patient_id,
-      surgery_case_id: surgery_case_id,
-      link: link,
+      surgery_case_id,
+      link,
     };
 
     const token = jwt.sign(payload, process.env.JWT_SECRET_KEY, {

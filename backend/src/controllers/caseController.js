@@ -516,7 +516,7 @@ exports.getAllCase = async (req, res) => {
         "status.status_name as status_name",
         "surgery_case_links.surgery_case_links_id as link_id",
         "surgery_case_links.isactive as link_active",
-        "surgery_case_links.expiration_time as link_expiration",
+        "surgery_case_links.expiration_time as expiration_time",
         "surgery_case_links.pin_encrypted as pin_encrypted",
         "surgery_type.surgery_type_name as surgery_type_name",
         "translations.translated_name as status_th",

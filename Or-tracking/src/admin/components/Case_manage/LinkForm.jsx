@@ -439,17 +439,22 @@ const LinkForm = ({ formLink, handleCopyLink, record }) => {
   const [loading, setLoading] = useState(false);
   const [isModalVisible, setIsModalVisible] = useState(false);
   const BASE_URL = import.meta.env.VITE_BASE_URL;
+  useEffect(() => {
+    console.log("linkData", linkData);
+  }, [linkData]);
 
   useEffect(() => {
     const fetchData = async () => {
       setLoading(true);
       try {
+        console.log("Fetch ID", record.surgery_case_id);
+
         const response = await axiosInstanceStaff.get(
           `link_cases/getLast/${record.surgery_case_id}`
         );
 
         if (response.status === 200 && response.data) {
-          console.log(response.data);
+          console.log("Res Data", response.data);
 
           setLinkData(response.data);
         } else {
@@ -594,6 +599,7 @@ const LinkForm = ({ formLink, handleCopyLink, record }) => {
               record={record}
               handleCopyLink={handleCopyLink}
               onCancelLink={() => setIsModalVisible(true)}
+              linkData={linkData}
             />
           ) : (
             <ActiveLinkComponent

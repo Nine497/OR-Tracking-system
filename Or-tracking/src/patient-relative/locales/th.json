@@ -49,7 +49,10 @@
         "POLICY_HEAD": "นโยบายความเป็นส่วนตัว",
         "TERMS_HEAD": "ข้อกำหนดการใช้งาน",
         "TERMS_TEXT": "นี่คือนโยบายการใช้งานสำหรับการใช้แอปพลิเคชันนี้ กรุณาทบทวนอย่างละเอียดก่อนใช้งานแอปพลิเคชัน",
-        "AGREE": "ฉันยอมรับ"
+        "AGREE": "ฉันยอมรับ",
+        "errorMsgRemainingAttempts": "คุณกรอก PIN ผิดได้อีก {{remainingAttempts}} ครั้ง",
+        "errorMsgExceededAttempts": "คุณได้ทำการใส่ PIN ผิดครบ {{attemptCount}} ครั้งแล้ว กรุณาลองใหม่ภายหลัง",
+        "waitForPin": "กรุณารอ {{minutes}} นาที {{seconds}} วินาที\nเพื่อกรอก PIN อีกครั้ง"
     },
     "or_tracking": {
         "TITLE": "ติดตามการผ่าตัด"
