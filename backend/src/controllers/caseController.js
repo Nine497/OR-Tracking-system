@@ -126,6 +126,7 @@ exports.newSurgerycaseFromAPI = async (req, res) => {
 exports.createSurgeryCase = async (req, res) => {
   const { patient_id } = req.params;
   const surgeryCaseData = req.body;
+  console.log("surgeryCaseData Create : ", surgeryCaseData);
 
   try {
     const parsedPatientId = parseInt(patient_id, 10);
@@ -151,9 +152,6 @@ exports.createSurgeryCase = async (req, res) => {
         message: `Missing required fields: ${missingFields.join(", ")}`,
       });
     }
-
-    console.log("surgery_start_time", surgeryCaseData.surgery_start_time);
-    console.log("surgery_end_time", surgeryCaseData.surgery_end_time);
 
     const overlappingCases = await db("surgery_case")
       .where("operating_room_id", surgeryCaseData.operating_room_id)

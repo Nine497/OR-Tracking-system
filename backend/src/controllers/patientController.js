@@ -4,7 +4,12 @@ const linkCaseModel = require("../models/linkCaseModel");
 const db = require("../config/database");
 const crypto = require("crypto");
 const dayjs = require("dayjs");
+const timezone = require("dayjs/plugin/timezone");
+const utc = require("dayjs/plugin/utc");
 require("dotenv").config();
+
+dayjs.extend(utc);
+dayjs.extend(timezone);
 
 exports.validate_link = async (req, res) => {
   const { link } = req.body;
@@ -76,6 +81,26 @@ exports.validate_link = async (req, res) => {
         message: error.message,
       },
     });
+  }
+};
+
+exports.getLockUntilByLinkId = async (req, res) => {
+  const { link } = req.params;
+  try {
+    const data = await db("surgery_case_links")
+      .select("lock_until", "attempt_count")
+      .where("surgery_case_links_id", link)
+      .where("isactive", true)
+      .first();
+
+    if (!data) {
+      return res.status(404).json({ message: "Link not found" });
+    }
+
+    return res.json(data);
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ message: "Server error" });
   }
 };
 
@@ -227,7 +252,7 @@ exports.login = async (req, res) => {
       let newLockUntil = null;
 
       if (attempt_count % 5 === 0) {
-        newLockUntil = dayjs().add(5, "minute").toISOString();
+        newLockUntil = dayjs().add(1, "minute").format("YYYY-MM-DD HH:mm:ss");
         console.log(`Locking account until: ${newLockUntil}`);
       }
 

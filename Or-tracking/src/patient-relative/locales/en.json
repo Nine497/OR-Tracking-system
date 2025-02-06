@@ -43,7 +43,7 @@
         "TERMS_TEXT": "These are the terms of service for using our application. Please review them carefully before using the app.",
         "AGREE": "I agree to the ",
         "errorMsgRemainingAttempts": "You have {{remainingAttempts}} attempts left to enter the PIN incorrectly",
-        "errorMsgExceededAttempts": "You have entered the wrong PIN {{attemptCount}} times. Please try again later.",
+        "errorMsgExceededAttempts": "You have entered the wrong PIN {{attempt_count}} times. Please try again later.",
         "waitForPin": "Please wait for {{minutes}} m and {{seconds}} s\nbefore entering the PIN again."
     },
     "or_tracking": {

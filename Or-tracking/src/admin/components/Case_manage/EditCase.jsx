@@ -584,7 +584,7 @@ function EditCase() {
                         </Button>
                       </div>
                     </Form.Item>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                       <Form.Item
                         label={
                           <span className="text-base font-medium text-gray-700">
@@ -669,7 +669,7 @@ function EditCase() {
                         </Select>
                       </Form.Item>
 
-                      <Form.Item
+                      {/* <Form.Item
                         label={
                           <span className="text-base font-medium text-gray-700">
                             ปี/เดือน/วัน เกิด{" "}
@@ -805,7 +805,7 @@ function EditCase() {
                             />
                           </Form.Item>
                         </Input.Group>
-                      </Form.Item>
+                      </Form.Item> */}
                     </div>
                   </section>
 
@@ -956,7 +956,7 @@ function EditCase() {
                               key={room.operating_room_id}
                               value={room.operating_room_id}
                             >
-                              {room.room_name} ({room.location})
+                              {room.room_name}
                             </Option>
                           ))}
                         </Select>

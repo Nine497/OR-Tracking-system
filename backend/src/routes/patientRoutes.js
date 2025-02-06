@@ -10,6 +10,10 @@ router.post(
   validateLinkStatus,
   patientController.getPatientData
 );
+router.get(
+  "/getLockUntilByLinkId/:link",
+  patientController.getLockUntilByLinkId
+);
 router.get("/getAllStatus", patientController.getAllStatuses);
 router.get("/getStatus/:id", patientController.getCaseWithStatusHistory);
 router.post("/", patientController.createPatient);

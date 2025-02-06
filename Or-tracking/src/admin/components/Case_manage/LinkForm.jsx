@@ -11,6 +11,7 @@ import {
   Input,
   Typography,
   QRCode,
+  Popconfirm,
 } from "antd";
 import dayjs from "dayjs";
 import { useAuth } from "../../context/AuthContext";
@@ -99,24 +100,13 @@ const LinkDisplay = ({
   isActive,
   record,
 }) => {
-  // const qrCanvasRef = useRef(null);
-
-  // const downloadQRCode = () => {
-  //   const canvas = document.querySelector("canvas");
-  //   if (canvas) {
-  //     const url = canvas.toDataURL("image/png");
-  //     doDownload(url, "QRCode.png");
-  //   }
-  // };
   useEffect(() => {
     console.log("record", record);
   }, []);
 
   return (
     <div className="w-full max-w-full bg-gray-50 rounded-xl p-4 sm:p-5 lg:p-6 space-y-4 shadow-sm border border-gray-100">
-      {/* Header Section */}
       <div className="flex flex-row lg:items-center justify-between space-y-4 lg:space-y-0">
-        {/* Status Section */}
         <div
           className={`
         inline-flex items-center gap-1.5 
@@ -137,51 +127,32 @@ const LinkDisplay = ({
           ${isActive ? "bg-green-500" : "bg-red-500"}
         `}
           />
-          <span className="font-medium">{isActive ? "Active" : "Expired"}</span>
+          <span className="font-medium">
+            {isActive ? "ใช้งานได้" : "หมดอายุแล้ว"}
+          </span>
         </div>
 
         {/* Action Buttons */}
         <div className="flex flex-wrap gap-3 items-center justify-end">
-          <Tooltip title="Copy Link">
-            <Button
-              icon={<Icon icon="bx:bx-copy" className="text-lg" />}
-              onClick={() =>
-                handleCopyLink(
-                  link,
-                  record.pin_decrypted,
-                  `${record.patient_firstname} ${record.patient_lastname}`
-                )
-              }
-              className="flex items-center gap-1.5 hover:border-blue-400 hover:text-blue-500 transition-colors 
+          <Button
+            icon={<Icon icon="bx:bx-copy" className="text-lg" />}
+            onClick={handleCopyLink}
+            className="flex items-center gap-1.5 hover:border-blue-400 hover:text-blue-500 transition-colors 
                   h-8 md:h-9 px-2 md:px-3 text-sm md:text-base w-full sm:w-auto"
-            >
-              <span className="hidden sm:inline">Copy</span>
-            </Button>
-          </Tooltip>
+          >
+            <span className="hidden sm:inline">คัดลอกลิงก์</span>
+          </Button>
 
-          {/* <Tooltip title="Download QR Code">
-            <Button
-              type="primary"
-              icon={<Icon icon="mdi:download" className="text-lg" />}
-              onClick={downloadQRCode}
-              className="flex items-center gap-1.5 h-8 md:h-9 px-2 md:px-3 text-sm md:text-base w-full sm:w-auto"
-            >
-              <span className="hidden sm:inline">QR Code</span>
-            </Button>
-          </Tooltip> */}
-
-          <Tooltip title="Cancel Link">
-            <Button
-              type="primary"
-              danger
-              icon={<Icon icon="bx:bx-x" className="text-lg" />}
-              onClick={onCancelLink}
-              className="flex items-center gap-1.5 hover:opacity-90 transition-opacity 
+          <Button
+            type="primary"
+            danger
+            icon={<Icon icon="bx:bx-x" className="text-lg" />}
+            onClick={onCancelLink}
+            className="flex items-center gap-1.5 hover:opacity-90 transition-opacity 
                   h-8 md:h-9 px-2 md:px-3 text-sm md:text-base w-full sm:w-auto"
-            >
-              <span className="hidden sm:inline">Cancel</span>
-            </Button>
-          </Tooltip>
+          >
+            <span className="hidden sm:inline">ยกเลิกลิงก์</span>
+          </Button>
         </div>
       </div>
 
@@ -200,11 +171,6 @@ const LinkDisplay = ({
                    text-gray-400 group-hover:text-gray-600 transition-colors 
                    text-base md:text-lg"
         />
-      </div>
-
-      {/* Hidden QR Code */}
-      <div className="hidden">
-        <QRCode value={link} bgColor="#FFFFFF" size={256} bordered={false} />
       </div>
     </div>
   );
@@ -239,9 +205,9 @@ const InfoItem = ({ label, value, children, isActive, isCount }) => (
       <span className="text-gray-800 flex items-center gap-3 text-sm sm:text-base group">
         <Icon
           icon={
-            label === "Created By"
+            label === "สร้างโดย"
               ? "heroicons:user"
-              : label === "Created At"
+              : label === "สร้างเมื่อ"
               ? "heroicons:calendar"
               : "heroicons:clock"
           }
@@ -259,6 +225,7 @@ const ActiveLinkComponent = ({
   linkData,
   handleCopyLink,
   onCancelLink,
+  fetchData,
 }) => {
   const [isEditing, setIsEditing] = useState(false);
   const [newExpirationTime, setNewExpirationTime] = useState(null);
@@ -289,6 +256,7 @@ const ActiveLinkComponent = ({
     if (response.status === 200) {
       setExpirationTime(response.data.data.expiration_time);
       console.log("Expiration time updated successfully");
+      fetchData();
     } else {
       console.error("Failed to update expiration time");
     }
@@ -307,14 +275,14 @@ const ActiveLinkComponent = ({
       <div className="bg-gray-50 rounded-lg p-4 space-y-4">
         <div className="flex items-center justify-between">
           <Typography.Title level={5} className="!m-0">
-            Link Details
+            รายละเอียดลิงก์
           </Typography.Title>
         </div>
 
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-1">
           <div className="flex gap-2">
             <InfoItem
-              label="Expiration At"
+              label="ลิงก์หมดอายุ"
               value={
                 isEditing
                   ? newExpirationTime
@@ -322,60 +290,88 @@ const ActiveLinkComponent = ({
               }
               isActive={true}
             >
-              {isEditing ? (
-                <DatePicker
-                  showTime
-                  size="middle"
-                  className="w-full"
-                  format="YYYY-MM-DD HH:mm"
-                  onChange={(date) => handleExpirationChange(date)}
-                  disabledDate={(current) =>
-                    current && current < dayjs().startOf("day")
-                  }
-                  showNow={false}
-                  placeholder="Select new date and time"
-                  popupClassName="text-sm shadow-lg"
-                />
-              ) : null}
+              {isEditing && (
+                <>
+                  <DatePicker
+                    showTime
+                    size="middle"
+                    className="max-w-46"
+                    format="YYYY-MM-DD HH:mm"
+                    onChange={handleExpirationChange}
+                    disabledDate={(current) =>
+                      current && current < dayjs().startOf("day")
+                    }
+                    showNow={false}
+                    placeholder="เลือกวัน/เวลา"
+                    popupClassName="text-sm shadow-lg"
+                  />
+                  {/* <Popconfirm
+                    title={`คุณแน่ใจไหมที่จะตั้งค่าวันที่นี้: ${newExpirationTime.format(
+                      "YYYY-MM-DD HH:mm"
+                    )}?`}
+                    onConfirm={handleSaveExpiration}
+                    onCancel={handleCancel}
+                    okText="Yes"
+                    cancelText="No"
+                    
+                  > 
+                   </Popconfirm>*/}
+                  <Button
+                    type="primary"
+                    icon={<Icon icon="mdi:check-circle" />}
+                    className="flex items-center"
+                    disabled={!newExpirationTime}
+                    onClick={handleSaveExpiration}
+                  >
+                    ยืนยัน
+                  </Button>
+                  <Button
+                    onClick={() => setIsEditing(false)}
+                    icon={<Icon icon="mdi:cancel" />}
+                    className="flex items-center"
+                  >
+                    ยกเลิก
+                  </Button>
+                </>
+              )}
             </InfoItem>
           </div>
 
-          {isEditing ? (
-            <div className="flex gap-2">
-              <Button
-                type="primary"
-                onClick={handleSaveExpiration}
-                icon={<Icon icon="mdi:check-circle" />}
-                className="flex items-center"
-              >
-                Save
-              </Button>
-              <Button
-                onClick={() => setIsEditing(false)}
-                icon={<Icon icon="mdi:cancel" />}
-                className="flex items-center"
-              >
-                Cancel
-              </Button>
-            </div>
-          ) : (
+          {isEditing ? null : (
+            // <div className="flex gap-1">
+            //   <Button
+            //     type="primary"
+            //     onClick={handleSaveExpiration}
+            //     icon={<Icon icon="mdi:check-circle" />}
+            //     className="flex items-center"
+            //   >
+            //     Save
+            //   </Button>
+            //   <Button
+            //     onClick={() => setIsEditing(false)}
+            //     icon={<Icon icon="mdi:cancel" />}
+            //     className="flex items-center"
+            //   >
+            //     Cancel
+            //   </Button>
+            // </div>
             <Button
               type="primary"
               onClick={() => setIsEditing(true)}
               icon={<Icon icon="mdi:pencil" />}
               className="flex items-center ml-2"
             >
-              Edit
+              แก้ไข
             </Button>
           )}
         </div>
 
         <div className="space-y-3">
           <InfoItem
-            label="Created At"
+            label="สร้างเมื่อ"
             value={dayjs(linkData.created_at).format("YYYY-MM-DD, HH:mm")}
           />
-          <InfoItem label="Created By" value={linkData.staff_fullname} />
+          <InfoItem label="สร้างโดย" value={linkData.staff_fullname} />
         </div>
       </div>
     </LinkContainer>
@@ -407,7 +403,7 @@ const ExpiredLinkComponent = ({
       <div className="space-y-3">
         <div className="flex items-center gap-4">
           <InfoItem
-            label="Expiration At"
+            label="ลิงก์หมดอายุ"
             value={dayjs(linkData.expiration_time).format("YYYY-MM-DD, HH:mm")}
             isActive={false}
           />
@@ -419,21 +415,21 @@ const ExpiredLinkComponent = ({
               icon={<Icon icon="mdi:pencil" />}
               className="flex items-center ml-2"
             >
-              Edit
+              แก้ไข
             </Button>
           </div>
         </div>
         <InfoItem
-          label="Created At"
+          label="สร้างเมื่อ"
           value={dayjs(linkData.created_at).format("YYYY-MM-DD, HH:mm")}
         />
-        <InfoItem label="Created By" value={linkData.staff_fullname} />
+        <InfoItem label="สร้างโดย" value={linkData.staff_fullname} />
       </div>
     </div>
   </LinkContainer>
 );
 
-const LinkForm = ({ formLink, handleCopyLink, record }) => {
+const LinkForm = ({ formLink, record }) => {
   const { user } = useAuth();
   const [linkData, setLinkData] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -442,51 +438,104 @@ const LinkForm = ({ formLink, handleCopyLink, record }) => {
   useEffect(() => {
     console.log("linkData", linkData);
   }, [linkData]);
-
   useEffect(() => {
-    const fetchData = async () => {
-      setLoading(true);
-      try {
-        console.log("Fetch ID", record.surgery_case_id);
-
-        const response = await axiosInstanceStaff.get(
-          `link_cases/getLast/${record.surgery_case_id}`
-        );
-
-        if (response.status === 200 && response.data) {
-          console.log("Res Data", response.data);
-
-          setLinkData(response.data);
-        } else {
-          notification.warning({
-            message:
-              "ไม่มีข้อมูลสำหรับเคสการผ่าตัดที่ระบุไว้ กรุณาลองใหม่อีกครั้ง",
-            showProgress: true,
-            placement: "topRight",
-            pauseOnHover: true,
-            duration: 2,
-          });
-          setLinkData(null);
-        }
-      } catch (err) {
-        if (err.response?.status === 404) {
-          setLinkData(null);
-        } else {
-          notification.error({
-            message: "ไม่สามารถดึงข้อมูลเคสการผ่าตัดได้ กรุณาลองใหม่อีกครั้ง",
-            showProgress: true,
-            placement: "topRight",
-            pauseOnHover: true,
-            duration: 2,
-          });
-        }
-      } finally {
-        setTimeout(() => setLoading(false), 1000);
-      }
-    };
-
+    console.log("record", record);
+  }, [record]);
+  useEffect(() => {
     fetchData();
   }, [record.surgery_case_id, user.id]);
+
+  const handleCopyLink = () => {
+    const linkUrl = `${BASE_URL}ptr?link=${record.link_id}`;
+    const pin_decrypted = record.pin_decrypted;
+    const patient_fullname = `${record.patient_firstname} ${record.patient_lastname}`;
+
+    console.log("Copy link : ", linkUrl, pin_decrypted, patient_fullname);
+
+    if (!linkUrl || !pin_decrypted) {
+      notification.warning({
+        message: "ไม่มีข้อมูลให้คัดลอก กรุณาสร้างลิงก์และ PIN ก่อน",
+        showProgress: true,
+        placement: "topRight",
+        pauseOnHover: true,
+        duration: 2,
+      });
+      return;
+    }
+
+    const textToCopy = `คุณ ${patient_fullname}\nURL: ${linkUrl}\nPIN: ${pin_decrypted}`;
+
+    const textArea = document.createElement("textarea");
+    textArea.value = textToCopy;
+    textArea.style.position = "fixed";
+    textArea.style.left = "-9999px";
+    document.body.appendChild(textArea);
+
+    try {
+      textArea.select();
+      document.execCommand("copy");
+
+      notification.success({
+        message: "ลิงก์และ PIN ได้ถูกคัดลอกไปยังคลิปบอร์ดของคุณแล้ว",
+        showProgress: true,
+        placement: "topRight",
+        pauseOnHover: true,
+        duration: 2,
+      });
+    } catch (err) {
+      notification.error({
+        message: "ไม่สามารถคัดลอกข้อมูลได้ กรุณาคัดลอกด้วยตนเอง",
+        showProgress: true,
+        placement: "topRight",
+        pauseOnHover: true,
+        duration: 2,
+      });
+      console.error("Copy Error:", err);
+    } finally {
+      document.body.removeChild(textArea);
+    }
+  };
+
+  const fetchData = async () => {
+    setLoading(true);
+    try {
+      console.log("Fetch ID", record.surgery_case_id);
+
+      const response = await axiosInstanceStaff.get(
+        `link_cases/getLast/${record.surgery_case_id}`
+      );
+
+      if (response.status === 200 && response.data) {
+        console.log("Res Data", response.data);
+
+        setLinkData(response.data);
+      } else {
+        notification.warning({
+          message:
+            "ไม่มีข้อมูลสำหรับเคสการผ่าตัดที่ระบุไว้ กรุณาลองใหม่อีกครั้ง",
+          showProgress: true,
+          placement: "topRight",
+          pauseOnHover: true,
+          duration: 2,
+        });
+        setLinkData(null);
+      }
+    } catch (err) {
+      if (err.response?.status === 404) {
+        setLinkData(null);
+      } else {
+        notification.error({
+          message: "ไม่สามารถดึงข้อมูลเคสการผ่าตัดได้ กรุณาลองใหม่อีกครั้ง",
+          showProgress: true,
+          placement: "topRight",
+          pauseOnHover: true,
+          duration: 2,
+        });
+      }
+    } finally {
+      setTimeout(() => setLoading(false), 1000);
+    }
+  };
 
   const createLink = async (linkData) => {
     setLoading(true);
@@ -608,6 +657,7 @@ const LinkForm = ({ formLink, handleCopyLink, record }) => {
               linkData={linkData}
               handleCopyLink={handleCopyLink}
               onCancelLink={() => setIsModalVisible(true)}
+              fetchData={fetchData}
             />
           )
         ) : (

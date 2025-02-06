@@ -35,15 +35,13 @@ app.use;
 app.use("/api/getTest", (req, res) => {
   res.send("Respond From API Successfully");
 });
-app.post("/api/newSurgeryCase", (req, res) => {
-  
-});
+app.post("/api/newSurgeryCase", (req, res) => {});
 
 // Start server locally
 if (process.env.NODE_ENV === "development") {
   const startServer = async () => {
     try {
-      const port = 3000 || process.env.PORT_NUMBER;
+      const port = 3001 || process.env.PORT_NUMBER;
       await db.raw("SELECT 1+1 AS result");
       console.log("Database connected successfully");
 
@@ -52,7 +50,8 @@ if (process.env.NODE_ENV === "development") {
           "Server is running on host:",
           db.client.config.connection.host
         );
-        console.log("Database :", db.client.config.connection.database);
+        console.log("Database:", db.client.config.connection.database);
+        console.log("Server is running on Port:", port);
       });
     } catch (error) {
       console.error("Unable to connect to the database:", error);

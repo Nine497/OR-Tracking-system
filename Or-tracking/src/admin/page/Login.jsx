@@ -3,19 +3,30 @@ import { Form, Input, Button, notification } from "antd";
 import { useAuth } from "../context/AuthContext";
 import { useNavigate } from "react-router-dom";
 import { axiosInstanceStaff } from "../api/axiosInstance";
-import LoginImg from "../assets/Login.jpg";
+import LoginImg from "../assets/Login.webp";
 import { Icon } from "@iconify/react";
+import { jwtDecode } from "jwt-decode";
 
 const Login = () => {
   const { login, user } = useAuth();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
+  const [token, setToken] = useState(localStorage.getItem("jwtToken") || null);
 
   useEffect(() => {
-    if (user) {
-      navigate("/admin/room_schedule");
+    if (user && token) {
+      if (checkTokenExpiration(token)) {
+        navigate("/admin/room_schedule");
+      } else {
+        notification.error({
+          message: "Token หมดอายุ กรุณาเข้าสู่ระบบใหม่",
+          placement: "topRight",
+          duration: 2,
+        });
+        navigate("/login");
+      }
     }
-  }, [user, navigate]);
+  }, [user, navigate, token]);
 
   const handleSubmit = async (values) => {
     setLoading(true);
@@ -74,13 +85,25 @@ const Login = () => {
     }
   };
 
+  const checkTokenExpiration = (token) => {
+    try {
+      const decoded = jwtDecode(token);
+      const currentTime = Date.now() / 1000;
+      return decoded.exp > currentTime;
+    } catch (error) {
+      console.error("Token decode error:", error);
+      return false;
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex">
       {/* Left side - Image */}
       <div className="hidden lg:flex lg:w-2/3 relative overflow-hidden">
         <div className="absolute inset-0 bg-blue-600/10 backdrop-blur-sm z-10" />
         <img
-          src={LoginImg}
+          srcSet={`${LoginImg}?w=500 500w, ${LoginImg}?w=1000 1000w, ${LoginImg}?w=1500 1500w`}
+          sizes="(max-width: 600px) 500px, (max-width: 1200px) 1000px, 1500px"
           alt="Login Illustration"
           className="w-full h-full object-cover"
         />

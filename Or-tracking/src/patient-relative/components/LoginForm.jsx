@@ -14,6 +14,7 @@ dayjs.extend(timezone);
 const PinInput = ({ length = 6, onChange, disabled }) => {
   const [pins, setPins] = useState(new Array(length).fill(""));
   const inputRefs = useRef(new Array(length).fill(null));
+  const prevDisabledRef = useRef(disabled);
 
   useEffect(() => {
     if (disabled) {
@@ -23,23 +24,51 @@ const PinInput = ({ length = 6, onChange, disabled }) => {
     }
   }, [disabled, pins]);
 
+  useEffect(() => {
+    if (prevDisabledRef.current && !disabled) {
+      const clearedPins = new Array(length).fill("");
+      setPins(clearedPins);
+      onChange(clearedPins.join(""));
+      inputRefs.current[0]?.focus();
+    }
+    prevDisabledRef.current = disabled;
+  }, [disabled, length, onChange]);
+
   const focusCorrectInput = () => {
     const firstEmptyIndex = pins.findIndex((pin) => pin === "");
     if (firstEmptyIndex !== -1) {
       inputRefs.current[firstEmptyIndex]?.focus();
     } else {
-      inputRefs.current[length - 1]?.focus();
+      inputRefs.current.forEach((input) => input?.blur());
     }
   };
 
   const handleChange = (e, index) => {
     const value = e.target.value.replace(/\D/g, "");
-    if (value.length <= 1) {
-      const newPins = [...pins];
-      newPins[index] = value;
+    if (value.length > 1) return;
+
+    const isComplete = pins.every((pin) => pin !== "");
+
+    if (isComplete) {
+      const newPins = new Array(length).fill("");
+      newPins[0] = value;
       setPins(newPins);
       onChange(newPins.join(""));
+      inputRefs.current[0]?.focus();
+      return;
+    }
 
+    const newPins = [...pins];
+    newPins[index] = value;
+    setPins(newPins);
+    onChange(newPins.join(""));
+
+    if (newPins.every((pin) => pin !== "")) {
+      const clearedPins = new Array(length).fill("");
+      setPins(clearedPins);
+      onChange(clearedPins.join(""));
+      inputRefs.current[0]?.focus();
+    } else {
       focusCorrectInput();
     }
   };
@@ -56,14 +85,12 @@ const PinInput = ({ length = 6, onChange, disabled }) => {
       .getData("text")
       .replace(/\D/g, "")
       .slice(0, length);
-    const newPins = [...pins];
-
-    pastedData.split("").forEach((value, index) => {
-      if (index < length) {
-        newPins[index] = value;
+    const newPins = new Array(length).fill("");
+    pastedData.split("").forEach((value, i) => {
+      if (i < length) {
+        newPins[i] = value;
       }
     });
-
     setPins(newPins);
     onChange(newPins.join(""));
     focusCorrectInput();
@@ -81,12 +108,7 @@ const PinInput = ({ length = 6, onChange, disabled }) => {
           onChange={(e) => handleChange(e, index)}
           onKeyDown={(e) => handleKeyDown(e, index)}
           onPaste={handlePaste}
-          className="w-12 h-12 text-center text-2xl font-semibold 
-                    border-2 rounded-lg 
-                    bg-white text-black
-                    dark:bg-white dark:text-black
-                    focus:border-blue-500 focus:ring-2 focus:ring-blue-200 focus:outline-none 
-                    transition-colors appearance-none"
+          className="w-12 h-12 text-center text-2xl font-semibold border-2 rounded-lg bg-white text-black dark:bg-white dark:text-black focus:border-blue-500 focus:ring-2 focus:ring-blue-200 focus:outline-none transition-colors appearance-none"
           maxLength={1}
           disabled={disabled}
         />
@@ -95,58 +117,69 @@ const PinInput = ({ length = 6, onChange, disabled }) => {
   );
 };
 
-const LoginForm = ({ t, link, lock_until, pinRemaining }) => {
+const LoginForm = ({ t, link }) => {
   const [loading, setLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
   const [pinDisabled, setPinDisabled] = useState(false);
   const [countdown, setCountdown] = useState(null);
+  const [remainingSecond, setRemainingSecond] = useState(null);
   const navigate = useNavigate();
   const endTimeRef = useRef(null);
   const timerRef = useRef(null);
 
   useEffect(() => {
-    if (lock_until) {
-      calRemainingSeconds(lock_until);
+    if (remainingSecond > 0) {
+      startCountdown(remainingSecond);
     }
-    console.log("pinRemaining", pinRemaining);
-
-    let errorMsg = "";
-    if (pinRemaining) {
-      const remainder = pinRemaining % 5;
-      const remainingAttempts = 5 - remainder;
-
-      if (remainingAttempts != 5) {
-        if (remainingAttempts > 0) {
-          errorMsg = `${t("login.errorMsgRemainingAttempts", {
-            remainingAttempts,
-          })}`;
-        } else {
-          errorMsg = `${t("login.errorMsgExceededAttempts", {
-            pinRemaining,
-          })}`;
-        }
-      }
-    }
-
-    setErrorMessage(errorMsg);
-  }, [lock_until, pinRemaining]);
+  }, [remainingSecond]);
 
   useEffect(() => {
-    setPinDisabled(countdown !== null && countdown > 0);
-  }, [countdown]);
+    const fetchLockUntilData = async () => {
+      try {
+        const response = await axiosInstancePatient.get(
+          `patient/getLockUntilByLinkId/${link}`
+        );
+        const { lock_until, attempt_count } = response.data;
+        console.log("response", response);
+        if (attempt_count !== undefined) {
+          const remainder = attempt_count % 5;
+          const remainingAttempts = 5 - remainder;
+          console.log("remainingAttempts", remainingAttempts);
+
+          let errorMsg =
+            remainingAttempts > 0 && remainingAttempts < 5
+              ? `${t("login.errorMsgRemainingAttempts", { remainingAttempts })}`
+              : null;
+          // : `${t("login.errorMsgExceededAttempts", { attempt_count })}`;
+          setErrorMessage(errorMsg);
+          if (lock_until) {
+            const parsedDate = dayjs(lock_until, "YYYY-MM-DD HH:mm:ss.SSS");
+            if (parsedDate.isValid()) {
+              calRemainingSeconds(parsedDate.format("MM-DD-YYYY HH:mm:ss"));
+            } else {
+              console.warn("Invalid date format:", lock_until);
+            }
+          }
+        }
+      } catch (error) {
+        console.error("Error fetching lockUntil data:", error);
+      }
+    };
+
+    fetchLockUntilData();
+  }, [link]);
 
   const calRemainingSeconds = (lock_until) => {
     setLoading(true);
-    const lockTime = dayjs(lock_until).tz("Asia/Bangkok");
+
+    const lockTime = dayjs(lock_until).add(7, "hour");
     const currentTime = dayjs().tz("Asia/Bangkok");
 
-    console.log(
-      "lock_until (หลังแปลงเป็น dayjs UTC+7)",
-      lockTime.format("YYYY-MM-DD HH:mm:ss")
-    );
-    console.log("Current Time", currentTime.format("YYYY-MM-DD HH:mm:ss"));
+    console.log("lockTime", lockTime.format("DD/MM/YYYY HH:mm:ss"));
+    console.log("currentTime", currentTime.format("DD/MM/YYYY HH:mm:ss"));
 
     const remainingSeconds = lockTime.diff(currentTime, "second");
+    setRemainingSecond(remainingSeconds);
     console.log("remainingSeconds", remainingSeconds);
 
     if (remainingSeconds > 0) {
@@ -156,17 +189,19 @@ const LoginForm = ({ t, link, lock_until, pinRemaining }) => {
     setLoading(false);
   };
 
+  // Start countdown timer
   const startCountdown = (remainingSeconds) => {
     if (remainingSeconds <= 0) {
       setCountdown(null);
+      setPinDisabled(false);
       return;
     }
 
-    endTimeRef.current = Date.now() + remainingSeconds * 1000;
+    setPinDisabled(true);
     setCountdown(remainingSeconds);
+    endTimeRef.current = Date.now() + remainingSeconds * 1000;
 
     clearInterval(timerRef.current);
-
     timerRef.current = setInterval(() => {
       const now = Date.now();
       const remaining = Math.max(
@@ -177,12 +212,14 @@ const LoginForm = ({ t, link, lock_until, pinRemaining }) => {
       if (remaining <= 0) {
         clearInterval(timerRef.current);
         setCountdown(null);
+        setPinDisabled(false);
       } else {
         setCountdown(remaining);
       }
     }, 1000);
   };
 
+  // Handle PIN completion and login
   const handlePinComplete = async (pin) => {
     if (pin.length === 6) {
       try {
@@ -196,7 +233,6 @@ const LoginForm = ({ t, link, lock_until, pinRemaining }) => {
         const surgeryCaseResponse = await axiosInstancePatient.get(
           `link_cases/${link}`
         );
-
         if (!surgeryCaseResponse?.data?.surgery_case_id) {
           throw new Error(t("login.INVALID_CASE"));
         }
@@ -215,34 +251,50 @@ const LoginForm = ({ t, link, lock_until, pinRemaining }) => {
         }
       } catch (error) {
         console.error("Login error:", error);
-        const attemptCount = error.response?.data?.attempt_count;
-        let errorMsg = "";
-        const lockData = error.response?.data?.lock_until;
 
-        if (lockData && lockData[0]?.lock_until) {
-          const lockUntil = dayjs(lockData[0].lock_until)
-            .add(7, "hour")
-            .format("MM-DD-YYYY HH:mm:ss");
+        const errorAttemptCount = error.response?.data?.attempt_count;
+        const lockData = error.response?.data?.lock_until[0].lock_until;
+        console.log("lockData", lockData);
 
-          calRemainingSeconds(lockUntil);
-        } else if (attemptCount !== undefined) {
-          console.log("attemptCount", attemptCount);
+        if (error.response?.data?.error === "ACCOUNT_LOCKED") {
+          const parsedDate = dayjs(lockData, "YYYY-MM-DD HH:mm:ss.SSS");
+          if (parsedDate.isValid()) {
+            calRemainingSeconds(parsedDate.format("MM-DD-YYYY HH:mm:ss"));
+          }
 
-          const remainder = attemptCount % 5;
+          // const remainingSeconds = lockData
+          //   ? dayjs(lockData).diff(dayjs(), "second")
+          //   : 0;
+          // console.log("remainingSeconds", remainingSeconds);
+
+          // startCountdown(remainingSeconds);
+        } else if (errorAttemptCount !== undefined) {
+          const remainder = errorAttemptCount % 5;
           const remainingAttempts = 5 - remainder;
 
-          if (remainingAttempts > 0) {
+          let errorMsg = "";
+          if (remainingAttempts > 0 && remainingAttempts < 5) {
             errorMsg = `${t("login.errorMsgRemainingAttempts", {
               remainingAttempts,
             })}`;
-          } else {
-            errorMsg = `${t("login.errorMsgExceededAttempts", {
-              attemptCount,
-            })}`;
-          }
-        }
+          } else if (remainingAttempts === 5) {
+            const parsedDate = dayjs(lockData, "YYYY-MM-DD HH:mm:ss.SSS");
+            if (parsedDate.isValid()) {
+              calRemainingSeconds(parsedDate.format("MM-DD-YYYY HH:mm:ss"));
+            }
 
-        setErrorMessage(errorMsg);
+            // const remainingSeconds = lockData
+            //   ? dayjs(lockData).diff(dayjs(), "second")
+            //   : 0;
+            // console.log("remainingSeconds", remainingSeconds);
+
+            // startCountdown(remainingSeconds);
+          }
+
+          setErrorMessage(errorMsg);
+        } else {
+          setErrorMessage(t("login.errorMsgUnknown"));
+        }
       } finally {
         setLoading(false);
       }
@@ -317,12 +369,12 @@ const LoginForm = ({ t, link, lock_until, pinRemaining }) => {
               </div>
             )}
 
-            {pinDisabled && countdown !== null && (
+            {pinDisabled && countdown !== null && !isNaN(countdown) && (
               <div className="mt-4 text-center text-gray-700">
                 <p>
                   {t("login.waitForPin", {
-                    minutes: Math.floor(countdown / 60),
-                    seconds: countdown % 60,
+                    minutes: Math.floor(countdown / 60) || 0,
+                    seconds: countdown % 60 || 0,
                   })
                     .split("\n")
                     .map((text, index) => (

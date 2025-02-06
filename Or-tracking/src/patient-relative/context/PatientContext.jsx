@@ -24,26 +24,37 @@ export const PatientProvider = ({ children }) => {
   };
 
   useEffect(() => {
-    const token = localStorage.getItem("jwtToken");
+    const token = localStorage.getItem("token");
     if (token) {
       try {
         const payload = jwtDecode(token);
         console.log("Payload:", payload);
 
+        const link = payload.link || null;
         setPatient_id(payload.patient_id || null);
         setSurgery_case_id(payload.surgery_case_id || null);
-        setPatient_link(payload.link || null);
-
-        setIsLoading(false);
+        setPatient_link(link);
+        localStorage.setItem("link", link);
       } catch (error) {
         console.error("Invalid token:", error);
         localStorage.removeItem("token");
-        navigate("/login");
+
+        const storedLink = localStorage.getItem("link");
+        if (storedLink) {
+          navigate(`/ptr?link=${storedLink}`);
+        } else {
+          navigate("/ptr");
+        }
       }
-    } else {
-      setIsLoading(false);
     }
-  }, [navigate]);
+    setIsLoading(false);
+  }, [
+    setPatient_id,
+    setSurgery_case_id,
+    setPatient_link,
+    setIsLoading,
+    navigate,
+  ]);
 
   if (isLoading) {
     return null;

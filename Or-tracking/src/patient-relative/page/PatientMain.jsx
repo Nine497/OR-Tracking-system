@@ -33,17 +33,25 @@ const PatientMain = () => {
         } else {
           setPatientLink(link);
 
-          if (response.data.linkStatus?.lock_until) {
-            setLockUntil(
-              dayjs(response.data.linkStatus.lock_until)
-                .add(7, "hour")
-                .format("MM-DD-YYYY HH:mm:ss")
-            );
-          }
+          // if (response.data.linkStatus?.lock_until) {
+          //   const parsedDate = dayjs(
+          //     response.data.linkStatus.lock_until,
+          //     "YYYY-MM-DD HH:mm:ss.SSS"
+          //   );
 
-          if (response.data.linkStatus?.attempt_count) {
-            setPinRemaining(response.data.linkStatus.attempt_count);
-          }
+          //   if (parsedDate.isValid()) {
+          //     setLockUntil(parsedDate.format("MM-DD-YYYY HH:mm:ss"));
+          //   } else {
+          //     console.warn(
+          //       "Invalid date format:",
+          //       response.data.linkStatus.lock_until
+          //     );
+          //   }
+          // }
+
+          // if (response.data.linkStatus?.attempt_count) {
+          //   setPinRemaining(response.data.linkStatus.attempt_count);
+          // }
         }
       } catch (error) {
         console.error("Error validating link:", error);
@@ -71,12 +79,7 @@ const PatientMain = () => {
   return (
     <div className="min-h-screen w-screen flex items-center justify-center bg-white">
       <div className="flex-1 w-full flex items-center justify-center px-0">
-        <LoginForm
-          t={t}
-          link={link}
-          lock_until={lockUntil}
-          pinRemaining={pinRemaining}
-        />
+        <LoginForm t={t} link={link} />
       </div>
     </div>
   );

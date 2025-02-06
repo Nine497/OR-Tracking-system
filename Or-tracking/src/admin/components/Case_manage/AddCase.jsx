@@ -16,6 +16,7 @@ import { useAuth } from "../../context/AuthContext";
 import dayjs from "dayjs";
 import { useNavigate } from "react-router-dom";
 import "./Form.css";
+import Operation from "antd/es/transfer/operation";
 
 const { Option } = Select;
 
@@ -45,8 +46,8 @@ function AddCase() {
   const [surgeryData, setSurgeryData] = useState({
     doctor_id: "",
     surgery_date: "",
-    estimate_start_time: "",
-    estimate_duration: "",
+    surgery_start_time: "",
+    surgery_end_time: "",
     surgery_type_id: "",
     operating_room_id: "",
     status_id: "0",
@@ -150,16 +151,16 @@ function AddCase() {
     console.log("surgeryData", surgeryData);
   };
 
-  const handlePatientDobChange = (field, value) => {
-    setPatientDobData((prevData) => ({
-      ...prevData,
-      [field]: value,
-    }));
+  // const handlePatientDobChange = (field, value) => {
+  //   setPatientDobData((prevData) => ({
+  //     ...prevData,
+  //     [field]: value,
+  //   }));
 
-    form.setFieldsValue({
-      [field]: value,
-    });
-  };
+  //   form.setFieldsValue({
+  //     [field]: value,
+  //   });
+  // };
 
   // const updateDobInPatientData = () => {
   //   const formattedDob = getFormattedDob();
@@ -236,6 +237,7 @@ function AddCase() {
         created_at: dayjs().format("YYYY-MM-DD HH:mm:ss"),
         surgery_start_time: surgeryStartTime.format("YYYY-MM-DD HH:mm:ss"),
         surgery_end_time: surgeryEndTime.format("YYYY-MM-DD HH:mm:ss"),
+        Operation: surgeryData.Operation,
       };
 
       console.log("ข้อมูลการผ่าตัดที่ส่งไปยังเซิร์ฟเวอร์:", surgeryCaseData);
@@ -463,7 +465,7 @@ function AddCase() {
                   </Button>
                 </div>
               </Form.Item>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <Form.Item
                   label={
                     <span className="text-base font-medium text-gray-700">
@@ -528,7 +530,7 @@ function AddCase() {
                   </Select>
                 </Form.Item>
 
-                <Form.Item
+                {/* <Form.Item
                   label={
                     <span className="text-base font-medium text-gray-700">
                       ปี/เดือน/วัน เกิด{" "}
@@ -648,7 +650,7 @@ function AddCase() {
                       />
                     </Form.Item>
                   </Input.Group>
-                </Form.Item>
+                </Form.Item> */}
               </div>
             </section>
 
@@ -786,7 +788,7 @@ function AddCase() {
                         key={room.operating_room_id}
                         value={room.operating_room_id}
                       >
-                        {room.room_name} ({room.location})
+                        {room.room_name}
                       </Option>
                     ))}
                   </Select>
