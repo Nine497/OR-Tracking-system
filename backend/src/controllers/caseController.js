@@ -3,7 +3,13 @@ const db = require("../config/database");
 const crypto = require("crypto");
 const SECRET_KEY = process.env.SECRET_KEY;
 const IV = process.env.IV;
+const dayjs = require("dayjs");
+const utc = require("dayjs/plugin/utc");
+const timezone = require("dayjs/plugin/timezone");
+
 require("dotenv").config();
+dayjs.extend(utc);
+dayjs.extend(timezone);
 
 exports.newSurgerycaseFromAPI = async (req, res) => {
   const surgeryCaseData = req.body;
@@ -126,7 +132,7 @@ exports.newSurgerycaseFromAPI = async (req, res) => {
 exports.createSurgeryCase = async (req, res) => {
   const { patient_id } = req.params;
   const surgeryCaseData = req.body;
-  console.log("surgeryCaseData Create : ", surgeryCaseData);
+  console.log("surgeryCaseData Create:", surgeryCaseData);
 
   try {
     const parsedPatientId = parseInt(patient_id, 10);
@@ -153,30 +159,39 @@ exports.createSurgeryCase = async (req, res) => {
       });
     }
 
+    const surgeryStartTime = dayjs(surgeryCaseData.surgery_start_time)
+      .tz("Asia/Bangkok", true)
+      .format("YYYY-MM-DD HH:mm:ss");
+
+    const surgeryEndTime = dayjs(surgeryCaseData.surgery_end_time)
+      .tz("Asia/Bangkok", true)
+      .format("YYYY-MM-DD HH:mm:ss");
+
+    if (dayjs(surgeryEndTime).isBefore(surgeryStartTime)) {
+      return res.status(400).json({
+        message: "End time cannot be earlier than start time",
+      });
+    }
+
     const overlappingCases = await db("surgery_case")
       .where("operating_room_id", surgeryCaseData.operating_room_id)
       .andWhere(function () {
         this.whereBetween("surgery_start_time", [
-          surgeryCaseData.surgery_start_time,
-          surgeryCaseData.surgery_end_time,
+          surgeryStartTime,
+          surgeryEndTime,
         ])
           .orWhereBetween("surgery_end_time", [
-            surgeryCaseData.surgery_start_time,
-            surgeryCaseData.surgery_end_time,
+            surgeryStartTime,
+            surgeryEndTime,
           ])
           .orWhere(function () {
-            this.where(
-              "surgery_start_time",
-              "<=",
-              surgeryCaseData.surgery_start_time
-            ).andWhere(
+            this.where("surgery_start_time", "<=", surgeryStartTime).andWhere(
               "surgery_end_time",
               ">=",
-              surgeryCaseData.surgery_end_time
+              surgeryEndTime
             );
           });
-      })
-      .then((overlappingCases) => overlappingCases);
+      });
 
     if (overlappingCases.length > 0) {
       return res.status(400).json({
@@ -188,14 +203,14 @@ exports.createSurgeryCase = async (req, res) => {
     const newSurgeryCase = await db("surgery_case")
       .insert({
         doctor_id: surgeryCaseData.doctor_id,
-        surgery_end_time: surgeryCaseData.surgery_end_time,
-        surgery_start_time: surgeryCaseData.surgery_start_time,
+        surgery_start_time: surgeryStartTime,
+        surgery_end_time: surgeryEndTime,
         surgery_type_id: surgeryCaseData.surgery_type_id,
         operating_room_id: surgeryCaseData.operating_room_id,
-        status_id: surgeryCaseData.status_id,
+        status_id: 0,
         created_by: surgeryCaseData.created_by,
         patient_id: parsedPatientId,
-        created_at: surgeryCaseData.created_at,
+        created_at: dayjs().format("YYYY-MM-DD HH:mm:ss"),
         patient_history: surgeryCaseData.patient_history || "",
       })
       .returning("*");
@@ -216,7 +231,7 @@ exports.createSurgeryCase = async (req, res) => {
     await db("surgery_case_status_history").insert({
       surgery_case_id: surgeryCaseId,
       status_id: 0,
-      updated_at: new Date().toISOString(),
+      updated_at: dayjs().toISOString(),
       updated_by: surgeryCaseData.created_by,
     });
 
@@ -563,7 +578,7 @@ exports.getAllCase = async (req, res) => {
       .then((result) => parseInt(result.count));
 
     const surgeryCases = await query
-      .orderBy("surgery_case.surgery_case_id", "asc")
+      .orderBy("surgery_case.created_at", "desc")
       .limit(Number(limit))
       .offset(offset);
 

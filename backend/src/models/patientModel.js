@@ -3,7 +3,7 @@ const db = require("../config/database");
 const patient = {
   getPatientById: (patient_id) => {
     return db("patients")
-      .select("patient_id", "hn_code", "dob", "firstname", "lastname", "gender")
+      .select("patient_id", "hn_code", "firstname", "lastname", "gender")
       .where("patient_id", patient_id)
       .first();
   },
@@ -19,10 +19,10 @@ const patient = {
     return db("patients").select("*").where("hn_code", hn_code).first();
   },
 
-  getPatientDetailsByCaseId: (surgery_case_id, hn, dob) => {
+  getPatientDetailsByCaseId: (surgery_case_id, hn) => {
     return db("surgery_case")
       .join("patients", "surgery_case.patient_id", "=", "patients.patient_id")
-      .select("patients.hn_code", "patients.dob", "patients.patient_id")
+      .select("patients.hn_code", "patients.patient_id")
       .where("surgery_case.surgery_case_id", surgery_case_id)
       .first();
   },

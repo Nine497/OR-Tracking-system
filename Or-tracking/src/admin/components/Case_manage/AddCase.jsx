@@ -16,14 +16,12 @@ import { useAuth } from "../../context/AuthContext";
 import dayjs from "dayjs";
 import { useNavigate } from "react-router-dom";
 import "./Form.css";
-import Operation from "antd/es/transfer/operation";
 
 const { Option } = Select;
 
 function AddCase() {
   const [form] = Form.useForm();
   const hnInputRef = React.useRef(null);
-  const dobInputRef = React.useRef(null);
   const { user } = useAuth();
   const [doctors, setDoctors] = useState([]);
   const [doctorsLoading, setDoctorsLoading] = useState(false);
@@ -33,14 +31,13 @@ function AddCase() {
   const [surgeryTypesLoading, setSurgeryTypesLoading] = useState(false);
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
-  const [patientDobData, setPatientDobData] = useState({});
+  const [open, setOpen] = useState(false);
 
   const [patientData, setPatientData] = useState({
     hn_code: "",
     firstname: "",
     lastname: "",
     gender: "",
-    dob: "",
   });
 
   const [surgeryData, setSurgeryData] = useState({
@@ -192,8 +189,14 @@ function AddCase() {
         return;
       }
 
-      const surgeryStartTime = dayjs(surgeryData.surgery_start_time);
-      const surgeryEndTime = dayjs(surgeryData.surgery_end_time);
+      const surgeryStartTime = dayjs(surgeryData.surgery_start_time).subtract(
+        7,
+        "hour"
+      );
+      const surgeryEndTime = dayjs(surgeryData.surgery_end_time).subtract(
+        7,
+        "hour"
+      );
 
       if (surgeryStartTime.isAfter(surgeryEndTime)) {
         message.error("เวลาเริ่มผ่าตัดต้องน้อยกว่าเวลาเสร็จสิ้นการผ่าตัด");
@@ -203,15 +206,10 @@ function AddCase() {
       console.log("surgeryStartTime", surgeryStartTime);
       console.log("surgeryEndTime", surgeryEndTime);
 
-      const combild_dob = dayjs(
-        `${patientDobData.patient_dob_year}-${patientDobData.patient_dob_month}-${patientDobData.patient_dob_day}`
-      );
-
       const patientRequestData = {
         hn_code: patientData.hn_code,
         first_name: patientData.firstname,
         last_name: patientData.lastname,
-        dob: combild_dob.format("YYYY-MM-DD"),
         gender: patientData.gender,
       };
 
@@ -234,9 +232,9 @@ function AddCase() {
         surgery_type_id: surgeryData.surgery_type_id,
         status_id: surgeryData.status_id,
         patient_history: surgeryData.patient_history,
-        created_at: dayjs().format("YYYY-MM-DD HH:mm:ss"),
-        surgery_start_time: surgeryStartTime.format("YYYY-MM-DD HH:mm:ss"),
-        surgery_end_time: surgeryEndTime.format("YYYY-MM-DD HH:mm:ss"),
+        created_at: dayjs().format("YYYY/MM/DD HH:mm:ss"),
+        surgery_start_time: surgeryStartTime.format("YYYY/MM/DD HH:mm:ss"),
+        surgery_end_time: surgeryEndTime.format("YYYY/MM/DD HH:mm:ss"),
         Operation: surgeryData.Operation,
       };
 
@@ -294,11 +292,6 @@ function AddCase() {
         mask: "00-00-000000",
       });
     }
-    if (dobInputRef.current) {
-      IMask(dobInputRef.current.input, {
-        mask: "0000/00/00",
-      });
-    }
   }, []);
 
   const handlePatientDataChange = (e) => {
@@ -325,26 +318,13 @@ function AddCase() {
             firstname = "",
             lastname = "",
             gender = "",
-            dob = "",
           } = response.data.data;
-
-          const dobParsed = dayjs(dob);
-          const year = dobParsed.isValid() ? dobParsed.format("YYYY") : "";
-          const month = dobParsed.isValid() ? dobParsed.format("MM") : "";
-          const day = dobParsed.isValid() ? dobParsed.format("DD") : "";
 
           setPatientData({
             hn_code,
             firstname,
             lastname,
             gender,
-            dob,
-            patient_dob_year: year,
-            patient_dob_month: month,
-            patient_dob_day: day,
-          });
-
-          setPatientDobData({
             patient_dob_year: year,
             patient_dob_month: month,
             patient_dob_day: day,
@@ -355,9 +335,6 @@ function AddCase() {
             firstname,
             lastname,
             gender,
-            patient_dob_year: year,
-            patient_dob_month: month,
-            patient_dob_day: day,
           });
         } else {
           notification.success({
@@ -378,9 +355,6 @@ function AddCase() {
           firstname: "",
           lastname: "",
           gender: null,
-          patient_dob_year: "",
-          patient_dob_month: "",
-          patient_dob_day: "",
         });
 
         setPatientData({
@@ -388,9 +362,6 @@ function AddCase() {
           firstname: "",
           lastname: "",
           gender: "",
-          patient_dob_year: "",
-          patient_dob_month: "",
-          patient_dob_day: "",
         });
 
         // แจ้งเตือนเมื่อเกิดข้อผิดพลาด
@@ -525,8 +496,8 @@ function AddCase() {
                     className="h-11 text-base"
                     placeholder="Select gender"
                   >
-                    <Option value="male">ชาย</Option>
-                    <Option value="female">หญิง</Option>
+                    <Option value="1">ชาย</Option>
+                    <Option value="2">หญิง</Option>
                   </Select>
                 </Form.Item>
 
@@ -662,7 +633,6 @@ function AddCase() {
                   รายละเอียดการผ่าตัด
                 </h2>
               </div>
-
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <Form.Item
                   label={
@@ -671,9 +641,7 @@ function AddCase() {
                     </span>
                   }
                   name="doctor_id"
-                  rules={[
-                    { required: true, message: "Please select a doctor!" },
-                  ]}
+                  rules={[{ required: true, message: "กรุณาเลือกแพทย์!" }]}
                 >
                   <Select
                     value={surgeryData.doctor_id}
@@ -682,13 +650,19 @@ function AddCase() {
                     }
                     className="h-11 text-base"
                     loading={doctorsLoading}
-                    placeholder="Select a doctor"
+                    placeholder="เลือกแพทย์"
                   >
-                    {doctors.map((doctor) => (
-                      <Option key={doctor.doctor_id} value={doctor.doctor_id}>
-                        {doctor.prefix} {doctor.firstname} {doctor.lastname}
-                      </Option>
-                    ))}
+                    {doctors
+                      .sort((a, b) =>
+                        a.firstname.localeCompare(b.firstname, "th", {
+                          sensitivity: "base",
+                        })
+                      )
+                      .map((doctor) => (
+                        <Option key={doctor.doctor_id} value={doctor.doctor_id}>
+                          {doctor.prefix} {doctor.firstname} {doctor.lastname}
+                        </Option>
+                      ))}
                   </Select>
                 </Form.Item>
                 <Form.Item
@@ -717,14 +691,14 @@ function AddCase() {
                 <Form.Item
                   label={
                     <span className="text-base font-medium text-gray-700">
-                      ประเภทการผ่าตัด
+                      Surgery Type
                     </span>
                   }
                   name="surgery_type_id"
                   rules={[
                     {
                       required: true,
-                      message: "Please select surgery type!",
+                      message: "Please select a surgery type!",
                     },
                   ]}
                   className="w-full"
@@ -739,26 +713,29 @@ function AddCase() {
                     loading={surgeryTypesLoading}
                     optionLabelProp="label"
                   >
-                    {surgeryTypes.map((type) => (
-                      <Option
-                        key={type.surgery_type_id}
-                        value={type.surgery_type_id}
-                        label={type.surgery_type_name}
-                      >
-                        <div>
-                          <span className="font-medium">
-                            {type.surgery_type_name}
-                          </span>
-                          <br />
-                          <span className="text-gray-500 text-sm">
-                            {type.description}
-                          </span>
-                        </div>
-                      </Option>
-                    ))}
+                    {surgeryTypes
+                      .sort((a, b) =>
+                        a.surgery_type_name.localeCompare(b.surgery_type_name)
+                      )
+                      .map((type) => (
+                        <Option
+                          key={type.surgery_type_id}
+                          value={type.surgery_type_id}
+                          label={type.surgery_type_name}
+                        >
+                          <div>
+                            <span className="font-medium">
+                              {type.surgery_type_name}
+                            </span>
+                            <br />
+                            <span className="text-gray-500 text-sm">
+                              {type.description}
+                            </span>
+                          </div>
+                        </Option>
+                      ))}
                   </Select>
                 </Form.Item>
-
                 <Form.Item
                   label={
                     <span className="text-base font-medium text-gray-700">
@@ -769,7 +746,7 @@ function AddCase() {
                   rules={[
                     {
                       required: true,
-                      message: "Please select OR-Room!",
+                      message: "กรุณาเลือกห้องผ่าตัด!",
                     },
                   ]}
                   className="w-full"
@@ -781,9 +758,22 @@ function AddCase() {
                     }
                     className="h-10 w-full text-base font-normal"
                     loading={operatingRoomsLoading}
-                    placeholder="Select an OR-Room"
+                    placeholder="เลือกห้องผ่าตัด"
                   >
-                    {operatingRooms.map((room) => (
+                    {[
+                      ...operatingRooms
+                        .filter((room) => room.room_name !== "-")
+                        .sort((a, b) => {
+                          const numA =
+                            parseInt(a.room_name.replace(/\D/g, ""), 10) || 0;
+                          const numB =
+                            parseInt(b.room_name.replace(/\D/g, ""), 10) || 0;
+                          return numA - numB;
+                        }),
+                      ...operatingRooms.filter(
+                        (room) => room.room_name === "-"
+                      ),
+                    ].map((room) => (
                       <Option
                         key={room.operating_room_id}
                         value={room.operating_room_id}
@@ -804,26 +794,34 @@ function AddCase() {
                   }
                   name="surgery_start_time"
                   rules={[
-                    { required: true, message: "Please pick a start time!" },
+                    { required: true, message: "กรุณาเลือกเวลาเริ่มผ่าตัด!" },
                   ]}
                 >
                   <DatePicker
                     showTime={{
                       format: "HH:mm",
+                      defaultValue: dayjs("00:00", "HH:mm"),
                     }}
-                    format="YYYY-MM-DD HH:mm"
+                    format="YYYY/MM/DD HH:mm"
                     value={
                       surgeryData.surgery_start_time
                         ? dayjs(
                             surgeryData.surgery_start_time,
-                            "YYYY-MM-DD HH:mm"
+                            "YYYY/MM/DD HH:mm"
                           )
                         : null
                     }
-                    onChange={(date, dateString) =>
-                      handleSurgeryDataChange("surgery_start_time", dateString)
-                    }
+                    onChange={(date) => {
+                      if (date) {
+                        handleSurgeryDataChange(
+                          "surgery_start_time",
+                          date.format("YYYY/MM/DD HH:mm")
+                        );
+                      }
+                    }}
                     className="h-11 text-base rounded-lg w-full"
+                    inputReadOnly
+                    needConfirm={false}
                   />
                 </Form.Item>
 
@@ -835,30 +833,81 @@ function AddCase() {
                     </span>
                   }
                   name="surgery_end_time"
+                  dependencies={["surgery_start_time"]} // ให้ตรวจสอบค่าเวลาเริ่มต้น
                   rules={[
-                    { required: true, message: "Please pick an end time!" },
+                    { required: true, message: "กรุณาเลือกเวลาสิ้นสุดผ่าตัด!" },
+                    ({ getFieldValue }) => ({
+                      validator(_, value) {
+                        const startTime = getFieldValue("surgery_start_time");
+                        if (
+                          !value ||
+                          !startTime ||
+                          dayjs(value).isAfter(dayjs(startTime))
+                        ) {
+                          return Promise.resolve();
+                        }
+                        return Promise.reject(
+                          new Error("เวลาสิ้นสุดต้องมากกว่าเวลาเริ่มต้น!")
+                        );
+                      },
+                    }),
                   ]}
                 >
                   <DatePicker
-                    showTime={{
-                      format: "HH:mm",
-                    }}
-                    format="YYYY-MM-DD HH:mm"
+                    needConfirm={false}
+                    showTime={{ format: "HH:mm" }}
+                    format="YYYY/MM/DD HH:mm"
                     value={
                       surgeryData.surgery_end_time
                         ? dayjs(
                             surgeryData.surgery_end_time,
-                            "YYYY-MM-DD HH:mm"
+                            "YYYY/MM/DD HH:mm"
                           )
                         : null
                     }
                     onChange={(date, dateString) =>
                       handleSurgeryDataChange("surgery_end_time", dateString)
                     }
+                    disabledDate={(current) => {
+                      const startTime = surgeryData.surgery_start_time
+                        ? dayjs(
+                            surgeryData.surgery_start_time,
+                            "YYYY/MM/DD HH:mm"
+                          )
+                        : null;
+                      return startTime && current < startTime.startOf("day"); // ปิดวันที่อยู่ก่อนหน้า `surgery_start_time`
+                    }}
+                    disabledTime={(current) => {
+                      const startTime = surgeryData.surgery_start_time
+                        ? dayjs(
+                            surgeryData.surgery_start_time,
+                            "YYYY/MM/DD HH:mm"
+                          )
+                        : null;
+                      if (!startTime || !current) return {};
+                      if (current.isSame(startTime, "day")) {
+                        return {
+                          disabledHours: () =>
+                            Array.from(
+                              { length: startTime.hour() },
+                              (_, i) => i
+                            ),
+                          disabledMinutes: (hour) =>
+                            hour === startTime.hour()
+                              ? Array.from(
+                                  { length: startTime.minute() },
+                                  (_, i) => i
+                                )
+                              : [],
+                        };
+                      }
+                      return {};
+                    }}
                     className="h-11 text-base rounded-lg w-full"
                   />
                 </Form.Item>
               </div>
+
               <Form.Item
                 label={
                   <span className="text-base font-medium text-gray-700">

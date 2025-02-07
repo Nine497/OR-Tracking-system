@@ -38,22 +38,6 @@
   -moz-osx-font-smoothing: grayscale;
 }
 
-::-webkit-scrollbar {
-  @apply w-2 bg-transparent;
-}
-
-::-webkit-scrollbar-thumb {
-  @apply bg-blue-200 rounded-full;
-}
-
-::-webkit-scrollbar-track {
-  @apply bg-gray-100;
-}
-
-::-webkit-scrollbar-corner {
-  @apply bg-transparent;
-}
-
 a {
   font-weight: 500;
   color: #646cff;

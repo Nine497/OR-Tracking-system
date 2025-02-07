@@ -111,7 +111,6 @@ exports.updatePatient = async (req, res) => {
 
     if (
       !patientData.hn_code ||
-      !patientData.dob ||
       !patientData.firstname ||
       !patientData.lastname ||
       !patientData.gender
@@ -148,7 +147,6 @@ exports.createPatient = async (req, res) => {
 
     if (
       !patientData.hn_code ||
-      !patientData.dob ||
       !patientData.first_name ||
       !patientData.last_name
     ) {
@@ -171,7 +169,6 @@ exports.createPatient = async (req, res) => {
     const newPatient = await db("patients")
       .insert({
         hn_code: patientData.hn_code,
-        dob: patientData.dob,
         firstname: patientData.first_name,
         lastname: patientData.last_name,
         gender: patientData.gender,
@@ -371,7 +368,6 @@ exports.getPatientData = async (req, res) => {
         "patients.hn_code",
         "patients.firstname as patient_first_name",
         "patients.lastname as patient_last_name",
-        "patients.dob",
         "patients.gender",
         "doctors.prefix as doctor_prefix",
         "doctors.firstname as doctor_first_name",

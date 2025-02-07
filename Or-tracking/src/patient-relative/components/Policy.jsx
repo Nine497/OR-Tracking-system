@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import LanguageSelector from "../components/LanguageSelector";
 import { axiosInstancePatient } from "../../admin/api/axiosInstance";
 import { Checkbox } from "antd";
+
 const Policy = ({ t, handleAcceptPolicy, visible, link }) => {
   if (!visible) return null;
 
@@ -103,37 +104,49 @@ const Policy = ({ t, handleAcceptPolicy, visible, link }) => {
 
             <div className="mb-6">
               {/* Terms and Conditions Checkbox */}
-              <div className="flex items-center mb-2 px-3 py-4 border-2 border-gray-300 rounded-lg">
-                <label className="flex items-center space-x-2 cursor-pointer">
-                  <Checkbox
-                    checked={agreedTerms}
-                    onChange={handleTermsChange}
-                    className="h-5 w-5 text-blue-600 checked:bg-blue-600"
-                  />
-                  <span className="text-sm sm:text-base text-gray-600">
-                    {t("login.AGREE")}{" "}
-                    <span className="font-semibold">
-                      {t("login.TERMS_HEAD")}
-                    </span>
-                  </span>
-                </label>
+              <div
+                className={`flex items-center mb-2 px-3 py-4 border-2 border-gray-200 shadow-lg rounded-lg cursor-pointer ${
+                  agreedTerms ? "bg-blue-100 border-blue-200" : ""
+                }`}
+                onClick={(e) => {
+                  if (e.target.tagName !== "INPUT") {
+                    setAgreedTerms((prev) => !prev);
+                  }
+                }}
+              >
+                <Checkbox
+                  checked={agreedTerms}
+                  onChange={handleTermsChange}
+                  className="h-5 w-5 text-blue-600 checked:bg-blue-600"
+                />
+                <span className="text-sm sm:text-base text-gray-600">
+                  {t("login.AGREE")}{" "}
+                  <span className="font-semibold">{t("login.TERMS_HEAD")}</span>
+                </span>
               </div>
 
               {/* Privacy Policy Checkbox */}
-              <div className="flex items-center mb-2 px-3 py-4 border-2 border-gray-300 rounded-lg">
-                <label className="flex items-center space-x-2 cursor-pointer">
-                  <Checkbox
-                    checked={agreedPolicy}
-                    onChange={handlePolicyChange}
-                    className="h-5 w-5 text-blue-600"
-                  />
-                  <span className="text-sm sm:text-base text-gray-600">
-                    {t("login.AGREE")}{" "}
-                    <span className="font-semibold">
-                      {t("login.POLICY_HEAD")}
-                    </span>
+              <div
+                className={`flex items-center mb-2 px-3 py-4 border-2 border-gray-200 shadow-lg rounded-lg cursor-pointer ${
+                  agreedPolicy ? "bg-blue-100 border-blue-200" : ""
+                }`}
+                onClick={(e) => {
+                  if (e.target.tagName !== "INPUT") {
+                    setAgreedPolicy((prev) => !prev);
+                  }
+                }}
+              >
+                <Checkbox
+                  checked={agreedPolicy}
+                  onChange={handlePolicyChange}
+                  className="h-5 w-5 text-blue-600"
+                />
+                <span className="text-sm sm:text-base text-gray-600">
+                  {t("login.AGREE")}{" "}
+                  <span className="font-semibold">
+                    {t("login.POLICY_HEAD")}
                   </span>
-                </label>
+                </span>
               </div>
             </div>
 
@@ -141,7 +154,7 @@ const Policy = ({ t, handleAcceptPolicy, visible, link }) => {
               {/* Accept Button */}
               <button
                 onClick={handleAccept}
-                disabled={!agreedTerms || !agreedPolicy} // Disable if not checked
+                disabled={!agreedTerms || !agreedPolicy} // ปิดการใช้งานถ้ายังไม่ติ๊กทั้งสอง checkbox
                 className={`w-full sm:w-auto h-10 sm:h-11 px-4 sm:px-6 
                 ${
                   !agreedTerms || !agreedPolicy

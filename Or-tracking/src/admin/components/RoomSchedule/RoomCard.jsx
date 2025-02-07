@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useMemo } from "react";
-import { Card, Spin, Collapse, Drawer } from "antd";
+import { Card, Spin, Collapse } from "antd";
 import {
   ClockCircleOutlined,
   ExclamationCircleOutlined,
@@ -7,14 +7,14 @@ import {
 import { axiosInstanceStaff } from "../../api/axiosInstance";
 import dayjs from "dayjs";
 import "./RoomCard.css";
-import GanttDrawer from "./GanttDrawer";
+import GanttModal from "./GanttModal";
 
 function RoomCard({ room }) {
   const [cases, setCases] = useState([]);
   const [statuses, setStatuses] = useState([]);
   const [loading, setLoading] = useState(true);
   const { Panel } = Collapse;
-  const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+  const [isOpen, setIsOpen] = useState(false);
   const [selectedCases, setSelectedCases] = useState([]);
 
   useEffect(() => {
@@ -42,22 +42,24 @@ function RoomCard({ room }) {
     fetchRoomDetails();
   }, [room.operating_room_id]);
 
-  // กรองเคสให้ตรงกับ room_id
   const filteredCases = useMemo(
     () =>
       cases.filter((c) => c.case_operating_room_id === room.operating_room_id),
     [cases, room.operating_room_id]
   );
 
-  const handleOpenDrawer = () => {
-    setSelectedCases(filteredCases);
-    setIsDrawerOpen(true);
+  const handleCardClick = (e) => {
+    const isCollapseClick = e.target.closest(".ant-collapse");
+    if (!isCollapseClick) {
+      setSelectedCases(filteredCases);
+      setIsOpen(true);
+    }
   };
 
   return (
     <div className="max-h-[330px] min-h-[330px] w-full transform transition-all duration-300 hover:-translate-y-1">
       <Card
-        onClick={handleOpenDrawer}
+        onClick={handleCardClick}
         title={
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 sm:gap-0">
             <span className="text-lg sm:text-xl font-semibold text-white">
@@ -68,7 +70,7 @@ function RoomCard({ room }) {
             </span>
           </div>
         }
-        className="h-full hover:shadow-xl transition-shadow duration-300 bg-[#FBFBFB] border border-indigo-50"
+        className="cursor-pointer h-full hover:shadow-xl transition-shadow duration-300 bg-[#FBFBFB] border border-indigo-50"
         styles={{
           header: {
             background: "linear-gradient(135deg, #4A6CF7 0%, #3658E0 100%)",
@@ -95,6 +97,9 @@ function RoomCard({ room }) {
         ) : filteredCases.length > 0 ? (
           <div className="h-[calc(100%-16px)] bg-[#FBFBFB] border-none CollapseCustom">
             <Collapse
+              onClick={(e) => {
+                e.stopPropagation();
+              }}
               accordion
               size="small"
               className="max-h-full overflow-y-auto custom-scrollbar sm:py-2 border-none bg-transparent"
@@ -161,10 +166,12 @@ function RoomCard({ room }) {
           </div>
         )}
       </Card>
-      <GanttDrawer
-        isOpen={isDrawerOpen}
-        onClose={() => setIsDrawerOpen(false)}
+      <GanttModal
         cases={selectedCases}
+        isOpen={isOpen}
+        onClose={() => setIsOpen(false)}
+        footer={null}
+        centered
       />
     </div>
   );

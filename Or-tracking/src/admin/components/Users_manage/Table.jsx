@@ -193,7 +193,7 @@ function UsersTable() {
       key: "created_at",
       render: (text) => (
         <span className="text-base font-normal">
-          {dayjs(text).format("YYYY/MM/DD HH:mm")}
+          {dayjs(text).add(7, "hour").format("YYYY/MM/DD HH:mm")}
         </span>
       ),
     },

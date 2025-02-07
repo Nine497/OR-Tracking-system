@@ -1,27 +1,43 @@
-/* กำหนด scrollbar ของ react-big-calendar */
-.custom-scrollbar .rbc-time-content {
-  width: 8px;
-  border-radius: 8px;
-  background: rgb(165, 180, 252);
-}
-
-/* กำหนด scrollbar สำหรับ Firefox */
+/* Base scrollbar styling for Firefox */
 .custom-scrollbar {
   scrollbar-width: thin;
   scrollbar-color: rgb(165, 180, 252) rgb(243, 244, 246);
 }
 
-/* กำหนด scrollbar สำหรับ Chrome, Edge, และ Safari */
+/* Webkit (Chrome, Safari, Edge) scrollbar styling */
 .custom-scrollbar::-webkit-scrollbar {
   width: 8px;
+  border-radius: 10px;
 }
 
 .custom-scrollbar::-webkit-scrollbar-track {
   background: rgb(243, 244, 246);
-  border-radius: 8px;
+  border-radius: 10px;
 }
 
 .custom-scrollbar::-webkit-scrollbar-thumb {
   background-color: rgb(165, 180, 252);
-  border-radius: 8px;
+  border-radius: 10px;
+  border: 2px solid rgb(243, 244, 246);
+}
+
+/* Hover state for scrollbar thumb */
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background-color: rgb(129, 140, 248);
+}
+
+/* Additional styles for better scrollbar visibility */
+.custom-scrollbar {
+  padding-right: 4px; 
+}
+
+/* CollapseCustom specific styles */
+.CollapseCustom .ant-collapse {
+  max-height: 100%;
+  overflow-y: auto;
+}
+
+/* Ensure padding is consistent when scrollbar appears */
+.CollapseCustom .ant-collapse-content-box {
+  padding-right: calc(16px + 8px); /* Standard padding + scrollbar width */
 }

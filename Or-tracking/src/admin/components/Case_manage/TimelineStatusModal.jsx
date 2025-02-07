@@ -50,7 +50,9 @@ const TimelineStatus = ({ record }) => {
                 <div className="flex items-center text-gray-500">
                   <Icon icon="mdi:clock-outline" className="w-4 h-4 mr-2" />
                   <Text className="text-sm">
-                    {dayjs(updatedAt).format("DD/MM/YYYY, HH:mm")}
+                    {dayjs(updatedAt)
+                      .add(7, "hour")
+                      .format("DD/MM/YYYY, HH:mm")}
                   </Text>
                 </div>
                 <div className="flex items-center text-gray-500">

@@ -445,54 +445,63 @@ const LinkForm = ({ formLink, record }) => {
     fetchData();
   }, [record.surgery_case_id, user.id]);
 
-  const handleCopyLink = () => {
-    const linkUrl = `${BASE_URL}ptr?link=${record.link_id}`;
-    const pin_decrypted = record.pin_decrypted;
-    const patient_fullname = `${record.patient_firstname} ${record.patient_lastname}`;
-
-    console.log("Copy link : ", linkUrl, pin_decrypted, patient_fullname);
-
-    if (!linkUrl || !pin_decrypted) {
-      notification.warning({
-        message: "ไม่มีข้อมูลให้คัดลอก กรุณาสร้างลิงก์และ PIN ก่อน",
-        showProgress: true,
-        placement: "topRight",
-        pauseOnHover: true,
-        duration: 2,
-      });
-      return;
-    }
-
-    const textToCopy = `คุณ ${patient_fullname}\nURL: ${linkUrl}\nPIN: ${pin_decrypted}`;
-
-    const textArea = document.createElement("textarea");
-    textArea.value = textToCopy;
-    textArea.style.position = "fixed";
-    textArea.style.left = "-9999px";
-    document.body.appendChild(textArea);
-
+  const handleCopyLink = async () => {
     try {
-      textArea.select();
-      document.execCommand("copy");
+      const response = await axiosInstanceStaff.get(
+        `link_cases/getLast/${record.surgery_case_id}`
+      );
 
-      notification.success({
-        message: "ลิงก์และ PIN ได้ถูกคัดลอกไปยังคลิปบอร์ดของคุณแล้ว",
-        showProgress: true,
-        placement: "topRight",
-        pauseOnHover: true,
-        duration: 2,
-      });
-    } catch (err) {
-      notification.error({
-        message: "ไม่สามารถคัดลอกข้อมูลได้ กรุณาคัดลอกด้วยตนเอง",
-        showProgress: true,
-        placement: "topRight",
-        pauseOnHover: true,
-        duration: 2,
-      });
-      console.error("Copy Error:", err);
-    } finally {
-      document.body.removeChild(textArea);
+      const data = response.data;
+      const linkUrl = `${BASE_URL}ptr?link=${data.link_id}`;
+      const pin_decrypted = data.pin_decrypted;
+      const patient_fullname = `${data.patient_firstname} ${data.patient_lastname}`;
+
+      console.log("Copy link : ", linkUrl, pin_decrypted, patient_fullname);
+
+      if (!linkUrl || !pin_decrypted) {
+        notification.warning({
+          message: "ไม่มีข้อมูลให้คัดลอก กรุณาสร้างลิงก์และ PIN ก่อน",
+          showProgress: true,
+          placement: "topRight",
+          pauseOnHover: true,
+          duration: 2,
+        });
+        return;
+      }
+
+      const textToCopy = `คุณ ${patient_fullname}\nURL: ${linkUrl}\nPIN: ${pin_decrypted}`;
+
+      const textArea = document.createElement("textarea");
+      textArea.value = textToCopy;
+      textArea.style.position = "fixed";
+      textArea.style.left = "-9999px";
+      document.body.appendChild(textArea);
+
+      try {
+        textArea.select();
+        document.execCommand("copy");
+
+        notification.success({
+          message: "ลิงก์และ PIN ได้ถูกคัดลอกไปยังคลิปบอร์ดของคุณแล้ว",
+          showProgress: true,
+          placement: "topRight",
+          pauseOnHover: true,
+          duration: 2,
+        });
+      } catch (err) {
+        notification.error({
+          message: "ไม่สามารถคัดลอกข้อมูลได้ กรุณาคัดลอกด้วยตนเอง",
+          showProgress: true,
+          placement: "topRight",
+          pauseOnHover: true,
+          duration: 2,
+        });
+        console.error("Copy Error:", err);
+      } finally {
+        document.body.removeChild(textArea);
+      }
+    } catch (error) {
+      console.error("เกิดข้อผิดพลาดในการดึงลิงก์:", error);
     }
   };
 

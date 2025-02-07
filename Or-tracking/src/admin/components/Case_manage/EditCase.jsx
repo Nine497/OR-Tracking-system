@@ -97,21 +97,7 @@ function EditCase() {
           patient_firstname: surgeryCase.patient_firstname || "",
           patient_lastname: surgeryCase.patient_lastname || "",
           patient_gender: surgeryCase.patient_gender || "",
-          patient_dob_year: "",
-          patient_dob_month: "",
-          patient_dob_day: "",
         };
-
-        if (
-          surgeryCase.patient_dob &&
-          dayjs(surgeryCase.patient_dob).isValid()
-        ) {
-          const formattedDob = dayjs(surgeryCase.patient_dob);
-
-          transformedPatientData.patient_dob_year = formattedDob.format("YYYY");
-          transformedPatientData.patient_dob_month = formattedDob.format("MM");
-          transformedPatientData.patient_dob_day = formattedDob.format("DD");
-        }
 
         console.log("Transformed surgeryData:", transformedSurgeryData);
         console.log("Transformed patientData:", transformedPatientData);
@@ -242,7 +228,6 @@ function EditCase() {
     try {
       const patientDataToSend = {
         hn_code: patientData.patient_hn_code,
-        dob: dayjs(patientData.patient_dob).format("YYYY-MM-DD"),
         firstname: patientData.patient_firstname,
         lastname: patientData.patient_lastname,
         gender: patientData.patient_gender,
@@ -423,10 +408,6 @@ function EditCase() {
       if (response.data.success) {
         const patientInfo = response.data.data;
 
-        const formattedDob = patientInfo?.dob
-          ? dayjs(patientInfo.dob).format("YYYY-MM-DD")
-          : null;
-
         console.log("patientInfo", patientInfo);
 
         const updatedPatientData = {
@@ -435,7 +416,6 @@ function EditCase() {
           patient_firstname: patientInfo.firstname || "",
           patient_lastname: patientInfo.lastname || "",
           patient_gender: patientInfo.gender || null,
-          patient_dob: formattedDob,
         };
 
         setPatientData(updatedPatientData);
@@ -460,7 +440,6 @@ function EditCase() {
         patient_firstname: "",
         patient_lastname: "",
         patient_gender: null,
-        patient_dob: null,
       };
 
       setPatientData(updatedPatientData);
@@ -477,34 +456,6 @@ function EditCase() {
     } finally {
       setSearchIsLoading(false);
     }
-  };
-
-  const getFormattedDob = () => {
-    const { patient_dob_year, patient_dob_month, patient_dob_day } =
-      patientDobData;
-    if (patient_dob_year && patient_dob_month && patient_dob_day) {
-      return `${patient_dob_year}-${patient_dob_month.padStart(
-        2,
-        "0"
-      )}-${patient_dob_day.padStart(2, "0")}`;
-    }
-    return "";
-  };
-
-  const handlePatientDobChange = (field, value) => {
-    setPatientDobData((prevData) => ({
-      ...prevData,
-      [field]: value,
-    }));
-
-    form.setFieldsValue({
-      [field]: value,
-    });
-  };
-
-  const updateDobInPatientData = () => {
-    const formattedDob = getFormattedDob();
-    handlePatientDataChange("patient_dob", formattedDob);
   };
 
   return (
@@ -842,15 +793,21 @@ function EditCase() {
                           loading={doctorsLoading}
                           placeholder="Select a doctor"
                         >
-                          {doctors.map((doctor) => (
-                            <Option
-                              key={doctor.doctor_id}
-                              value={doctor.doctor_id}
-                            >
-                              {doctor.prefix} {doctor.firstname}{" "}
-                              {doctor.lastname}
-                            </Option>
-                          ))}
+                          {doctors
+                            .sort((a, b) =>
+                              a.firstname.localeCompare(b.firstname, "th", {
+                                sensitivity: "base",
+                              })
+                            )
+                            .map((doctor) => (
+                              <Option
+                                key={doctor.doctor_id}
+                                value={doctor.doctor_id}
+                              >
+                                {doctor.prefix}
+                                {doctor.firstname} {doctor.lastname}
+                              </Option>
+                            ))}
                         </Select>
                       </Form.Item>
                       <Form.Item
@@ -907,23 +864,29 @@ function EditCase() {
                           loading={surgeryTypesLoading}
                           optionLabelProp="label"
                         >
-                          {surgeryTypes.map((type) => (
-                            <Option
-                              key={type.surgery_type_id}
-                              value={type.surgery_type_id}
-                              label={type.surgery_type_name}
-                            >
-                              <div>
-                                <span className="font-medium">
-                                  {type.surgery_type_name}
-                                </span>
-                                <br />
-                                <span className="text-gray-500 text-sm">
-                                  {type.description}
-                                </span>
-                              </div>
-                            </Option>
-                          ))}
+                          {surgeryTypes
+                            .sort((a, b) =>
+                              a.surgery_type_name.localeCompare(
+                                b.surgery_type_name
+                              )
+                            )
+                            .map((type) => (
+                              <Option
+                                key={type.surgery_type_id}
+                                value={type.surgery_type_id}
+                                label={type.surgery_type_name}
+                              >
+                                <div>
+                                  <span className="font-medium">
+                                    {type.surgery_type_name}
+                                  </span>
+                                  <br />
+                                  <span className="text-gray-500 text-sm">
+                                    {type.description}
+                                  </span>
+                                </div>
+                              </Option>
+                            ))}
                         </Select>
                       </Form.Item>
 
@@ -951,7 +914,26 @@ function EditCase() {
                           loading={operatingRoomsLoading}
                           placeholder="Select an OR-Room"
                         >
-                          {operatingRooms.map((room) => (
+                          {[
+                            ...operatingRooms
+                              .filter((room) => room.room_name !== "-")
+                              .sort((a, b) => {
+                                const numA =
+                                  parseInt(
+                                    a.room_name.replace(/\D/g, ""),
+                                    10
+                                  ) || 0;
+                                const numB =
+                                  parseInt(
+                                    b.room_name.replace(/\D/g, ""),
+                                    10
+                                  ) || 0;
+                                return numA - numB;
+                              }),
+                            ...operatingRooms.filter(
+                              (room) => room.room_name === "-"
+                            ),
+                          ].map((room) => (
                             <Option
                               key={room.operating_room_id}
                               value={room.operating_room_id}

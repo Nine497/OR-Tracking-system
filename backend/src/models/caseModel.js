@@ -17,7 +17,6 @@ const SurgeryCase = {
         "patients.lastname as patient_lastname",
         "patients.hn_code as patient_hn_code",
         "patients.gender as patient_gender",
-        "patients.dob as patient_dob",
         "operation.operation_id",
         "operation.operation_name"
       )
@@ -97,8 +96,8 @@ const SurgeryCase = {
         "surgery_case.surgery_type_id",
         "surgery_type.surgery_type_id"
       )
-      .where("surgery_case.operating_room_id", operating_room_id);
-    // .whereRaw("DATE(surgery_case.surgery_start_time) = CURRENT_DATE");
+      .where("surgery_case.operating_room_id", operating_room_id)
+      .whereRaw("DATE(surgery_case.surgery_start_time) = CURRENT_DATE");
   },
 
   // เพิ่มกรณีการผ่าตัดใหม่
