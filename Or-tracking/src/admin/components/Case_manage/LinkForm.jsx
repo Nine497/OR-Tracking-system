@@ -271,7 +271,6 @@ const ActiveLinkComponent = ({
         isActive={true}
         record={record}
       />
-
       <div className="bg-gray-50 rounded-lg p-4 space-y-4">
         <div className="flex items-center justify-between">
           <Typography.Title level={5} className="!m-0">
@@ -435,6 +434,7 @@ const LinkForm = ({ formLink, record }) => {
   const [loading, setLoading] = useState(false);
   const [isModalVisible, setIsModalVisible] = useState(false);
   const BASE_URL = import.meta.env.VITE_BASE_URL;
+
   useEffect(() => {
     console.log("linkData", linkData);
   }, [linkData]);
@@ -446,62 +446,50 @@ const LinkForm = ({ formLink, record }) => {
   }, [record.surgery_case_id, user.id]);
 
   const handleCopyLink = async () => {
+    const linkUrl = `${BASE_URL}ptr?link=${linkData.surgery_case_links_id}`;
+    const pin_decrypted = linkData.pin;
+    const patient_fullname = `${linkData.patient_firstname} ${linkData.patient_lastname}`;
+    if (!linkUrl || !pin_decrypted) {
+      notification.warning({
+        message: "ไม่มีข้อมูลให้คัดลอก กรุณาสร้างลิงก์และ PIN ก่อน",
+        showProgress: true,
+        placement: "topRight",
+        pauseOnHover: true,
+        duration: 2,
+      });
+      return;
+    }
+
+    const textToCopy = `คุณ ${patient_fullname}\nURL: ${linkUrl}\nPIN: ${pin_decrypted}`;
+
+    const textArea = document.createElement("textarea");
+    textArea.value = textToCopy;
+    textArea.style.position = "fixed";
+    textArea.style.left = "-9999px";
+    document.body.appendChild(textArea);
+
     try {
-      const response = await axiosInstanceStaff.get(
-        `link_cases/getLast/${record.surgery_case_id}`
-      );
+      textArea.select();
+      document.execCommand("copy");
 
-      const data = response.data;
-      const linkUrl = `${BASE_URL}ptr?link=${data.link_id}`;
-      const pin_decrypted = data.pin_decrypted;
-      const patient_fullname = `${data.patient_firstname} ${data.patient_lastname}`;
-
-      console.log("Copy link : ", linkUrl, pin_decrypted, patient_fullname);
-
-      if (!linkUrl || !pin_decrypted) {
-        notification.warning({
-          message: "ไม่มีข้อมูลให้คัดลอก กรุณาสร้างลิงก์และ PIN ก่อน",
-          showProgress: true,
-          placement: "topRight",
-          pauseOnHover: true,
-          duration: 2,
-        });
-        return;
-      }
-
-      const textToCopy = `คุณ ${patient_fullname}\nURL: ${linkUrl}\nPIN: ${pin_decrypted}`;
-
-      const textArea = document.createElement("textarea");
-      textArea.value = textToCopy;
-      textArea.style.position = "fixed";
-      textArea.style.left = "-9999px";
-      document.body.appendChild(textArea);
-
-      try {
-        textArea.select();
-        document.execCommand("copy");
-
-        notification.success({
-          message: "ลิงก์และ PIN ได้ถูกคัดลอกไปยังคลิปบอร์ดของคุณแล้ว",
-          showProgress: true,
-          placement: "topRight",
-          pauseOnHover: true,
-          duration: 2,
-        });
-      } catch (err) {
-        notification.error({
-          message: "ไม่สามารถคัดลอกข้อมูลได้ กรุณาคัดลอกด้วยตนเอง",
-          showProgress: true,
-          placement: "topRight",
-          pauseOnHover: true,
-          duration: 2,
-        });
-        console.error("Copy Error:", err);
-      } finally {
-        document.body.removeChild(textArea);
-      }
-    } catch (error) {
-      console.error("เกิดข้อผิดพลาดในการดึงลิงก์:", error);
+      notification.success({
+        message: "ลิงก์และ PIN ได้ถูกคัดลอกไปยังคลิปบอร์ดของคุณแล้ว",
+        showProgress: true,
+        placement: "topRight",
+        pauseOnHover: true,
+        duration: 2,
+      });
+    } catch (err) {
+      notification.error({
+        message: "ไม่สามารถคัดลอกข้อมูลได้ กรุณาคัดลอกด้วยตนเอง",
+        showProgress: true,
+        placement: "topRight",
+        pauseOnHover: true,
+        duration: 2,
+      });
+      console.error("Copy Error:", err);
+    } finally {
+      document.body.removeChild(textArea);
     }
   };
 
@@ -551,6 +539,8 @@ const LinkForm = ({ formLink, record }) => {
     try {
       const response = await axiosInstanceStaff.post("/link_cases/", linkData);
       if (response.data) {
+        console.log("Return response.data", response.data);
+
         setLinkData(response.data);
         notification.success({
           message: "ลิงก์ใหม่ถูกสร้างสำเร็จเรียบร้อยแล้ว",

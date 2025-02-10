@@ -8,17 +8,25 @@ div._34SS0 > div:nth-child(3) {
   display: none !important;
 }
 
+div._2k9Ys {
+  display: none;
+}
+
 div._1nBOt {
   display: flex;
   flex-direction: row;
   align-items: center;
-  justify-content: center; /* จัดให้อยู่ตรงกลางแนวตั้ง */
+  justify-content: center;
   height: 78px !important;
   min-height: unset !important;
-  position: relative; /* ใช้ช่วยจัดให้อยู่ตรงกลาง */
+  position: relative;
 }
 
 /* GanttDrawer.css */
 .gantt-container .task-list-item[data-id="dummy"] {
   display: none !important;
+}
+
+.ant-modal-content {
+  height: 95vh;
 }

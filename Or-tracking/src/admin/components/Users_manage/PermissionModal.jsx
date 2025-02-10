@@ -153,16 +153,8 @@ function PermissionModal({ visible, staff, onClose }) {
             valuePropName="value"
             initialValue={staffPermissions.map((p) => p.permission_id)}
           >
-            <div className="flex flex-col gap-6 items-end">
-              <Checkbox
-                checked={isFullAccessChecked}
-                onChange={handleFullAccessChange}
-                className="max-w-max flex items-center p-3 border rounded-lg hover:bg-blue-50 transition-colors text-base"
-              >
-                เลือกทั้งหมด
-              </Checkbox>
-
-              <div className="grid grid-cols-2 gap-6">
+            <div className="flex flex-col gap-6 items-end select-none">
+              <div className="grid grid-cols-2 gap-6 ">
                 {allPermissions.map((item) => (
                   <CustomCheckbox
                     key={item.permission_id}
@@ -174,6 +166,15 @@ function PermissionModal({ visible, staff, onClose }) {
                   />
                 ))}
               </div>
+              <Checkbox
+                checked={isFullAccessChecked}
+                onChange={handleFullAccessChange}
+                className={`min-w-full flex items-center p-3 border rounded-lg transition-colors text-base ${
+                  isFullAccessChecked ? "bg-blue-100" : "hover:bg-blue-50"
+                }`}
+              >
+                เลือกทั้งหมด
+              </Checkbox>
             </div>
           </Form.Item>
 
@@ -205,10 +206,12 @@ const CustomCheckbox = memo(({ value, label, staff, onChange, des }) => {
 
   return (
     <div
-      className="flex flex-col cursor-pointer p-3 border rounded-lg"
+      className={`flex flex-col cursor-pointer p-3 hover:bg-blue-50 border rounded-lg ${
+        isChecked ? "bg-blue-100" : ""
+      }`}
       onClick={handleClick}
     >
-      <div className="flex items-center space-x-2">
+      <div className="flex items-center space-x-2 ">
         <Checkbox checked={isChecked} className="w-4 h-4" />
         <span className="text-base font-medium text-gray-700 ml-2">
           {label}

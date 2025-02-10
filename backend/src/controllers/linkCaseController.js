@@ -61,7 +61,6 @@ const linkCaseController = {
 
       const isactive = true;
 
-      // ข้อมูลที่จะบันทึกลงในฐานข้อมูล
       const linkCaseData = {
         surgery_case_links_id: cleanHash,
         surgery_case_id,
@@ -153,7 +152,6 @@ const linkCaseController = {
         if (data.pin_encrypted) {
           console.log("Encrypted PIN:", data.pin_encrypted);
 
-          // ตรวจสอบว่าคีย์และ IV มีความยาวถูกต้อง
           const key = Buffer.from(process.env.SECRET_KEY, "hex");
           const iv = Buffer.from(process.env.IV, "hex");
 

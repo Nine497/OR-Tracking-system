@@ -3,7 +3,9 @@ const db = require("../config/database");
 const OperatingRoom = {
   getAll: async () => {
     try {
-      return await db("operating_room").select("*");
+      return await db("operating_room")
+        .select("*")
+        .orderByRaw("CAST(SUBSTRING(room_name FROM '[0-9]+$') AS INTEGER) ASC");
     } catch (error) {
       throw error;
     }

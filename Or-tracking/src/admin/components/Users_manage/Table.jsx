@@ -1,14 +1,19 @@
 import React, { useState, useEffect } from "react";
-import { Input, Table, Tooltip, Switch, notification } from "antd";
+import { Input, Table, Switch, notification } from "antd";
 import { Icon } from "@iconify/react";
 import { axiosInstanceStaff } from "../../api/axiosInstance";
 import { Spin } from "antd";
 import PermissionModal from "./PermissionModal";
 import { Button } from "antd";
-import dayjs from "dayjs";
 import { useAuth } from "../../context/AuthContext";
+import dayjs from "dayjs";
+import utc from "dayjs/plugin/utc";
+import timezone from "dayjs/plugin/timezone";
 
-function UsersTable() {
+dayjs.extend(utc);
+dayjs.extend(timezone);
+
+function UsersTable({ refreshKey }) {
   const [filteredData, setFilteredData] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [loading, setLoading] = useState(false);
@@ -141,7 +146,7 @@ function UsersTable() {
     };
 
     fetchData();
-  }, [pagination.current, searchTerm, reloadTrigger]);
+  }, [pagination.current, searchTerm, reloadTrigger, refreshKey]);
 
   useEffect(() => {
     console.log("filteredData : ", filteredData);
@@ -193,7 +198,7 @@ function UsersTable() {
       key: "created_at",
       render: (text) => (
         <span className="text-base font-normal">
-          {dayjs(text).add(7, "hour").format("YYYY/MM/DD HH:mm")}
+          {dayjs(text).tz("Asia/Bangkok").format("YYYY/MM/DD HH:mm")}
         </span>
       ),
     },
@@ -209,39 +214,29 @@ function UsersTable() {
 
         return (
           <div className="flex flex-between items-center space-x-4">
-            <Tooltip title="จัดการสิทธิ์การเข้าถึง">
-              <div>
-                <Button
-                  type="primary"
-                  icon={
-                    <Icon
-                      icon="weui:setting-filled"
-                      className="mr-1 w-4 h-4 text-white"
-                    />
-                  }
-                  onClick={() => handlePermission(record)}
-                  className="w-full sm:w-auto"
-                >
-                  <span className="font-medium text-base">จัดการสิทธิ์</span>
-                </Button>
-              </div>
-            </Tooltip>
+            <div>
+              <Button
+                type="primary"
+                icon={
+                  <Icon
+                    icon="weui:setting-filled"
+                    className="mr-1 w-4 h-4 text-white"
+                  />
+                }
+                onClick={() => handlePermission(record)}
+                className="w-full sm:w-auto"
+              >
+                <span className="font-medium text-base">จัดการสิทธิ์</span>
+              </Button>
+            </div>
 
             <div className="flex items-center space-x-2 bg-gray-100 px-3 py-1 rounded-lg">
-              <Tooltip
-                title={
-                  record.isActive
-                    ? "คลิกเพื่อปิดใช้งานบัญชี"
-                    : "คลิกเพื่อเปิดใช้งานบัญชี"
-                }
-              >
-                <Switch
-                  size="small"
-                  className="bg-gray-300"
-                  checked={record.isActive}
-                  onChange={(checked) => handleActiveToggle(record, checked)}
-                />
-              </Tooltip>
+              <Switch
+                size="small"
+                className="bg-gray-300"
+                checked={record.isActive}
+                onChange={(checked) => handleActiveToggle(record, checked)}
+              />
               <span className="font-medium text-base text-gray-700">
                 เปิดใช้งานบัญชี
               </span>

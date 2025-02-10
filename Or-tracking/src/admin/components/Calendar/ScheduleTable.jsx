@@ -3,6 +3,8 @@ import { Table, Badge, DatePicker } from "antd";
 import dayjs from "dayjs";
 import isBetween from "dayjs/plugin/isBetween";
 dayjs.extend(isBetween);
+import timezone from "dayjs/plugin/timezone";
+dayjs.extend(timezone);
 
 const { RangePicker } = DatePicker;
 
@@ -13,7 +15,10 @@ function ScheduleTable({ events }) {
   useEffect(() => {
     if (dateRange[0] && dateRange[1]) {
       const filtered = events.filter((event) => {
-        const surgeryDate = dayjs(event.surgery_start_time);
+        const surgeryDate = dayjs(event.surgery_start_time).tz(
+          "Asia/Bangkok",
+          true
+        );
         return surgeryDate.isBetween(dateRange[0], dateRange[1], "day", "[]");
       });
       setFilteredEvents(filtered);
@@ -51,8 +56,13 @@ function ScheduleTable({ events }) {
       key: "surgery_time",
       render: (text, record) => (
         <span className="font-normal">
-          {dayjs(record.surgery_start_time).format("HH:mm")} -{" "}
-          {dayjs(record.surgery_end_time).format("HH:mm")}
+          {dayjs(record.surgery_start_time)
+            .tz("Asia/Bangkok", true)
+            .format("HH:mm")}{" "}
+          -{" "}
+          {dayjs(record.surgery_end_time)
+            .tz("Asia/Bangkok", true)
+            .format("HH:mm")}
         </span>
       ),
     },

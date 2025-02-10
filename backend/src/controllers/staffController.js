@@ -1,6 +1,11 @@
 const Staff = require("../models/staffModel");
 const bcrypt = require("bcrypt");
 const db = require("../config/database");
+const dayjs = require("dayjs");
+const utc = require("dayjs/plugin/utc");
+const timezone = require("dayjs/plugin/timezone");
+dayjs.extend(utc);
+dayjs.extend(timezone);
 
 // Search & getAllStaff Staff table
 exports.getAllStaff = async (req, res) => {
@@ -28,7 +33,7 @@ exports.getAllStaff = async (req, res) => {
         .orWhereRaw('LOWER("username") LIKE ?', [lowerSearch])
         .orWhereRaw('LOWER("firstname") LIKE ?', [lowerSearch])
         .orWhereRaw('LOWER("lastname") LIKE ?', [lowerSearch])
-        .orderBy("staff_id", "asc")
+        .orderBy("created_at", "desc")
         .limit(Number(limit))
         .offset(offset);
     } else {
@@ -37,7 +42,7 @@ exports.getAllStaff = async (req, res) => {
 
       staff = await db("staff")
         .select("*")
-        .orderBy("staff_id", "asc")
+        .orderBy("created_at", "desc")
         .limit(Number(limit))
         .offset(offset);
     }
@@ -84,7 +89,7 @@ exports.createStaff = async (req, res) => {
       firstname,
       lastname,
       isActive,
-      created_at: new Date().toISOString(),
+      created_at: dayjs().tz("Asia/Bangkok").format(),
       created_by,
     });
 

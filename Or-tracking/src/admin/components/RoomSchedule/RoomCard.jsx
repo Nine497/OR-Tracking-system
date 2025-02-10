@@ -8,6 +8,7 @@ import { axiosInstanceStaff } from "../../api/axiosInstance";
 import dayjs from "dayjs";
 import "./RoomCard.css";
 import GanttModal from "./GanttModal";
+import { Icon } from "@iconify/react";
 
 function RoomCard({ room }) {
   const [cases, setCases] = useState([]);
@@ -29,6 +30,7 @@ function RoomCard({ room }) {
         );
 
         if (casesResponse.status === 200 && statusResponse.status === 200) {
+          console.log(casesResponse.data);
           setCases(casesResponse.data);
           setStatuses(statusResponse.data);
         }
@@ -57,20 +59,37 @@ function RoomCard({ room }) {
   };
 
   return (
-    <div className="max-h-[330px] min-h-[330px] w-full transform transition-all duration-300 hover:-translate-y-1">
+    <div className="max-h-[330px] min-h-[330px] w-full">
       <Card
-        onClick={handleCardClick}
         title={
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 sm:gap-0">
             <span className="text-lg sm:text-xl font-semibold text-white">
               {room.room_name}
             </span>
-            <span className="text-xs sm:text-sm font-medium text-gray-50 bg-indigo-400/80 px-2.5 py-1 rounded-full">
-              {filteredCases.length} เคส
-            </span>
+            <div className="flex items-center gap-2">
+              <div
+                className="cursor-pointer inline-flex items-center gap-2 
+                 bg-white hover:bg-slate-300
+                 px-3 py-0.5 rounded-lg
+                 transform transition-all duration-200 hover:shadow-md
+                 group"
+                onClick={handleCardClick}
+              >
+                <Icon
+                  icon="mdi:chart-gantt"
+                  className="text-indigo-500 text-xl"
+                />
+                <p className="text-indigo-500 tracking-wide text-base">
+                  Grantt
+                </p>
+              </div>
+              <span className="select-none text-xs sm:text-sm font-medium text-gray-50 bg-indigo-400/80 px-2.5 py-1 rounded-full">
+                {filteredCases.length} เคส
+              </span>
+            </div>
           </div>
         }
-        className="cursor-pointer h-full hover:shadow-xl transition-shadow duration-300 bg-[#FBFBFB] border border-indigo-50"
+        className="h-full hover:shadow-xl transition-shadow duration-300 bg-[#FBFBFB] border border-indigo-50"
         styles={{
           header: {
             background: "linear-gradient(135deg, #4A6CF7 0%, #3658E0 100%)",
@@ -123,7 +142,9 @@ function RoomCard({ room }) {
                             <ClockCircleOutlined className="text-indigo-500 text-xs" />
                           </div>
                           <span className="text-xs sm:text-sm text-gray-600 font-medium">
-                            {dayjs(c.surgery_start_time).format("HH:mm")}
+                            {dayjs(c.surgery_start_time)
+                              .tz("Asia/Bangkok", true)
+                              .format("HH:mm")}
                           </span>
                         </div>
                       </div>
@@ -148,7 +169,7 @@ function RoomCard({ room }) {
                               ? c.surgery_type_name
                               : key === "operation_name"
                               ? c.operation_name
-                              : c.status_name}
+                              : c.status_th}
                           </span>
                         </div>
                       ))}

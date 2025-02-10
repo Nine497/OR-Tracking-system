@@ -3,6 +3,8 @@ import { Calendar, Skeleton } from "antd";
 import "./CalendarSchedule.css";
 import dayjs from "dayjs";
 import { Icon } from "@iconify/react";
+import timezone from "dayjs/plugin/timezone";
+dayjs.extend(timezone);
 
 function CalendarSchedule({ events }) {
   const dateCellRender = (value) => {
@@ -10,7 +12,9 @@ function CalendarSchedule({ events }) {
     const filteredEvents = Array.isArray(events)
       ? events.filter(
           (event) =>
-            dayjs(event.surgery_start_time).format("YYYY-MM-DD") === dateStr
+            dayjs(event.surgery_start_time)
+              .tz("Asia/Bangkok", true)
+              .format("YYYY-MM-DD") === dateStr
         )
       : [];
 

@@ -51,6 +51,15 @@ exports.newSurgerycaseFromAPI = async (req, res) => {
             data.op_set_id
           );
           let surgeryCaseId;
+          const surgeryStartTimeUTC = dayjs(data.op_datetime)
+            .tz("Asia/Bangkok", true)
+            .utc()
+            .format("YYYY-MM-DD HH:mm:ss");
+
+          const surgeryEndTimeUTC = dayjs(data.estimate_finish)
+            .tz("Asia/Bangkok", true)
+            .utc()
+            .format("YYYY-MM-DD HH:mm:ss");
 
           if (existingSurgeryCase) {
             await SurgeryCase.updateSurgeryCase(
@@ -64,8 +73,8 @@ exports.newSurgerycaseFromAPI = async (req, res) => {
                 created_by: data?.created_by || 1,
                 created_at: data.set_datetime,
                 note: data.note,
-                surgery_start_time: data.op_datetime,
-                surgery_end_time: data.estimate_finish,
+                surgery_start_time: surgeryStartTimeUTC,
+                surgery_end_time: surgeryEndTimeUTC,
               }
             );
 
@@ -81,8 +90,8 @@ exports.newSurgerycaseFromAPI = async (req, res) => {
               created_by: data?.created_by || 1,
               created_at: data.set_datetime,
               note: data.note,
-              surgery_start_time: data.op_datetime,
-              surgery_end_time: data.estimate_finish,
+              surgery_start_time: surgeryStartTimeUTC,
+              surgery_end_time: surgeryEndTimeUTC,
             });
 
             await db("surgery_case_status_history").insert({
@@ -161,10 +170,12 @@ exports.createSurgeryCase = async (req, res) => {
 
     const surgeryStartTime = dayjs(surgeryCaseData.surgery_start_time)
       .tz("Asia/Bangkok", true)
+      .utc()
       .format("YYYY-MM-DD HH:mm:ss");
 
     const surgeryEndTime = dayjs(surgeryCaseData.surgery_end_time)
       .tz("Asia/Bangkok", true)
+      .utc()
       .format("YYYY-MM-DD HH:mm:ss");
 
     if (dayjs(surgeryEndTime).isBefore(surgeryStartTime)) {
@@ -210,7 +221,7 @@ exports.createSurgeryCase = async (req, res) => {
         status_id: 0,
         created_by: surgeryCaseData.created_by,
         patient_id: parsedPatientId,
-        created_at: dayjs().format("YYYY-MM-DD HH:mm:ss"),
+        created_at: dayjs().utc().format("YYYY-MM-DD HH:mm:ss"),
         patient_history: surgeryCaseData.patient_history || "",
       })
       .returning("*");
@@ -231,7 +242,10 @@ exports.createSurgeryCase = async (req, res) => {
     await db("surgery_case_status_history").insert({
       surgery_case_id: surgeryCaseId,
       status_id: 0,
-      updated_at: dayjs().toISOString(),
+      updated_at: dayjs()
+        .tz("Asia/Bangkok", true)
+        .utc()
+        .format("YYYY-MM-DD HH:mm:ss"),
       updated_by: surgeryCaseData.created_by,
     });
 
@@ -466,7 +480,7 @@ exports.getCaseWithPatientById = async (req, res) => {
     if (!caseData) {
       return res.status(404).json({ message: "Surgery case not found" });
     }
-
+    console.log("caseData : ", caseData);
     res.status(200).json({
       message: "Surgery case and patient details fetched successfully",
       data: caseData,
@@ -654,31 +668,6 @@ exports.getCaseById = async (req, res) => {
   }
 };
 
-// ฟังก์ชันสำหรับอัปเดตข้อมูลกรณีการผ่าตัด
-// exports.updateSurgeryCase = async (req, res) => {
-//   const { id } = req.params;
-//   const surgeryCaseData = req.body;
-//   try {
-//     const updatedSurgeryCase = await SurgeryCase.update(id, surgeryCaseData);
-//     if (!updatedSurgeryCase) {
-//       return res.status(404).json({
-//         message: "Surgery case not found",
-//       });
-//     }
-//     res.status(200).json({
-//       message: "Surgery case updated successfully",
-//       data: updatedSurgeryCase,
-//     });
-//   } catch (err) {
-//     console.error(err);
-//     res.status(500).json({
-//       message: "Server error",
-//       error: err.message,
-//     });
-//   }
-// };
-
-// ฟังก์ชันสำหรับอัปเดตสถานะของกรณีการผ่าตัดตาม ID
 exports.updateStatusById = async (req, res) => {
   const { status_id, updatedBy } = req.body;
   const { id } = req.params;
@@ -702,7 +691,10 @@ exports.updateStatusById = async (req, res) => {
       await trx("surgery_case_status_history").insert({
         surgery_case_id: id,
         status_id,
-        updated_at: new Date(),
+        updated_at: dayjs()
+          .utc()
+          .subtract(7, "hour")
+          .format("YYYY-MM-DD HH:mm:ss"),
         updated_by: updatedBy,
       });
     });

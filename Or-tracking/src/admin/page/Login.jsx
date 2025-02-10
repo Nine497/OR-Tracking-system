@@ -99,7 +99,7 @@ const Login = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex">
       {/* Left side - Image */}
-      <div className="hidden lg:flex lg:w-2/3 relative overflow-hidden">
+      {/* <div className="hidden lg:flex lg:w-2/3 relative overflow-hidden">
         <div className="absolute inset-0 bg-blue-600/10 backdrop-blur-sm z-10" />
         <img
           srcSet={`${LoginImg}?w=500 500w, ${LoginImg}?w=1000 1000w, ${LoginImg}?w=1500 1500w`}
@@ -111,10 +111,10 @@ const Login = () => {
           <h2 className="text-3xl font-bold mb-2">OR-Tracking System</h2>
           <p className="text-lg opacity-90">ระบบจัดการและติดตามการผ่าตัด</p>
         </div>
-      </div>
+      </div> */}
 
       {/* Right side - Login Form */}
-      <div className="w-full lg:w-1/3 flex items-center justify-center p-8">
+      <div className="w-full flex items-center justify-center p-8">
         <div className="w-full max-w-md space-y-8">
           {/* Logo and Title */}
           <div className="text-center">
@@ -159,13 +159,13 @@ const Login = () => {
               />
             </Form.Item>
 
-            <div className="flex items-center justify-between">
+            {/* <div className="flex items-center justify-between">
               <Form.Item name="remember" valuePropName="checked">
                 <a className="text-sm text-blue-600 hover:text-blue-800">
                   ลืมรหัสผ่าน?
                 </a>
               </Form.Item>
-            </div>
+            </div> */}
 
             <Form.Item>
               <Button

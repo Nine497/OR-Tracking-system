@@ -4,7 +4,7 @@ import AddUserModal from "./AddUserModal";
 import { Button } from "antd";
 import { useAuth } from "../../context/AuthContext";
 
-function Users_Table_Header() {
+function Users_Table_Header({ refreshTable }) {
   const [isModalVisible, setIsModalVisible] = useState(false);
   const { permissions } = useAuth();
 
@@ -13,6 +13,7 @@ function Users_Table_Header() {
   };
 
   const handleCancel = () => {
+    refreshTable();
     setIsModalVisible(false);
   };
 

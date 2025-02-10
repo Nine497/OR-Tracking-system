@@ -189,14 +189,8 @@ function AddCase() {
         return;
       }
 
-      const surgeryStartTime = dayjs(surgeryData.surgery_start_time).subtract(
-        7,
-        "hour"
-      );
-      const surgeryEndTime = dayjs(surgeryData.surgery_end_time).subtract(
-        7,
-        "hour"
-      );
+      const surgeryStartTime = dayjs(surgeryData.surgery_start_time);
+      const surgeryEndTime = dayjs(surgeryData.surgery_end_time);
 
       if (surgeryStartTime.isAfter(surgeryEndTime)) {
         message.error("เวลาเริ่มผ่าตัดต้องน้อยกว่าเวลาเสร็จสิ้นการผ่าตัด");
@@ -325,9 +319,6 @@ function AddCase() {
             firstname,
             lastname,
             gender,
-            patient_dob_year: year,
-            patient_dob_month: month,
-            patient_dob_day: day,
           });
 
           form.setFieldsValue({
@@ -833,7 +824,7 @@ function AddCase() {
                     </span>
                   }
                   name="surgery_end_time"
-                  dependencies={["surgery_start_time"]} // ให้ตรวจสอบค่าเวลาเริ่มต้น
+                  dependencies={["surgery_start_time"]}
                   rules={[
                     { required: true, message: "กรุณาเลือกเวลาสิ้นสุดผ่าตัด!" },
                     ({ getFieldValue }) => ({

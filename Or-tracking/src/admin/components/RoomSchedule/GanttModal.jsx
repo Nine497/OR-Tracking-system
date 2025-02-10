@@ -6,6 +6,7 @@ import { Gantt, ViewMode } from "gantt-task-react";
 import "gantt-task-react/dist/index.css";
 import "tailwindcss/tailwind.css";
 import "./GanttModal.css";
+import { Icon } from "@iconify/react";
 
 const { Title } = Typography;
 
@@ -15,7 +16,11 @@ const GanttModal = ({ cases, isOpen, onClose }) => {
   const [totalHours, setTotalHours] = useState(0);
   const containerRef = useRef(null);
 
-  // แยกการจัดการ tasks ออกมา
+  useEffect(() => {
+    console.log("tasks", tasks);
+    console.log("cases", cases);
+  }, [tasks]);
+
   useEffect(() => {
     if (!Array.isArray(cases) || cases.length === 0) return;
 
@@ -47,23 +52,27 @@ const GanttModal = ({ cases, isOpen, onClose }) => {
         end,
         progress: 100,
         type: "task",
+        case: c,
         isDisabled: true,
         tooltip: null,
         styles: {
-          backgroundColor: "#4CAF50",
-          backgroundSelectedColor: "#388E3C",
+          backgroundColor: "#0369A1",
+          backgroundSelectedColor: "#0369A1",
+          progressColor: "#0369A1",
+          progressSelectedColor: "#0369A1",
+          barCornerRadius: 8,
+          barFill: 80,
         },
+        fontSize: "text-lg",
       };
     });
 
     setTasks(formattedCases);
   }, [cases]);
 
-  // แยกการคำนวณ columnWidth ออกมา
   useEffect(() => {
     if (!isOpen || !containerRef.current) return;
 
-    // ใช้ setTimeout เพื่อให้แน่ใจว่า Modal render เสร็จแล้ว
     const timer = setTimeout(() => {
       const calculateWidth = () => {
         if (containerRef.current) {
@@ -76,13 +85,13 @@ const GanttModal = ({ cases, isOpen, onClose }) => {
       };
 
       calculateWidth();
-      // เพิ่ม event listener สำหรับ resize
+
       window.addEventListener("resize", calculateWidth);
 
       return () => {
         window.removeEventListener("resize", calculateWidth);
       };
-    }, 100); // รอ 100ms ให้ Modal render เสร็จ
+    }, 100);
 
     return () => clearTimeout(timer);
   }, [isOpen, totalHours]);
@@ -96,24 +105,30 @@ const GanttModal = ({ cases, isOpen, onClose }) => {
       centered
       className="gantt-modal"
       closable={false}
-      bodyStyle={{ padding: 0, maxHeight: "80vh", overflow: "auto" }}
+      styles={{ padding: 0, minHeight: "80vh", overflow: "auto" }}
       title={
-        <div className="flex justify-between items-center w-full">
-          <Title level={4} className="text-indigo-700 mb-0">
+        cases?.length > 0 ? (
+          <div className="flex justify-between items-center w-full pl-2">
+            <Title level={2} className="text-indigo-700 mt-5">
+              ห้อง {cases[0]?.room_name || "ไม่ระบุ"}
+            </Title>
+            <CloseOutlined
+              onClick={onClose}
+              className="text-gray-500 hover:text-red-500 cursor-pointer text-lg"
+            />
+          </div>
+        ) : (
+          <Title level={4} className="text-indigo-700 mt-5">
             ตารางเวลาห้องผ่าตัด
           </Title>
-          <CloseOutlined
-            onClick={onClose}
-            className="text-gray-500 hover:text-red-500 cursor-pointer text-lg"
-          />
-        </div>
+        )
       }
     >
-      <div className="flex flex-col h-full bg-gray-50">
+      <div className="flex flex-col h-full bg-white">
         <div className="flex-1 py-4 px-1 overflow-auto">
           <Card
             className="h-full w-full rounded-lg shadow-sm border border-gray-200"
-            bodyStyle={{ padding: 0, height: "auto", width: "100%" }} // ปรับให้ความสูงของ Card ตามเนื้อหา
+            styles={{ padding: 0, height: "auto", width: "100%" }}
           >
             {tasks.length > 0 ? (
               <div
@@ -135,6 +150,7 @@ const GanttModal = ({ cases, isOpen, onClose }) => {
                     barFill={80}
                     preStepsCount={3}
                     locale="th"
+                    TooltipContent={Tooltip}
                   />
                 </div>
               </div>
@@ -150,6 +166,28 @@ const GanttModal = ({ cases, isOpen, onClose }) => {
         </div>
       </div>
     </Modal>
+  );
+};
+
+const Tooltip = ({ task }) => {
+  return (
+    <div className="p-2 bg-white border border-gray-300 rounded-md shadow-md text-gray-800">
+      <p className="text-sm font-semibold tracking-wide">
+        {new Date(task.start).toLocaleTimeString("th-TH", {
+          hour: "2-digit",
+          minute: "2-digit",
+        })}{" "}
+        -{" "}
+        {new Date(task.end).toLocaleTimeString("th-TH", {
+          hour: "2-digit",
+          minute: "2-digit",
+        })}
+      </p>
+      <p className="text-sm text-gray-600">
+        {task.case.doctor_prefix}
+        {task.case.doctor_firstname} {task.case.doctor_lastname}
+      </p>
+    </div>
   );
 };
 

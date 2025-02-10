@@ -84,13 +84,11 @@ function AddUserModal({ visible, onClose }) {
             >
               <Input
                 className="p-3 text-base border rounded-lg border-gray-300 focus:border-blue-400 focus:ring focus:ring-blue-200 focus:ring-opacity-50"
-                prefix={
-                  <Icon icon="lucide:user" className="mr-2 text-blue-500" />
-                }
                 placeholder="กรุณากรอกชื่อจริง"
               />
             </Form.Item>
           </Col>
+
           {/* ฟิลด์ Last Name */}
           <Col xs={24} sm={12}>
             <Form.Item
@@ -104,13 +102,11 @@ function AddUserModal({ visible, onClose }) {
             >
               <Input
                 className="p-3 text-base border rounded-lg border-gray-300 focus:border-blue-400 focus:ring focus:ring-blue-200 focus:ring-opacity-50"
-                prefix={
-                  <Icon icon="lucide:user" className="mr-2 text-blue-500" />
-                }
                 placeholder="กรุณากรอกนามสกุล"
               />
             </Form.Item>
           </Col>
+
           {/* ฟิลด์ Username */}
           <Col xs={24} sm={12}>
             <Form.Item
@@ -120,17 +116,18 @@ function AddUserModal({ visible, onClose }) {
                 </span>
               }
               name="username"
-              rules={[{ required: true, message: "กรุณากรอกชื่อผู้ใช้!" }]}
+              rules={[
+                { required: true, message: "กรุณากรอกชื่อผู้ใช้!" },
+                { pattern: /^\S+$/, message: "ห้ามมีช่องว่างในชื่อผู้ใช้!" },
+              ]}
             >
               <Input
                 className="p-3 text-base border rounded-lg border-gray-300 focus:border-blue-400 focus:ring focus:ring-blue-200 focus:ring-opacity-50"
-                prefix={
-                  <Icon icon="lucide:mail" className="mr-2 text-blue-500" />
-                }
                 placeholder="กรุณากรอกชื่อผู้ใช้"
               />
             </Form.Item>
           </Col>
+
           {/* ฟิลด์ Password */}
           <Col xs={24} sm={12}>
             <Form.Item
@@ -149,6 +146,7 @@ function AddUserModal({ visible, onClose }) {
             </Form.Item>
           </Col>
         </Row>
+
         {/* ปุ่ม */}
         <div className="flex justify-center space-x-4 border-t pt-6 mt-6">
           <Button onClick={onClose} className="px-6 py-2 text-lg">

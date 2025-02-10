@@ -71,12 +71,14 @@ const SurgeryCase = {
         "patients.firstname as patient_firstname",
         "patients.lastname as patient_lastname",
         "patients.hn_code as patient_HN",
+        "doctors.prefix as doctor_prefix",
         "doctors.firstname as doctor_firstname",
         "doctors.lastname as doctor_lastname",
         "operating_room.room_name as room_name",
         "status.status_name as status_name",
         "surgery_type.surgery_type_name as surgery_type_name",
-        "operation.operation_name as operation_name"
+        "operation.operation_name as operation_name",
+        "translations.translated_name as status_th"
       )
       .leftJoin(
         "operation",
@@ -96,8 +98,17 @@ const SurgeryCase = {
         "surgery_case.surgery_type_id",
         "surgery_type.surgery_type_id"
       )
+      .leftJoin("translations", function () {
+        this.on("status.status_id", "=", "translations.ref_id").andOn(
+          "translations.language_code",
+          "=",
+          db.raw("'th'")
+        );
+      })
       .where("surgery_case.operating_room_id", operating_room_id)
-      .whereRaw("DATE(surgery_case.surgery_start_time) = CURRENT_DATE");
+      .whereRaw(
+        "DATE(surgery_case.surgery_start_time AT TIME ZONE 'Asia/Bangkok') = CURRENT_DATE"
+      );
   },
 
   // เพิ่มกรณีการผ่าตัดใหม่
@@ -202,14 +213,14 @@ const SurgeryCase = {
     return db("surgery_type")
       .insert({ surgery_type_name: opType })
       .returning("surgery_type_id")
-      .then(([newSurgeryType]) => newSurgeryType.surgery_type_id); // ใช้ .then() เพื่อดึงค่าออกจาก Promise
+      .then(([newSurgeryType]) => newSurgeryType.surgery_type_id);
   },
 
   getOperatingRoomByName: (roomName) => {
     return db("operating_room")
       .where("room_name", roomName)
       .select("operating_room_id")
-      .first(); // ใช้ .first() เพื่อให้แน่ใจว่าได้ค่ารายการเดียว
+      .first();
   },
 
   createOperatingRoom: (roomName) => {

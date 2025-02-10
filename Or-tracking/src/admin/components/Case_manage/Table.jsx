@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Table, Input, Tooltip, Button, Select, notification } from "antd";
+import { Table, Input, Button, Select, notification } from "antd";
 import { Icon } from "@iconify/react";
 import { axiosInstanceStaff } from "../../api/axiosInstance";
 import UpdateModal from "./UpdateModal";
@@ -256,17 +256,17 @@ function CaseTable() {
       align: "left",
       render: (text) => <span className="text-base font-normal">{text}</span>,
     },
-    // {
-    //   title: <span className="text-base font-semibold">ชื่อผู้ป่วย</span>,
-    //   dataIndex: "patientName",
-    //   key: "patientName",
-    //   align: "left",
-    //   render: (text, record) => (
-    //     <span className="text-base font-normal">
-    //       {record.patient_firstname} {record.patient_lastname}
-    //     </span>
-    //   ),
-    // },
+    {
+      title: <span className="text-base font-semibold">ชื่อผู้ป่วย</span>,
+      dataIndex: "patientName",
+      key: "patientName",
+      align: "left",
+      render: (text, record) => (
+        <span className="text-base font-normal">
+          {record.patient_firstname} {record.patient_lastname}
+        </span>
+      ),
+    },
     {
       title: <span className="text-base font-semibold">แพทย์</span>,
       dataIndex: "doctorName",
@@ -312,18 +312,16 @@ function CaseTable() {
       align: "left",
       render: (_, record) => (
         <div className="flex flex-wrap items-center justify-between gap-2">
-          <Tooltip title="View Status Timeline">
-            <div className="w-full sm:w-auto">
-              <Button
-                type="primary"
-                icon={<Icon icon="mdi:eye" className="h-5" />}
-                onClick={() => openStatusModal(record)}
-                className="flex items-center gap-2"
-              >
-                ประวัติ
-              </Button>
-            </div>
-          </Tooltip>
+          <div className="w-full sm:w-auto">
+            <Button
+              type="primary"
+              icon={<Icon icon="mdi:eye" className="h-5" />}
+              onClick={() => openStatusModal(record)}
+              className="flex items-center gap-2"
+            >
+              ประวัติ
+            </Button>
+          </div>
         </div>
       ),
     },
@@ -378,18 +376,16 @@ function CaseTable() {
       align: "left",
       render: (_, record) => (
         <div className="flex flex-wrap items-center justify-between gap-2">
-          <Tooltip title="Edit Record">
-            <div className="w-full sm:w-auto">
-              <Button
-                type="primary"
-                icon={<Icon icon="lucide:edit" className="mr-2 w-4 h-4" />}
-                onClick={() => handleEditRecord(record)}
-                className="flex items-center gap-2"
-              >
-                <span className="font-medium text-base">แก้ไข</span>
-              </Button>
-            </div>
-          </Tooltip>
+          <div className="w-full sm:w-auto">
+            <Button
+              type="primary"
+              icon={<Icon icon="lucide:edit" className="mr-2 w-4 h-4" />}
+              onClick={() => handleEditRecord(record)}
+              className="flex items-center gap-2"
+            >
+              <span className="font-medium text-base">แก้ไข</span>
+            </Button>
+          </div>
         </div>
       ),
     },

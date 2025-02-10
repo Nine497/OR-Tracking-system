@@ -16,7 +16,7 @@ const StatusUpdateForm = ({ record, allStatus, onStatusUpdate }) => {
 
     const fetchData = async () => {
       try {
-        setLoading(true); // Start loading when fetching data
+        setLoading(true);
         const response = await axiosInstanceStaff.get(
           `surgery_case/status/${record.surgery_case_id}`
         );
@@ -33,7 +33,7 @@ const StatusUpdateForm = ({ record, allStatus, onStatusUpdate }) => {
           duration: 2,
         });
       } finally {
-        setLoading(false); // Stop loading when done
+        setLoading(false);
       }
     };
 

@@ -3,7 +3,10 @@ import { CalendarOutlined } from "@ant-design/icons";
 import { Spin } from "antd";
 import RoomCard from "../components/RoomSchedule/RoomCard";
 import { axiosInstanceStaff } from "../api/axiosInstance";
+import dayjs from "dayjs";
+import "dayjs/locale/th";
 
+dayjs.locale("th");
 function RoomSchedule() {
   const [roomSchedule, setRoomSchedule] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -34,8 +37,11 @@ function RoomSchedule() {
   return (
     <div className="w-full p-2 rounded-xl">
       <div className="flex items-center justify-between mb-8">
-        <div className="flex items-center space-x-3">
+        <div className="flex items-baseline space-x-3 justify-between w-full">
           <h2 className="text-3xl font-semibold">ตารางห้องผ่าตัดวันนี้</h2>
+          <p className="text-lg text-gray-500 font-medium">
+            {dayjs().format("วันdddd D MMMM YYYY")}
+          </p>
         </div>
       </div>
 

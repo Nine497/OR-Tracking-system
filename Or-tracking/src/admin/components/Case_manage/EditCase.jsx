@@ -77,13 +77,14 @@ function EditCase() {
           surgery_start_time:
             surgeryCase.surgery_start_time &&
             dayjs(surgeryCase.surgery_start_time).isValid()
-              ? dayjs(surgeryCase.surgery_start_time)
+              ? dayjs(surgeryCase.surgery_start_time).tz("Asia/Bangkok", true)
               : null,
           surgery_end_time:
             surgeryCase.surgery_end_time &&
-            dayjs(surgeryCase.surgery_end_time, "HH:mm").isValid()
-              ? dayjs(surgeryCase.surgery_end_time, "HH:mm")
+            dayjs(surgeryCase.surgery_end_time).isValid()
+              ? dayjs(surgeryCase.surgery_end_time).tz("Asia/Bangkok", true)
               : null,
+
           surgery_type_id: surgeryCase.surgery_type_id || null,
           operating_room_id: surgeryCase.operating_room_id || null,
           status_id: surgeryCase.status_id || null,
@@ -615,8 +616,8 @@ function EditCase() {
                           className="h-11 text-base"
                           placeholder="Select gender"
                         >
-                          <Option value="male">ชาย</Option>
-                          <Option value="female">หญิง</Option>
+                          <Option value="1">ชาย</Option>
+                          <Option value="2">หญิง</Option>
                         </Select>
                       </Form.Item>
 
