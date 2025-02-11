@@ -223,6 +223,7 @@ exports.createSurgeryCase = async (req, res) => {
         patient_id: parsedPatientId,
         created_at: dayjs().utc().format("YYYY-MM-DD HH:mm:ss"),
         patient_history: surgeryCaseData.patient_history || "",
+        note: surgeryCaseData.note || "",
       })
       .returning("*");
 
@@ -497,9 +498,17 @@ exports.getCaseWithPatientById = async (req, res) => {
 // ฟังก์ชันสำหรับดึงข้อมูลกรณีการผ่าตัดทั้งหมด
 exports.getAllCase = async (req, res) => {
   try {
-    const { search, doctor_id, limit = 6, page = 1 } = req.query;
-    const offset = (page - 1) * limit;
+    let { search, doctor_id, limit = 6, page = 1, isActive } = req.query;
+    console.log("search", search);
+    console.log("isActive:", isActive);
+    console.log("doctor_id", doctor_id);
 
+    limit = parseInt(limit, 10);
+    page = parseInt(page, 10);
+    if (isNaN(limit) || limit <= 0) limit = 6;
+    if (isNaN(page) || page <= 0) page = 1;
+
+    const offset = (page - 1) * limit;
     const lowerSearch = search ? search.trim().toLowerCase() : null;
 
     const addSearchConditions = (query) => {
@@ -523,12 +532,18 @@ exports.getAllCase = async (req, res) => {
             ]);
         });
       }
+
+      if (isActive === "true") {
+        query.andWhere("surgery_case.isactive", true);
+      } else if (isActive === "false") {
+        query.andWhere("surgery_case.isactive", false);
+      }
     };
 
     const totalRecords = await db("surgery_case")
       .count("* as total")
       .first()
-      .then((result) => parseInt(result.total));
+      .then((result) => parseInt(result.total, 10) || 0);
 
     let query = db("surgery_case")
       .select(
@@ -589,11 +604,11 @@ exports.getAllCase = async (req, res) => {
       .clearSelect()
       .count({ count: "surgery_case.surgery_case_id" })
       .first()
-      .then((result) => parseInt(result.count));
+      .then((result) => parseInt(result.count, 10) || 0);
 
     const surgeryCases = await query
       .orderBy("surgery_case.created_at", "desc")
-      .limit(Number(limit))
+      .limit(limit)
       .offset(offset);
 
     const decryptedSurgeryCases = surgeryCases.map((caseRecord) => {
@@ -614,7 +629,6 @@ exports.getAllCase = async (req, res) => {
           "base64",
           "utf8"
         );
-
         decryptedPin += decipher.final("utf8");
 
         return {
@@ -640,7 +654,7 @@ exports.getAllCase = async (req, res) => {
       filteredCount,
     });
   } catch (err) {
-    console.error(err);
+    console.error("Server Error:", err);
     res.status(500).json({ message: "Server error", error: err.message });
   }
 };
@@ -668,11 +682,48 @@ exports.getCaseById = async (req, res) => {
   }
 };
 
+exports.updateOR_roomBycaseId = async (req, res) => {
+  console.log("Received data:", req.body);
+  console.log("Received ID:", req.params.id);
+  const { operating_room_id } = req.body;
+  const { id } = req.params;
+
+  if (!operating_room_id) {
+    return res.status(400).json({
+      message: "operating_room_id is required",
+    });
+  }
+
+  try {
+    const updatedRows = await db("surgery_case")
+      .where("surgery_case_id", id)
+      .update({ operating_room_id })
+      .returning("*");
+
+    if (!updatedRows || updatedRows.length === 0) {
+      return res.status(404).json({
+        message: "Surgery case not found",
+      });
+    }
+
+    res.status(200).json({
+      message: "Operating room updated successfully",
+      updatedRecord: updatedRows[0], // ส่งค่าที่อัปเดตกลับไป
+    });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({
+      message: "Server error",
+      error: err.message,
+    });
+  }
+};
+
 exports.updateStatusById = async (req, res) => {
   const { status_id, updatedBy } = req.body;
   const { id } = req.params;
 
-  if (!status_id) {
+  if (status_id === null || status_id === undefined) {
     return res.status(400).json({
       message: "status_id is required",
     });
@@ -691,10 +742,7 @@ exports.updateStatusById = async (req, res) => {
       await trx("surgery_case_status_history").insert({
         surgery_case_id: id,
         status_id,
-        updated_at: dayjs()
-          .utc()
-          .subtract(7, "hour")
-          .format("YYYY-MM-DD HH:mm:ss"),
+        updated_at: dayjs().utc().format("YYYY-MM-DD HH:mm:ss"),
         updated_by: updatedBy,
       });
     });

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Form,
   Input,
@@ -22,10 +22,7 @@ const { Option } = Select;
 
 function EditCase() {
   const [form] = Form.useForm();
-  const hnInputRef = useRef(null);
-  const dobInputRef = useRef(null);
-  const hnMaskRef = useRef(null);
-  const dobMaskRef = useRef(null);
+  const hnInputRef = React.useRef(null);
   const { user } = useAuth();
   const [doctors, setDoctors] = useState([]);
   const [doctorsLoading, setDoctorsLoading] = useState(false);
@@ -91,6 +88,7 @@ function EditCase() {
           operation_id: surgeryCase.operation_id || null,
           operation_name: surgeryCase.operation_name || null,
           doctor_id: surgeryCase.doctor_id || null,
+          note: surgeryCase.note || "",
         };
 
         const transformedPatientData = {
@@ -219,10 +217,25 @@ function EditCase() {
   };
 
   const handlePatientDataChange = (key, value) => {
-    setPatientData((prevData) => ({
-      ...prevData,
-      [key]: value,
-    }));
+    if (key === "patient_hn_code") {
+      let newValue = value.replace(/\D/g, "");
+      if (newValue.length > 10) newValue = newValue.slice(0, 10);
+
+      if (newValue.length > 2)
+        newValue = newValue.slice(0, 2) + "-" + newValue.slice(2);
+      if (newValue.length > 5)
+        newValue = newValue.slice(0, 5) + "-" + newValue.slice(5);
+
+      setPatientData((prevData) => ({
+        ...prevData,
+        patient_hn_code: newValue,
+      }));
+    } else {
+      setPatientData((prevData) => ({
+        ...prevData,
+        [key]: value,
+      }));
+    }
   };
 
   const onFinish = async () => {
@@ -236,7 +249,6 @@ function EditCase() {
 
       console.log("Patient Data to Send:", patientDataToSend);
 
-      // ตรวจสอบ HN ว่ามีอยู่แล้วหรือไม่
       let patientId;
       const existingPatientResponse = await axiosInstanceStaff.get(
         `/patient/getPatientData/${patientData.patient_hn_code}`
@@ -244,7 +256,6 @@ function EditCase() {
       const existingPatient = existingPatientResponse.data?.data;
 
       if (existingPatient) {
-        // อัปเดตข้อมูลผู้ป่วย
         const patientResponse = await axiosInstanceStaff.put(
           `/patient/${existingPatient.patient_id}`,
           patientDataToSend
@@ -252,16 +263,14 @@ function EditCase() {
         console.log("Patient Response (Update):", patientResponse.data);
         patientId = existingPatient.patient_id;
       } else {
-        // สร้างข้อมูลผู้ป่วยใหม่
         const patientResponse = await axiosInstanceStaff.post(
           `/patient`,
           patientDataToSend
         );
         console.log("Patient Response (Create):", patientResponse.data);
-        patientId = patientResponse.data?.patient?.id; // รับ patient_id จาก response
+        patientId = patientResponse.data?.patient?.id;
       }
 
-      // ตรวจสอบว่าได้ patient_id หรือไม่
       if (!patientId) {
         throw new Error("Patient ID is missing. Unable to proceed.");
       }
@@ -276,13 +285,12 @@ function EditCase() {
           "YYYY-MM-DD HH:mm:ss"
         ),
         operating_room_id: surgeryData.operating_room_id,
-        patient_history: surgeryData.patient_history || "",
+        note: surgeryData.note || "",
         patient_id: patientId,
       };
 
       console.log("Surgery Case Data to Send:", surgeryCaseDataToSend);
 
-      // อัปเดตข้อมูลเคสผ่าตัด
       const surgeryCaseResponse = await axiosInstanceStaff.put(
         `/surgery_case/${surgery_case_id}`,
         surgeryCaseDataToSend
@@ -292,12 +300,11 @@ function EditCase() {
       if (surgeryCaseResponse.status === 200) {
         const OperationDataToSend = {
           operation_name: surgeryData.operation_name,
-          surgery_case_id: parseInt(surgery_case_id, 10),
+          surgery_case_id: surgery_case_id,
         };
 
         console.log("Operation Data to Send:", OperationDataToSend);
 
-        // เพิ่มข้อมูลการผ่าตัด
         const operationResponse = await axiosInstanceStaff.post(
           `/surgery_case/operation/`,
           OperationDataToSend
@@ -359,30 +366,21 @@ function EditCase() {
   };
 
   useEffect(() => {
-    if (hnInputRef.current?.input) {
-      if (!hnMaskRef.current) {
-        hnMaskRef.current = IMask(hnInputRef.current.input, {
-          mask: "00-00-000000",
-        });
-      } else {
-        hnMaskRef.current.updateValue();
-      }
-    }
+    if (hnInputRef.current) {
+      const maskOptions = {
+        mask: "00-00-000000",
+      };
+      const mask = IMask(hnInputRef.current.input, maskOptions);
 
-    if (dobInputRef.current?.input) {
-      if (!dobMaskRef.current) {
-        dobMaskRef.current = IMask(dobInputRef.current.input, {
-          mask: "0000/00/00",
-        });
-      } else {
-        dobMaskRef.current.updateValue();
-      }
-    }
+      mask.on("accept", () => {
+        setPatientData((prev) => ({
+          ...prev,
+          patient_hn_code: mask.value,
+        }));
+      });
 
-    return () => {
-      hnMaskRef.current?.destroy();
-      dobMaskRef.current?.destroy();
-    };
+      return () => mask.destroy();
+    }
   }, []);
 
   const handleSeachHNClick = async () => {
@@ -514,6 +512,7 @@ function EditCase() {
                     >
                       <div className="flex space-x-2 max-w-md">
                         <Input
+                          placeholder="Enter HN Code"
                           name="patient_hn_code"
                           value={patientData.patient_hn_code}
                           onChange={(event) =>
@@ -552,6 +551,7 @@ function EditCase() {
                         ]}
                       >
                         <Input
+                          placeholder="Enter First Name"
                           name="patient_firstname"
                           value={patientData.patient_firstname}
                           onChange={(event) =>
@@ -579,6 +579,7 @@ function EditCase() {
                         ]}
                       >
                         <Input
+                          placeholder="Enter Last Name"
                           name="patient_lastname"
                           value={patientData.patient_lastname}
                           onChange={(e) =>
@@ -1017,6 +1018,31 @@ function EditCase() {
                     <Form.Item
                       label={
                         <span className="text-base font-medium text-gray-700">
+                          Note
+                          <span className="text-sm font-normal text-gray-500">
+                            {" "}
+                            (ไม่จำเป็น){" "}
+                          </span>
+                        </span>
+                      }
+                      name="note"
+                      className="mt-4"
+                    >
+                      <Input.TextArea
+                        name="note"
+                        value={surgeryData.note}
+                        onChange={(e) =>
+                          handleSurgeryDataChange("note", e.target.value)
+                        }
+                        rows={4}
+                        className="text-base rounded-lg"
+                        placeholder="Enter patient's medical history..."
+                      />
+                    </Form.Item>
+
+                    {/* <Form.Item
+                      label={
+                        <span className="text-base font-medium text-gray-700">
                           ประวัติผู้ป่วย
                           <span className="text-sm font-normal text-gray-500">
                             {" "}
@@ -1040,7 +1066,7 @@ function EditCase() {
                         className="text-base rounded-lg"
                         placeholder="Enter patient's medical history..."
                       />
-                    </Form.Item>
+                    </Form.Item> */}
                   </section>
 
                   {/* Bottom Action Buttons */}

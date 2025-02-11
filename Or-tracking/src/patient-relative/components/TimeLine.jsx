@@ -2,8 +2,13 @@ import React, { useMemo, useEffect, useState } from "react";
 import { Modal, Timeline, Tag, Typography, Rate, Input } from "antd";
 import { FrownOutlined, MehOutlined, SmileOutlined } from "@ant-design/icons";
 import { axiosInstancePatient } from "../../admin/api/axiosInstance";
-import dayjs from "dayjs";
 import { Icon } from "@iconify/react";
+import dayjs from "dayjs";
+import utc from "dayjs/plugin/utc";
+import timezone from "dayjs/plugin/timezone";
+
+dayjs.extend(utc);
+dayjs.extend(timezone);
 
 const { Text } = Typography;
 
@@ -65,7 +70,7 @@ const StatusTimeline = ({
   };
 
   const timelineItems = useMemo(() => {
-    console.log("statusData", statusData);
+    console.log("currentStatus", currentStatus);
 
     const filteredStatusData = statusData.filter(
       (status) => status.status_id !== 0
@@ -112,7 +117,9 @@ const StatusTimeline = ({
           <div className="flex flex-col">
             {historyEntry && (
               <Text className="font-semibold text-sm md:text-base text-gray-600 bg-gray-50 px-2 md:px-3 py-1 rounded-md w-fit mb-4">
-                {dayjs(historyEntry.updated_at).format("DD/MM/YYYY, HH:mm")}
+                {dayjs(historyEntry.updated_at)
+                  .tz("Asia/Bangkok")
+                  .format("DD/MM/YYYY, HH:mm")}
               </Text>
             )}
             <div className="flex flex-row gap-2 md:gap-6">
@@ -169,7 +176,18 @@ const StatusTimeline = ({
   return (
     <>
       <div className="px-2 pt-6 items-start">
-        <Timeline items={timelineItems} className="max-w-3xl mx-auto" />
+        {currentStatus.status_id === 0 ? (
+          <Timeline items={timelineItems} className="max-w-3xl mx-auto" />
+        ) : (
+          <div className="text-center p-4 sm:p-6">
+            <p className="text-base sm:text-lg md:text-xl lg:text-2xl font-semibold text-gray-800 mb-2">
+              {t("view.pending_title")}
+            </p>
+            <p className="text-sm sm:text-sm md:text-base lg:text-lg text-gray-600 mt-2 leading-relaxed">
+              {t("view.pending_des")}
+            </p>
+          </div>
+        )}
       </div>
       <Modal
         title={

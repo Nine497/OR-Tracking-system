@@ -1,5 +1,14 @@
 import React, { useState, useEffect } from "react";
-import { Table, Input, Button, Select, notification } from "antd";
+import {
+  Table,
+  Input,
+  Button,
+  Select,
+  notification,
+  Switch,
+  Radio,
+  Flex,
+} from "antd";
 import { Icon } from "@iconify/react";
 import { axiosInstanceStaff } from "../../api/axiosInstance";
 import UpdateModal from "./UpdateModal";
@@ -22,15 +31,74 @@ function CaseTable() {
   const [doctorSelectedOption, setDoctorSelectedOption] = useState(null);
   const [doctorsData, setDoctorsData] = useState([]);
   const [allStatus, setAllStatus] = useState([]);
+  const [allORrooms, setAllORrooms] = useState([]);
   const [dataLastestUpdated, setDataLastestUpdated] = useState(null);
   const BASE_URL = import.meta.env.VITE_BASE_URL;
   const navigate = useNavigate();
   const { permissions } = useAuth();
+  const [activeSelected, setActiveSelected] = useState(null);
+
+  const handleActiveChange = (value) => {
+    setActiveSelected(value);
+    handleSearch(value, doctorSelectedOption, searchTerm); // ส่งค่า value ที่เลือกไป
+  };
 
   const handleSelectChange = (value) => {
     setDoctorSelectedOption(value);
     setPagination((prev) => ({ ...prev, current: 1 }));
-    handleSearch(searchTerm, value);
+    handleSearch(activeSelected, value, searchTerm); // ส่งค่า doctorSelectedOption ไป
+  };
+
+  const handleInputChange = (e) => {
+    setSearchTerm(e.target.value);
+    setPagination({ ...pagination, current: 1 });
+    handleSearch(activeSelected, doctorSelectedOption, e.target.value); // ส่งค่า searchTerm ใหม่
+  };
+
+  const handleSearch = async (
+    isActive = activeSelected,
+    doctor = doctorSelectedOption,
+    searchTerms = searchTerm
+  ) => {
+    setLoadingCases(true);
+    try {
+      console.log("searchTerms", searchTerms);
+      console.log("doctor", doctor);
+      console.log("isActive", isActive);
+
+      const response = await axiosInstanceStaff.get("/surgery_case/", {
+        params: {
+          search: searchTerms || "",
+          doctor_id: doctor || "",
+          isActive: isActive !== null ? isActive === true : "",
+          limit: pagination.pageSize,
+          page: pagination.current,
+        },
+      });
+
+      const dataWithKeys = Array.isArray(response.data?.data)
+        ? response.data.data.map((item) => ({
+            ...item,
+            key: item.surgery_case_id,
+          }))
+        : [];
+
+      setFilteredData(dataWithKeys);
+      setPagination((prev) => ({
+        ...prev,
+        total: response.data.totalRecords,
+      }));
+    } catch (error) {
+      notification.error({
+        message: "ไม่สามารถค้นหาเคสผ่าตัดได้ กรุณาลองใหม่อีกครั้ง",
+        showProgress: true,
+        placement: "topRight",
+        pauseOnHover: true,
+        duration: 2,
+      });
+    } finally {
+      setLoadingCases(false);
+    }
   };
 
   const handleEditRecord = (record) => {
@@ -80,50 +148,6 @@ function CaseTable() {
     } finally {
       document.body.removeChild(textArea);
     }
-  };
-
-  const handleSearch = async (value, doctor = doctorSelectedOption) => {
-    setSearchTerm(value);
-    setLoadingCases(true);
-    try {
-      const response = await axiosInstanceStaff.get("/surgery_case/", {
-        params: {
-          search: value,
-          doctor_id: doctor,
-          limit: pagination.pageSize,
-          page: pagination.current,
-        },
-      });
-
-      const dataWithKeys = Array.isArray(response.data?.data)
-        ? response.data.data.map((item) => ({
-            ...item,
-            key: item.surgery_case_id,
-          }))
-        : [];
-
-      setFilteredData(dataWithKeys);
-      setPagination((prev) => ({
-        ...prev,
-        total: response.data.totalRecords,
-      }));
-    } catch (error) {
-      notification.error({
-        message: "ไม่สามารถค้นหาเคสผ่าตัดได้ กรุณาลองใหม่อีกครั้ง",
-        showProgress: true,
-        placement: "topRight",
-        pauseOnHover: true,
-        duration: 2,
-      });
-    } finally {
-      setLoadingCases(false);
-    }
-  };
-
-  const handleInputChange = (e) => {
-    const value = e.target.value;
-    setPagination({ ...pagination, current: 1 });
-    handleSearch(value, doctorSelectedOption);
   };
 
   const handlePaginationChange = (page, pageSize) => {
@@ -190,62 +214,80 @@ function CaseTable() {
     }
   };
 
+  const fetchORroomData = async () => {
+    try {
+      const response = await axiosInstanceStaff.get("or_room/");
+      if (response.data && Array.isArray(response.data.data)) {
+        setAllORrooms(response.data.data);
+      } else {
+        console.error("Invalid data format received for OR-Rooms.");
+      }
+    } catch (error) {
+      console.error("Error fetching OR-Rooms:", error);
+      notification.error({
+        message: "ไม่สามารถค้นหาเคสผ่าตัดได้ กรุณาลองใหม่อีกครั้ง",
+        showProgress: true,
+        placement: "topRight",
+        pauseOnHover: true,
+        duration: 2,
+      });
+    }
+  };
+
+  const fetchDoctorsData = async () => {
+    setLoadingDoctors(true);
+    try {
+      const response = await axiosInstanceStaff.get("doctor/");
+      if (response.data && Array.isArray(response.data.data)) {
+        setDoctorsData(response.data.data);
+      } else {
+        console.error("Invalid data format received for doctors.");
+      }
+    } catch (error) {
+      console.error("Error fetching cases:", error);
+      notification.error({
+        message: "ไม่สามารถค้นหาเคสผ่าตัดได้ กรุณาลองใหม่อีกครั้ง",
+        showProgress: true,
+        placement: "topRight",
+        pauseOnHover: true,
+        duration: 2,
+      });
+    } finally {
+      setLoadingDoctors(false);
+    }
+  };
+
+  const fetchStatusData = async () => {
+    setLoading(true);
+    try {
+      const response = await axiosInstanceStaff.get(
+        "patient/getAllStatus?language_code=th"
+      );
+      if (response.status === 200 && response.data) {
+        console.log("response.data:", response.data);
+        setAllStatus(response.data);
+      }
+    } catch (err) {
+      notification.error({
+        message: "ไม่สามารถดึงข้อมูลสถานะได้ กรุณาลองใหม่อีกครั้ง",
+        showProgress: true,
+        placement: "topRight",
+        pauseOnHover: true,
+        duration: 2,
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
     fetchData();
   }, [pagination.current, searchTerm]);
 
   useEffect(() => {
-    setLoadingDoctors(true);
-    const fetchDoctorsData = async () => {
-      try {
-        const response = await axiosInstanceStaff.get("doctor/");
-        if (response.data && Array.isArray(response.data.data)) {
-          setDoctorsData(response.data.data);
-        } else {
-          console.error("Invalid data format received for doctors.");
-        }
-      } catch (error) {
-        console.error("Error fetching cases:", error);
-        notification.error({
-          message: "ไม่สามารถค้นหาเคสผ่าตัดได้ กรุณาลองใหม่อีกครั้ง",
-          showProgress: true,
-          placement: "topRight",
-          pauseOnHover: true,
-          duration: 2,
-        });
-      } finally {
-        setLoadingDoctors(false);
-      }
-    };
-
-    fetchDoctorsData();
-  }, []);
-
-  useEffect(() => {
-    const fetchStatusData = async () => {
-      setLoading(true);
-      try {
-        const response = await axiosInstanceStaff.get(
-          "patient/getAllStatus?language_code=th"
-        );
-        if (response.status === 200 && response.data) {
-          console.log("response.data:", response.data);
-          setAllStatus(response.data);
-        }
-      } catch (err) {
-        notification.error({
-          message: "ไม่สามารถดึงข้อมูลสถานะได้ กรุณาลองใหม่อีกครั้ง",
-          showProgress: true,
-          placement: "topRight",
-          pauseOnHover: true,
-          duration: 2,
-        });
-      } finally {
-        setLoading(false);
-      }
-    };
-
+    fetchORroomData();
     fetchStatusData();
+    fetchDoctorsData();
   }, []);
 
   const columns = [
@@ -256,35 +298,41 @@ function CaseTable() {
       align: "left",
       render: (text) => <span className="text-base font-normal">{text}</span>,
     },
-    {
-      title: <span className="text-base font-semibold">ชื่อผู้ป่วย</span>,
-      dataIndex: "patientName",
-      key: "patientName",
-      align: "left",
-      render: (text, record) => (
-        <span className="text-base font-normal">
-          {record.patient_firstname} {record.patient_lastname}
-        </span>
-      ),
-    },
-    {
-      title: <span className="text-base font-semibold">แพทย์</span>,
-      dataIndex: "doctorName",
-      key: "doctorName",
-      align: "left",
-      render: (text, record) => (
-        <span className="text-base font-normal">
-          {record.doctor_prefix}
-          {record.doctor_firstname} {record.doctor_lastname}
-        </span>
-      ),
-    },
+    // {
+    //   title: <span className="text-base font-semibold">ชื่อผู้ป่วย</span>,
+    //   dataIndex: "patientName",
+    //   key: "patientName",
+    //   align: "left",
+    //   render: (text, record) => (
+    //     <span className="text-base font-normal">
+    //       {record.patient_firstname} {record.patient_lastname}
+    //     </span>
+    //   ),
+    // },
+    // {
+    //   title: <span className="text-base font-semibold">แพทย์</span>,
+    //   dataIndex: "doctorName",
+    //   key: "doctorName",
+    //   align: "left",
+    //   render: (text, record) => (
+    //     <span className="text-base font-normal">
+    //       {record.doctor_prefix}
+    //       {record.doctor_firstname} {record.doctor_lastname}
+    //     </span>
+    //   ),
+    // },
     {
       title: <span className="text-base font-semibold">ห้องผ่าตัด</span>,
       dataIndex: "room_name",
       key: "room_name",
       align: "left",
-      render: (text) => <span className="text-base font-normal">{text}</span>,
+      render: (_, record) => (
+        <OR_roomUpdateForm
+          record={record}
+          allORrooms={allORrooms}
+          fetchTable={fetchData}
+        />
+      ),
     },
     {
       title: <span className="text-base font-semibold">วันที่ผ่าตัด</span>,
@@ -375,7 +423,7 @@ function CaseTable() {
       key: "Action",
       align: "left",
       render: (_, record) => (
-        <div className="flex flex-wrap items-center justify-between gap-2">
+        <div className="flex flex-between items-center space-x-4">
           <div className="w-full sm:w-auto">
             <Button
               type="primary"
@@ -385,6 +433,17 @@ function CaseTable() {
             >
               <span className="font-medium text-base">แก้ไข</span>
             </Button>
+          </div>
+          <div className="flex items-center space-x-2 bg-gray-100 px-3 py-1 rounded-lg">
+            <Switch
+              size="small"
+              className="bg-gray-300"
+              checked={record.isactive}
+              onChange={(checked) => handleActiveToggle(record, checked)}
+            />
+            <span className="font-medium text-base text-gray-700">
+              เปิดใช้งาน
+            </span>
           </div>
         </div>
       ),
@@ -396,12 +455,11 @@ function CaseTable() {
       <div className="bg-gray-100 w-full rounded-lg flex flex-col sm:flex-row sm:justify-between items-start sm:items-center gap-4 sm:gap-0 px-5 sm:px-10 py-4">
         <Input
           placeholder="ค้นหาด้วย HN, ชื่อผู้ป่วย..."
-          className="w-full sm:w-1/3 h-10 text-base"
+          className="w-full sm:w-1/4 h-10 text-base"
           prefix={<Icon icon="mingcute:search-line" />}
           onChange={handleInputChange}
           value={searchTerm}
         />
-
         <Select
           className="w-full sm:w-1/4 h-10"
           placeholder="กรองตามแพทย์"
@@ -418,11 +476,23 @@ function CaseTable() {
           ))}
         </Select>
 
+        <Radio.Group
+          buttonStyle="solid"
+          className="w-full sm:w-1/4"
+          value={activeSelected}
+          onChange={(e) => handleActiveChange(e.target.value)}
+        >
+          <Radio.Button value={null}>ทั้งหมด</Radio.Button>
+          <Radio.Button value={true}>เปิดใช้งาน</Radio.Button>
+          <Radio.Button value={false}>ไม่เปิดใช้งาน</Radio.Button>
+        </Radio.Group>
+
         <Button
           type="default"
           icon={<Icon icon="mdi:reload" className="w-4 h-4" />}
           onClick={() => {
             setSearchTerm("");
+            set;
             setPagination({ ...pagination, current: 1 });
             fetchData();
           }}
@@ -473,4 +543,50 @@ function CaseTable() {
   );
 }
 
+const OR_roomUpdateForm = ({ record, allORrooms, fetchTable }) => {
+  const handleChange = async (value) => {
+    try {
+      const response = await axiosInstanceStaff.put(
+        `surgery_case/or_room/${record.surgery_case_id}`,
+        {
+          operating_room_id: value,
+        }
+      );
+
+      notification.success({
+        message: "อัปเดตห้องสำเร็จ",
+      });
+
+      fetchTable();
+    } catch (error) {
+      console.error("Update error:", error);
+
+      notification.error({
+        message: "เกิดข้อผิดพลาด",
+        description:
+          error.response?.data?.message || "เกิดข้อผิดพลาดในการอัปเดตห้อง",
+      });
+    }
+  };
+
+  return (
+    <Select
+      placeholder="เลือกห้อง"
+      className="w-full"
+      onBlur={(e) => e.target.blur()}
+      defaultValue={record?.operating_room_id}
+      w
+      onChange={handleChange}
+    >
+      {allORrooms.map((room) => (
+        <Select.Option
+          key={room.operating_room_id}
+          value={room.operating_room_id}
+        >
+          {room.room_name}
+        </Select.Option>
+      ))}
+    </Select>
+  );
+};
 export default CaseTable;

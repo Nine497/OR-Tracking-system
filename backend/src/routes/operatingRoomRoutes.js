@@ -5,10 +5,10 @@ const verifyToken = require("../middlewares/verifyToken");
 
 router.use(verifyToken);
 
-router.get("/", OperatingRoomController.getAllOperatingRooms); // ดึงข้อมูลทั้งหมด
-router.get("/:id", OperatingRoomController.getOperatingRoomById); // ดึงข้อมูลห้องตาม ID
-router.post("/", OperatingRoomController.createOperatingRoom); // สร้างห้องใหม่
-router.put("/:id", OperatingRoomController.updateOperatingRoom); // อัพเดตห้อง
-router.delete("/:id", OperatingRoomController.deleteOperatingRoom); // ลบห้อง
+router.get("/", OperatingRoomController.getAllOperatingRooms); 
+router.get("/:id", OperatingRoomController.getOperatingRoomById); 
+router.post("/", OperatingRoomController.createOperatingRoom); 
+router.put("/:id", OperatingRoomController.updateOperatingRoom); 
+router.delete("/:id", OperatingRoomController.deleteOperatingRoom); 
 
 module.exports = router;

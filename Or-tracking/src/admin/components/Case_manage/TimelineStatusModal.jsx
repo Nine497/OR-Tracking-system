@@ -1,8 +1,13 @@
 import React, { useEffect, useState, useMemo } from "react";
 import { Spin, Timeline, Typography, notification } from "antd";
 import { Icon } from "@iconify/react";
-import dayjs from "dayjs";
 import { axiosInstanceStaff } from "../../api/axiosInstance";
+import dayjs from "dayjs";
+import timezone from "dayjs/plugin/timezone";
+import utc from "dayjs/plugin/utc";
+
+dayjs.extend(utc);
+dayjs.extend(timezone);
 
 const { Text } = Typography;
 
@@ -51,7 +56,7 @@ const TimelineStatus = ({ record }) => {
                   <Icon icon="mdi:clock-outline" className="w-4 h-4 mr-2" />
                   <Text className="text-sm">
                     {dayjs(updatedAt)
-                      .add(7, "hour")
+                      .tz("Asia/Bangkok")
                       .format("DD/MM/YYYY, HH:mm")}
                   </Text>
                 </div>

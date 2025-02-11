@@ -3,17 +3,21 @@ const router = express.Router();
 const surgeryController = require("../controllers/caseController");
 const verifyToken = require("../middlewares/verifyToken");
 
-router.post("/newSurgerycase", surgeryController.newSurgerycaseFromAPI);
-
-// เส้นทางเจาะจง
-router.get("/getCaseCalendar/", verifyToken, surgeryController.getCalendar);
+// 📌 Route ที่เฉพาะเจาะจงควรมาก่อน
+router.put(
+  "/or_room/:id",
+  verifyToken,
+  surgeryController.updateOR_roomBycaseId
+);
+router.patch("/status/:id", verifyToken, surgeryController.updateStatusById);
+router.get("/getCaseCalendar", verifyToken, surgeryController.getCalendar);
 router.get(
-  "/getSurgery_case_ByOrID/:operating_room_id",
+  "/getSurgeryCaseByOrID/:operating_room_id",
   verifyToken,
   surgeryController.getCaseByOrID
 );
 router.get(
-  "/all_surgery_types",
+  "/allSurgeryTypes",
   verifyToken,
   surgeryController.getAllSurgeryTypes
 );
@@ -28,8 +32,8 @@ router.get(
   surgeryController.getCaseWithPatientById
 );
 
-// เส้นทาง dynamic
-router.post("/operation/", verifyToken, surgeryController.createOperation);
+// 📌 Route ที่เป็น Dynamic (ต้องอยู่ล่างกว่า)
+router.post("/operation", verifyToken, surgeryController.createOperation);
 router.get("/:id", verifyToken, surgeryController.getCaseById);
 router.post("/:patient_id", verifyToken, surgeryController.createSurgeryCase);
 router.put(
@@ -37,6 +41,9 @@ router.put(
   verifyToken,
   surgeryController.updateSurgeryCase
 );
-router.patch("/status/:id", verifyToken, surgeryController.updateStatusById);
 router.get("/", verifyToken, surgeryController.getAllCase);
+
+// 📌 Route สำหรับสร้างเคสใหม่
+router.post("/newSurgeryCase", surgeryController.newSurgerycaseFromAPI);
+
 module.exports = router;

@@ -51,6 +51,7 @@ function AddCase() {
     created_by: user.id,
     patient_history: "",
     Operation: "",
+    note: "",
   });
 
   useEffect(() => {
@@ -180,6 +181,7 @@ function AddCase() {
   const onFinish = async () => {
     try {
       if (
+        !patientData.hn_code ||
         !patientData.firstname ||
         !patientData.lastname ||
         !surgeryData.surgery_start_time ||
@@ -230,6 +232,7 @@ function AddCase() {
         surgery_start_time: surgeryStartTime.format("YYYY/MM/DD HH:mm:ss"),
         surgery_end_time: surgeryEndTime.format("YYYY/MM/DD HH:mm:ss"),
         Operation: surgeryData.Operation,
+        note: surgeryData.note,
       };
 
       console.log("ข้อมูลการผ่าตัดที่ส่งไปยังเซิร์ฟเวอร์:", surgeryCaseData);
@@ -902,6 +905,31 @@ function AddCase() {
               <Form.Item
                 label={
                   <span className="text-base font-medium text-gray-700">
+                    Note
+                    <span className="text-sm font-normal text-gray-500">
+                      {" "}
+                      (ไม่จำเป็น){" "}
+                    </span>
+                  </span>
+                }
+                name="note"
+                className="mt-4"
+              >
+                <Input.TextArea
+                  name="note"
+                  value={surgeryData.patient_history}
+                  onChange={(e) =>
+                    handleSurgeryDataChange("note", e.target.value)
+                  }
+                  rows={4}
+                  className="text-base rounded-lg"
+                  placeholder="Enter patient's medical history..."
+                />
+              </Form.Item>
+
+              {/* <Form.Item
+                label={
+                  <span className="text-base font-medium text-gray-700">
                     ประวัติผู้ป่วย
                     <span className="text-sm font-normal text-gray-500">
                       {" "}
@@ -922,7 +950,7 @@ function AddCase() {
                   className="text-base rounded-lg"
                   placeholder="Enter patient's medical history..."
                 />
-              </Form.Item>
+              </Form.Item> */}
             </section>
 
             {/* Bottom Action Buttons */}

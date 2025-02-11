@@ -49,7 +49,8 @@ const StatusUpdateForm = ({ record, allStatus, onStatusUpdate }) => {
   const handleConfirmStatusUpdate = async () => {
     setLoading(true);
     try {
-      const token = localStorage.getItem("jwtToken");
+      console.log("Request tempStatus", tempStatus);
+
       const response = await axiosInstanceStaff.patch(
         `surgery_case/status/${record.surgery_case_id}`,
         { status_id: tempStatus, updatedBy: user?.id }

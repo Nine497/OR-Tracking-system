@@ -4,15 +4,7 @@ const SurgeryCase = {
   getCaseWithPatientById: (surgeryCaseId) => {
     return db("surgery_case")
       .select(
-        "surgery_case.surgery_case_id",
-        "surgery_case.surgery_type_id",
-        "surgery_case.operating_room_id",
-        "surgery_case.status_id",
-        "surgery_case.doctor_id",
-        "surgery_case.patient_id",
-        "surgery_case.surgery_end_time",
-        "surgery_case.surgery_start_time",
-        "surgery_case.patient_history as patient_history",
+        "surgery_case.*",
         "patients.firstname as patient_firstname",
         "patients.lastname as patient_lastname",
         "patients.hn_code as patient_hn_code",

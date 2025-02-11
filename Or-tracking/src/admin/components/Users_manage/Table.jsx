@@ -288,7 +288,7 @@ function UsersTable({ refreshKey }) {
               current: pagination.current,
               total: pagination.total,
               onChange: handlePaginationChange,
-              showTotal: (total) => `Total ${total} items`,
+              showTotal: (total) => `ทั้งหมด ${total - 1} ผู้ใช้`,
             }}
           />
         </Spin>

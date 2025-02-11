@@ -35,7 +35,7 @@ const View = () => {
   const [showContent, setShowContent] = useState(false);
   const [statusHistory, setStatusHistory] = useState([]);
   const [sortedStatuses, setSortedStatuses] = useState([]);
-  const [patient_currentStatus, setPatient_currentStatus] = useState([]);
+  const [patient_currentStatus, setPatient_currentStatus] = useState([null]);
   const { isLoading, startLoading, exitLoading } = useLoading();
   const [TimelineLoading, setTimelineLoading] = useState(false);
   const [lastUpdated, setLastUpdated] = useState(dayjs().format("HH:mm"));
@@ -188,6 +188,7 @@ const View = () => {
 
       setSortedStatuses(finalStatuses);
       setPatient_currentStatus(currentStatus);
+      console.log("patient_currentStatus", patient_currentStatus.status_id);
     } else {
       console.log("statusHistory.statusHistory is not an array or is empty");
     }
@@ -448,7 +449,7 @@ const View = () => {
                     </div>
 
                     <div className="flex flex-col items-center justify-center pt-7">
-                      {patientData?.status_id === 0 ? (
+                      {patient_currentStatus?.status_id === 0 ? (
                         <div className="text-center p-4 sm:p-6">
                           <p className="text-base sm:text-lg md:text-xl lg:text-2xl font-semibold text-gray-800 mb-2">
                             {t("view.pending_title")}
@@ -460,12 +461,7 @@ const View = () => {
                       ) : (
                         <div className="flex flex-col justify-center items-center h-full min-h-[250px] sm:min-h-[300px]">
                           {TimelineLoading ? (
-                            <div className="flex justify-center items-center w-full">
-                              <Spin
-                                size="large"
-                                tip={t("view.loading_status")}
-                              />
-                            </div>
+                            <Spin size="large" tip={t("view.loading_status")} />
                           ) : (
                             <StatusTimeline
                               key={lastUpdated}

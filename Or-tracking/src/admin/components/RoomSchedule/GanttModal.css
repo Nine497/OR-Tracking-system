@@ -27,6 +27,6 @@ div._1nBOt {
   display: none !important;
 }
 
-.ant-modal-content {
+.gantt-h .ant-modal-content {
   height: 95vh;
 }

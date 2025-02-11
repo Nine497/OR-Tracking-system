@@ -103,7 +103,7 @@ const GanttModal = ({ cases, isOpen, onClose }) => {
       footer={null}
       width="100%"
       centered
-      className="gantt-modal"
+      className="gantt-modal gantt-h"
       closable={false}
       styles={{ padding: 0, minHeight: "80vh", overflow: "auto" }}
       title={
