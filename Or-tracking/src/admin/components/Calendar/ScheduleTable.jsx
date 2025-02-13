@@ -13,6 +13,10 @@ function ScheduleTable({ events }) {
   const [dateRange, setDateRange] = useState([null, null]);
 
   useEffect(() => {
+    console.log("events", events);
+  }, [events]);
+
+  useEffect(() => {
     if (dateRange[0] && dateRange[1]) {
       const filtered = events.filter((event) => {
         const surgeryDate = dayjs(event.surgery_start_time).tz(
@@ -33,13 +37,13 @@ function ScheduleTable({ events }) {
 
   const columns = [
     {
-      title: "HN Code",
+      title: <span className="text-base font-bold">HN Code</span>,
       dataIndex: "hn_code",
       key: "hn_code",
       render: (hn_code) => <span className="font-normal">{hn_code}</span>,
     },
     {
-      title: "Surgery Date",
+      title: <span className="text-base font-bold">Surgery Date</span>,
       dataIndex: "surgery_start_time",
       key: "surgery_start_time",
       render: (date) => (
@@ -51,7 +55,7 @@ function ScheduleTable({ events }) {
           : 1,
     },
     {
-      title: "Time",
+      title: <span className="text-base font-bold">Time</span>,
       dataIndex: ["surgery_start_time", "surgery_end_time"],
       key: "surgery_time",
       render: (text, record) => (
@@ -68,7 +72,7 @@ function ScheduleTable({ events }) {
     },
 
     {
-      title: "Doctor",
+      title: <span className="text-base font-bold">Doctor</span>,
       dataIndex: "doctor_fullname",
       key: "doctor_fullname",
       render: (doctor_fullname) => (
@@ -76,7 +80,7 @@ function ScheduleTable({ events }) {
       ),
     },
     {
-      title: "Status",
+      title: <span className="text-base font-bold">Status</span>,
       dataIndex: "status_id",
       key: "status_id",
       render: (status) => (

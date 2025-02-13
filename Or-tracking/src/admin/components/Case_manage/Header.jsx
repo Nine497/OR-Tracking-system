@@ -11,7 +11,7 @@ function Case_Table_Header() {
 
   return (
     <div className="flex flex-row p-4 justify-between">
-      <div className="text-xl sm:text-2xl font-semibold">
+      <div className="text-lg sm:text-2xl font-semibold">
         การจัดการเคสผ่าตัด
       </div>
 
@@ -19,10 +19,12 @@ function Case_Table_Header() {
         type="primary"
         icon={<Icon icon="typcn:plus" className="text-lg" />}
         onClick={handleAddClick}
-        className="font-bold flex items-center gap-2"
+        className="w-1/3 sm:w-auto p-2 sm:p-5 text-xs sm:text-base"
         size="large"
       >
-        <span className="font-semibold tracking-wide">เพิ่มเคส</span>
+        <span className="font-semibold tracking-wide text-xs sm:text-lg">
+          เพิ่มเคส
+        </span>
       </Button>
     </div>
   );

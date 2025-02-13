@@ -12,12 +12,12 @@ exports.login = async (req, res) => {
     const staff = await Staff.findOne({ username });
 
     if (!staff) {
-      return res.status(401).json({ message: "Invalid username or password" });
+      return res.status(402).json({ message: "Invalid username or password" });
     }
 
     const isPasswordValid = await bcrypt.compare(password, staff.password);
     if (!isPasswordValid) {
-      return res.status(401).json({ message: "Invalid username or password" });
+      return res.status(402).json({ message: "Invalid username or password" });
     }
 
     if (!staff.isActive) {

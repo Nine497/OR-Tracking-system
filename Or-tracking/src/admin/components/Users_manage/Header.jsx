@@ -19,18 +19,21 @@ function Users_Table_Header({ refreshTable }) {
 
   return (
     <div className="flex flex-row p-4 justify-between">
-      <div className="text-xl sm:text-2xl font-semibold">
+      <div className="text-lg sm:text-2xl font-semibold">
         การจัดการผู้ใช้งาน
       </div>
       {permissions.includes("5002") && (
         <Button
           type="primary"
-          icon={<Icon icon="typcn:plus" className="text-lg" />}
+          icon={<Icon icon="typcn:plus" className="text-sm sm:text-lg" />}
           onClick={showModal}
-          className="w-full sm:w-auto"
+          className="w-1/3 sm:w-auto p-2 sm:p-5 text-xs sm:text-base"
           size="large"
         >
-          <span className="font-semibold tracking-wide">เพิ่มผู้ใช้</span>
+          <span className="font-semibold tracking-wide text-xs sm:text-lg">
+            {" "}
+            เพิ่มผู้ใช้
+          </span>
         </Button>
       )}
 

@@ -42,11 +42,8 @@ export const AuthProvider = ({ children }) => {
       );
       setPermissions(fetchedPermissions);
     } catch (error) {
-      console.error("Error fetching permissions:", error);
-      if (error.response?.data?.message === "Invalid token") {
-        logout();
-        window.location.href = "/login";
-      }
+      logout();
+      window.location.href = "/login";
     } finally {
       setLoading(false);
     }

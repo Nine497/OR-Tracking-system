@@ -46,7 +46,7 @@ const Login = () => {
       console.error("ข้อผิดพลาดในการเข้าสู่ระบบ:", error);
 
       if (error.response) {
-        if (error.response.status === 401) {
+        if (error.response.status === 402) {
           notification.error({
             message: "ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง",
             showProgress: true,

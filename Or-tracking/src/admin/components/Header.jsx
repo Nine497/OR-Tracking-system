@@ -84,15 +84,17 @@ const StyledDropdown = () => {
           focus:outline-none focus:ring-0
           px-4 py-2"
       >
-        <span className="font-medium">
-          {`${user.firstname} ${user.lastname}`}
-        </span>
+        <div>
+          <span className="font-medium hidden sm:block">
+            {`${user.firstname} ${user.lastname}`}
+          </span>
+        </div> 
         <span className="mx-1 text-gray-300">|</span>
         <Icon
           icon="iconoir:user"
           className="text-xl cursor-pointer
             text-gray-700 group-hover:text-blue-500
-            transition-colors duration-300 font-medium"
+            transition-colors duration-300 "
         />
       </Button>
     </Dropdown>

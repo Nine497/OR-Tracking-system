@@ -219,7 +219,6 @@ const LoginForm = ({ t, link }) => {
     }, 1000);
   };
 
-  // Handle PIN completion and login
   const handlePinComplete = async (pin) => {
     if (pin.length === 6) {
       try {
@@ -244,8 +243,9 @@ const LoginForm = ({ t, link }) => {
         });
 
         if (response.data.valid) {
+          console.log("link", link);
           localStorage.setItem("token", response.data.token);
-          navigate("/ptr/view");
+          navigate(`/ptr/view?link=${link}`);
         } else {
           setErrorMessage(t("login.FAILED"));
         }

@@ -300,10 +300,25 @@ const ActiveLinkComponent = ({
                     disabledDate={(current) =>
                       current && current < dayjs().startOf("day")
                     }
+                    disabledTime={(current) => {
+                      if (dayjs(current).isSame(dayjs(), "day")) {
+                        return {
+                          disabledHours: () => [
+                            ...Array(dayjs().hour()).keys(),
+                          ],
+                          disabledMinutes: (hour) =>
+                            hour === dayjs().hour()
+                              ? [...Array(dayjs().minute()).keys()]
+                              : [],
+                        };
+                      }
+                      return {};
+                    }}
                     showNow={false}
                     placeholder="เลือกวัน/เวลา"
                     popupClassName="text-sm shadow-lg"
                   />
+
                   {/* <Popconfirm
                     title={`คุณแน่ใจไหมที่จะตั้งค่าวันที่นี้: ${newExpirationTime.format(
                       "YYYY-MM-DD HH:mm"
@@ -447,7 +462,10 @@ const LinkForm = ({ formLink, record }) => {
 
   const handleCopyLink = async () => {
     const linkUrl = `${BASE_URL}ptr?link=${linkData.surgery_case_links_id}`;
-    const pin_decrypted = linkData.pin;
+    const pin_decrypted =
+      linkData.pin_decrypted !== undefined
+        ? linkData.pin_decrypted
+        : linkData.pin;
     const patient_fullname = `${linkData.patient_firstname} ${linkData.patient_lastname}`;
     if (!linkUrl || !pin_decrypted) {
       notification.warning({

@@ -1,11 +1,16 @@
 import React, { useEffect, useState } from "react";
-import { Layout, Menu, Button } from "antd";
+import { Layout, Menu, Button, Drawer } from "antd";
 import { useLocation, NavLink } from "react-router-dom";
-import { RightOutlined, LeftOutlined } from "@ant-design/icons";
+import {
+  MenuOutlined,
+  MenuFoldOutlined,
+  MenuUnfoldOutlined,
+} from "@ant-design/icons";
 import { Icon } from "@iconify/react";
 import { useAuth } from "../context/AuthContext";
-
 import Logo from "../assets/Logo.png";
+
+const { Sider } = Layout;
 
 const items = [
   {
@@ -39,10 +44,12 @@ const items = [
 const Sidebar = ({ collapsed, setCollapsed, isMobile }) => {
   const location = useLocation();
   const [userPermissions, setUserPermissions] = useState([]);
+  const [drawerVisible, setDrawerVisible] = useState(false);
+  const { permissions } = useAuth();
+
   const selectedKey = items.find((item) =>
     location.pathname.startsWith(item.to)
   )?.key;
-  const { permissions } = useAuth();
 
   useEffect(() => {
     setUserPermissions(permissions);
@@ -65,85 +72,106 @@ const Sidebar = ({ collapsed, setCollapsed, isMobile }) => {
     })
     .filter(Boolean);
 
-  return (
-    <Layout.Sider
+  const MainMenu = () => (
+    <Menu
+      mode="inline"
+      theme="light"
+      selectedKeys={[selectedKey]}
+      items={menuItems}
+      className="border-none bg-transparent"
+      onClick={() => isMobile && setDrawerVisible(false)}
+    />
+  );
+
+  // Desktop Sidebar
+  const DesktopSidebar = () => (
+    <Sider
       theme="light"
       collapsed={collapsed}
       onCollapse={setCollapsed}
-      collapsible={!isMobile}
-      collapsedWidth={isMobile ? 0 : 80}
+      collapsible
+      collapsedWidth={80}
       width={240}
-      className="fixed left-0 top-0 h-screen z-20 shadow-lg border-r border-gray-200 bg-white"
+      className="hidden md:block fixed left-0 top-0 h-screen shadow-lg border-r border-gray-200"
       trigger={null}
     >
       <div className="flex flex-col h-full">
-        {/* Header Section */}
-        <div className="flex-none h-16 flex items-center justify-between border-b border-gray-100 bg-white/95 px-4">
+        {/* Header */}
+        <div className="h-16 flex items-center justify-between border-b border-gray-100 px-4">
           <img
             src={Logo}
             alt="Logo"
             className={`transition-all duration-300 ease-in-out ${
-              collapsed ? "w-12 hidden" : "w-32"
+              collapsed ? "w-10" : "w-32"
             } h-auto object-contain`}
           />
-          {!isMobile && (
-            <Button
-              type="text"
-              icon={collapsed ? <RightOutlined /> : <LeftOutlined />}
-              onClick={() => setCollapsed(!collapsed)}
-              className="hover:bg-gray-50 w-8 h-8 p-0 flex items-center justify-center rounded-md focus:outline-none"
-            />
-          )}
+          <Button
+            type="text"
+            icon={collapsed ? <MenuUnfoldOutlined /> : <MenuFoldOutlined />}
+            onClick={() => setCollapsed(!collapsed)}
+            className="hover:bg-gray-50"
+          />
         </div>
-        {/* Main Menu */}
-        <Menu
-          mode="inline"
-          theme="light"
-          selectedKeys={[selectedKey]}
-          items={menuItems}
-          className="border-none bg-transparent"
-        >
-          <style jsx>{`
-            .ant-menu-item {
-              display: flex;
-              justify-content: center;
-              align-items: center;
-              height: 48px;
-            }
-            .ant-menu-item-active {
-              background-color: #e6f7ff;
-              color: #1890ff;
-            }
-            .ant-menu-item-selected {
-              background-color: #bae7ff;
-              color: #1890ff;
-            }
-          `}</style>
-        </Menu>
-        <div className="flex-grow" />
-        {/* Footer Section */}
+
+        {/* Menu */}
+        <MainMenu />
+
+        {/* Footer */}
         <div
-          className={`flex-none min-h-[4rem] w-full px-4 py-3 mt-auto border-t border-gray-300 text-center bg-gray-100 transition-all duration-300 ${
-            collapsed ? "opacity-0" : "opacity-100"
-          }`}
+          className={`min-h-[4rem] w-full px-4 py-3 mt-auto border-t border-gray-200 
+            text-center bg-gray-50 transition-all duration-300 
+            ${collapsed ? "opacity-0" : "opacity-100"}`}
         >
           <p className="text-sm font-semibold text-gray-700 mb-0.5">
             OR-Tracking System
           </p>
           <p className="text-xs text-gray-500">Version 0.0.1</p>
-        </div>{" "}
+        </div>
       </div>
+    </Sider>
+  );
 
-      {/* Mobile Toggle Button */}
-      {isMobile && (
-        <Button
-          type="default"
-          icon={collapsed ? <RightOutlined /> : <LeftOutlined />}
-          onClick={() => setCollapsed(!collapsed)}
-          className="border-none absolute -right-6 top-4 bg-white hover:bg-gray-50 border-gray-200 w-8 h-8 p-0 flex items-center justify-center rounded-md"
-        />
-      )}
-    </Layout.Sider>
+  // Mobile Header with Hamburger
+  const MobileHeader = () => (
+    <div className="md:hidden fixed top-0 left-0 right-0 h-16 bg-white z-20 flex items-center justify-between px-4 border-b border-gray-200 shadow-sm">
+      <img src={Logo} alt="Logo" className="h-8 w-auto" />
+      <Button
+        type="text"
+        icon={<MenuOutlined className="text-xl" />}
+        onClick={() => setDrawerVisible(true)}
+        className="flex items-center justify-center hover:bg-gray-50"
+      />
+    </div>
+  );
+
+  const MobileDrawer = () => (
+    <Drawer
+      title={
+        <div className="flex items-center space-x-3\">
+          <img src={Logo} alt="Logo" className="h-8 w-auto" />
+        </div>
+      }
+      placement="left"
+      onClose={() => setDrawerVisible(false)}
+      open={drawerVisible}
+      width={200}
+      className="md:hidden"
+      bodyStyle={{ padding: 0 }}
+      closable={false}
+    >
+      <MainMenu />
+      <div className="absolute bottom-0 left-0 right-0 p-4 text-center bg-gray-50 border-t border-gray-200">
+        <p className="text-sm text-gray-500">Version 0.0.1</p>
+      </div>
+    </Drawer>
+  );
+
+  return (
+    <>
+      <DesktopSidebar />
+      <MobileHeader />
+      <MobileDrawer />
+    </>
   );
 };
 

@@ -188,7 +188,6 @@ const View = () => {
 
       setSortedStatuses(finalStatuses);
       setPatient_currentStatus(currentStatus);
-      console.log("patient_currentStatus", patient_currentStatus.status_id);
     } else {
       console.log("statusHistory.statusHistory is not an array or is empty");
     }
@@ -449,20 +448,11 @@ const View = () => {
                     </div>
 
                     <div className="flex flex-col items-center justify-center pt-7">
-                      {patient_currentStatus?.status_id === 0 ? (
-                        <div className="text-center p-4 sm:p-6">
-                          <p className="text-base sm:text-lg md:text-xl lg:text-2xl font-semibold text-gray-800 mb-2">
-                            {t("view.pending_title")}
-                          </p>
-                          <p className="text-sm sm:text-sm md:text-base lg:text-lg text-gray-600 mt-2 leading-relaxed">
-                            {t("view.pending_des")}
-                          </p>
-                        </div>
-                      ) : (
-                        <div className="flex flex-col justify-center items-center h-full min-h-[250px] sm:min-h-[300px]">
-                          {TimelineLoading ? (
-                            <Spin size="large" tip={t("view.loading_status")} />
-                          ) : (
+                      <div className="flex flex-col justify-center items-center h-full min-h-[250px] sm:min-h-[300px] w-full">
+                        {TimelineLoading ? (
+                          <Spin size="large" tip={t("view.loading_status")} />
+                        ) : (
+                          patient_currentStatus && (
                             <StatusTimeline
                               key={lastUpdated}
                               statusData={statusData}
@@ -472,9 +462,9 @@ const View = () => {
                               t={t}
                               surgery_case_id={surgery_case_id}
                             />
-                          )}
-                        </div>
-                      )}
+                          )
+                        )}
+                      </div>
                     </div>
                   </div>
                 </Card>

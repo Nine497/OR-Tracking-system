@@ -4,6 +4,7 @@ const surgeryController = require("../controllers/caseController");
 const verifyToken = require("../middlewares/verifyToken");
 
 // 📌 Route ที่เฉพาะเจาะจงควรมาก่อน
+router.patch("/isActive/:id", verifyToken, surgeryController.updateIsactive);
 router.put(
   "/or_room/:id",
   verifyToken,
@@ -30,6 +31,11 @@ router.get(
   "/patient/:surgery_case_id",
   verifyToken,
   surgeryController.getCaseWithPatientById
+);
+router.get(
+  "/all_surgery_types",
+  verifyToken,
+  surgeryController.getAllSurgeryTypes
 );
 
 // 📌 Route ที่เป็น Dynamic (ต้องอยู่ล่างกว่า)

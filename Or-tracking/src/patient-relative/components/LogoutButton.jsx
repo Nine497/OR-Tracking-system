@@ -1,18 +1,17 @@
 import React from "react";
 import { useTranslation } from "react-i18next";
 import { Icon } from "@iconify/react";
-import { useNavigate } from "react-router-dom";
-import { usePatient } from "../context/PatientContext";
+import { useNavigate, useSearchParams } from "react-router-dom";
 
 const LogoutButton = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
-  const { patient_link } = usePatient();
+  const [searchParams] = useSearchParams();
+  const link = searchParams.get("link");
 
   const handleLogout = () => {
     localStorage.removeItem("token");
-
-    navigate(`/ptr?link=${patient_link}`);
+    navigate(`/ptr?link=${link}`);
   };
 
   return (

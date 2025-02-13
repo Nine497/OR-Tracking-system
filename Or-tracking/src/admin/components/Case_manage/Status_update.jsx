@@ -12,8 +12,6 @@ const StatusUpdateForm = ({ record, allStatus, onStatusUpdate }) => {
   const { user } = useAuth();
 
   useEffect(() => {
-    console.log("record", record);
-
     const fetchData = async () => {
       try {
         setLoading(true);
@@ -92,9 +90,6 @@ const StatusUpdateForm = ({ record, allStatus, onStatusUpdate }) => {
   const currentStatusName = allStatus.find(
     (status) => status.status_id === tempStatus
   )?.status_name;
-
-  console.log("tempStatus:", tempStatus);
-  console.log("selectedStatus:", selectedStatus);
 
   const hasStatusChanged = tempStatus !== selectedStatus;
 

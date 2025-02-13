@@ -2,7 +2,13 @@ const linkCase = require("../models/linkCaseModel");
 const bcrypt = require("bcryptjs");
 const crypto = require("crypto");
 const db = require("../config/database");
+const dayjs = require("dayjs");
+const utc = require("dayjs/plugin/utc");
+const timezone = require("dayjs/plugin/timezone");
+
 require("dotenv").config();
+dayjs.extend(utc);
+dayjs.extend(timezone);
 
 const linkCaseController = {
   // ดึงข้อมูลทั้งหมด
@@ -37,9 +43,7 @@ const linkCaseController = {
       return res.status(400).json({ message: "Missing required fields" });
     }
 
-    const created_at = new Date().toLocaleString("en-US", {
-      timeZone: "Asia/Bangkok",
-    });
+    const created_at = dayjs().utc().format();
     const timestamp = Date.now();
     const randomValue = crypto.randomInt(0, 1000);
     const surgery_case_links_id = `${timestamp}${randomValue}`;
@@ -55,11 +59,12 @@ const linkCaseController = {
       let encryptedPin = cipher.update(pin, "utf8", "base64");
       encryptedPin += cipher.final("base64");
 
-      // สร้าง hash ของ surgery_case_links_id ด้วย bcrypt
       const hash = await bcrypt.hash(surgery_case_links_id, 10);
       const cleanHash = hash.replace(/[^\w\s]/g, "");
 
       const isactive = true;
+
+      const expirationTimeUtc = dayjs(expiration_time).utc().format();
 
       const linkCaseData = {
         surgery_case_links_id: cleanHash,
@@ -67,19 +72,15 @@ const linkCaseController = {
         created_at,
         created_by,
         isactive,
-        expiration_time: new Date(expiration_time).toLocaleString("en-US", {
-          timeZone: "Asia/Bangkok",
-        }),
+        expiration_time: expirationTimeUtc,
         pin_encrypted: encryptedPin,
       };
 
-      // สร้างลิงก์เคสใหม่
       const newLink = await linkCase.createLink(linkCaseData);
 
-      // ส่งข้อมูลกลับไปพร้อมกับ PIN ที่ไม่เข้ารหัส
       res.status(201).json({
         ...newLink,
-        pin: pin, // ส่ง PIN ที่ไม่เข้ารหัสให้กับผู้ใช้
+        pin: pin,
       });
     } catch (error) {
       console.error("Error creating link case:", error);
@@ -205,12 +206,9 @@ const linkCaseController = {
         return res.status(404).json({ message: "Link case not found" });
       }
 
-      const formattedExpirationTime = new Date(expiration_time).toLocaleString(
-        "en-US",
-        {
-          timeZone: "Asia/Bangkok",
-        }
-      );
+      const formattedExpirationTime = dayjs(expiration_time)
+        .utc()
+        .format("YYYY-MM-DD HH:mm:ss");
 
       const updatedLink = await linkCase.updateLink(id, {
         expiration_time: formattedExpirationTime,

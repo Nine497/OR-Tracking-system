@@ -248,11 +248,11 @@ function UsersTable({ refreshKey }) {
   ];
 
   return (
-    <div className="flex flex-col p-7 w-full h-full gap-4">
+    <div className="flex flex-col p-1 sm:p-7 w-full h-full gap-4">
       <div className="bg-gray-100 w-full rounded-lg flex flex-col sm:flex-row sm:justify-between items-start sm:items-center gap-4 sm:gap-0 px-5 sm:px-10 py-4">
         <Input
           placeholder="ค้นหาด้วยหมายเลขผู้ใช้, ชื่อผู้ใช้, ชื่อ-นามสกุล..."
-          className="w-1/3 sm:w-1/3 h-10 text-base"
+          className="w-full sm:w-1/3 h-10 text-base"
           prefix={<Icon icon="mingcute:search-line" className="mr-2 w-4 h-4" />}
           onChange={(e) => handleSearch(e.target.value)}
           value={searchTerm}

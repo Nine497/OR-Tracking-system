@@ -120,6 +120,14 @@ const SurgeryCase = {
       .then((updatedSurgeryCase) => updatedSurgeryCase[0]);
   },
 
+  findByIdAndUpdate: (surgery_case_id, isactive) => {
+    return db("surgery_case")
+      .where("surgery_case_id", surgery_case_id)
+      .update({ isactive })
+      .returning("*")
+      .then((updatedSurgeryCase) => updatedSurgeryCase[0]);
+  },
+
   // ค้นหากรณีการผ่าตัดตาม id
   findById: (id) => {
     return db("surgery_case").where("surgery_case_id", id).first();

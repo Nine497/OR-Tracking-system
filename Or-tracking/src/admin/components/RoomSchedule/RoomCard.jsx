@@ -23,7 +23,7 @@ function RoomCard({ room }) {
       setLoading(true);
       try {
         const casesResponse = await axiosInstanceStaff.get(
-          `/surgery_case/getSurgery_case_ByOrID/${room.operating_room_id}`
+          `/surgery_case/getSurgeryCaseByOrID/${room.operating_room_id}`
         );
         const statusResponse = await axiosInstanceStaff.get(
           "patient/getAllStatus"
@@ -53,7 +53,11 @@ function RoomCard({ room }) {
   const handleCardClick = (e) => {
     const isCollapseClick = e.target.closest(".ant-collapse");
     if (!isCollapseClick) {
-      setSelectedCases(filteredCases);
+      setSelectedCases(
+        filteredCases.length > 0
+          ? filteredCases
+          : [{ room_name: room.room_name }]
+      );
       setIsOpen(true);
     }
   };

@@ -17,9 +17,8 @@ const GanttModal = ({ cases, isOpen, onClose }) => {
   const containerRef = useRef(null);
 
   useEffect(() => {
-    console.log("tasks", tasks);
-    console.log("cases", cases);
-  }, [tasks]);
+    console.log("Grantt cases", cases);
+  }, [cases]);
 
   useEffect(() => {
     if (!Array.isArray(cases) || cases.length === 0) return;
@@ -105,65 +104,58 @@ const GanttModal = ({ cases, isOpen, onClose }) => {
       centered
       className="gantt-modal gantt-h"
       closable={false}
-      styles={{ padding: 0, minHeight: "80vh", overflow: "auto" }}
+      styles={{
+        padding: 0,
+        height: "90vh",
+        overflow: "hidden",
+        display: "flex",
+        flexDirection: "column",
+      }}
       title={
-        cases?.length > 0 ? (
-          <div className="flex justify-between items-center w-full pl-2">
-            <Title level={2} className="text-indigo-700 mt-5">
-              ห้อง {cases[0]?.room_name || "ไม่ระบุ"}
-            </Title>
-            <CloseOutlined
-              onClick={onClose}
-              className="text-gray-500 hover:text-red-500 cursor-pointer text-lg"
-            />
-          </div>
-        ) : (
+        <div className="flex justify-between items-center w-full pl-2">
           <Title level={4} className="text-indigo-700 mt-5">
-            ตารางเวลาห้องผ่าตัด
+            ห้อง {cases[0]?.room_name}
           </Title>
-        )
+          <CloseOutlined
+            onClick={onClose}
+            className="text-gray-500 hover:text-red-500 cursor-pointer text-lg"
+          />
+        </div>
       }
     >
-      <div className="flex flex-col h-full bg-white">
-        <div className="flex-1 py-4 px-1 overflow-auto">
-          <Card
-            className="h-full w-full rounded-lg shadow-sm border border-gray-200"
-            styles={{ padding: 0, height: "auto", width: "100%" }}
-          >
-            {tasks.length > 0 ? (
-              <div
-                ref={containerRef}
-                className="h-full w-full overflow-auto custom-scrollbar"
-              >
-                <div className="flex-1">
-                  <Gantt
-                    tasks={tasks}
-                    viewMode={ViewMode.Hour}
-                    columnWidth={columnWidth}
-                    listCellWidth="160px"
-                    rowHeight={60}
-                    barCornerRadius={4}
-                    ganttHeight={0}
-                    headerHeight={80}
-                    fontSize="14px"
-                    todayColor="rgba(99, 102, 241, 0.1)"
-                    barFill={80}
-                    preStepsCount={3}
-                    locale="th"
-                    TooltipContent={Tooltip}
-                  />
-                </div>
-              </div>
-            ) : (
-              <div className="h-full flex items-center justify-center">
-                <Empty
-                  description="ไม่พบข้อมูลการผ่าตัด"
-                  className="text-gray-500"
-                />
-              </div>
-            )}
-          </Card>
-        </div>
+      <div className="flex-1 flex py-4 px-1 overflow-hidden h-full">
+        <Card className="gantt-card flex-1 w-full h-full rounded-lg shadow-sm border border-gray-200 [&_.ant-card-body]:p-0 flex flex-col">
+          {tasks.length > 0 ? (
+            <div
+              ref={containerRef}
+              className="flex-1 w-full overflow-hidden flex flex-col h-full"
+            >
+              <Gantt
+                tasks={tasks}
+                viewMode={ViewMode.Hour}
+                columnWidth={columnWidth}
+                listCellWidth="160px"
+                rowHeight={60}
+                barCornerRadius={4}
+                ganttHeight="100%"
+                headerHeight={80}
+                fontSize="14px"
+                todayColor="rgba(99, 102, 241, 0.1)"
+                barFill={80}
+                preStepsCount={3}
+                locale="th"
+                TooltipContent={Tooltip}
+              />
+            </div>
+          ) : (
+            <div className="flex-1 flex items-center justify-center h-full">
+              <Empty
+                description="ไม่พบข้อมูลการผ่าตัด"
+                className="text-gray-500"
+              />
+            </div>
+          )}
+        </Card>
       </div>
     </Modal>
   );

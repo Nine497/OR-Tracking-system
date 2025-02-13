@@ -16,7 +16,7 @@ router.get(
 );
 router.get("/getAllStatus", patientController.getAllStatuses);
 router.get("/getStatus/:id", patientController.getCaseWithStatusHistory);
-router.post("/", patientController.createPatient);
+router.post("/", patientController.createOrUpdatePatient);
 router.put("/:patient_id", patientController.updatePatient);
 router.get("/getPatientData/:hn_code", patientController.getPatientDataWithHN);
 

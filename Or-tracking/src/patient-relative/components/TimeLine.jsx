@@ -1,4 +1,4 @@
-import React, { useMemo, useEffect, useState } from "react";
+import React, { useMemo, useEffect, useState, useCallback } from "react";
 import { Modal, Timeline, Tag, Typography, Rate, Input } from "antd";
 import { FrownOutlined, MehOutlined, SmileOutlined } from "@ant-design/icons";
 import { axiosInstancePatient } from "../../admin/api/axiosInstance";
@@ -23,17 +23,18 @@ const StatusTimeline = ({
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [rating, setRating] = useState(0);
   const [suggestions, setSuggestions] = useState("");
+  const [loading, setLoading] = useState(false); // State สำหรับป้องกันการกดซ้ำ
 
   const customIcons = {
-    1: <FrownOutlined className="text-4xl  transition-all hover:scale-110" />,
-    2: <FrownOutlined className="text-4xl  transition-all hover:scale-110" />,
-    3: <MehOutlined className="text-4xl  transition-all hover:scale-110" />,
-    4: <SmileOutlined className="text-4xl  transition-all hover:scale-110" />,
-    5: <SmileOutlined className="text-4xl  transition-all hover:scale-110" />,
+    1: <FrownOutlined className="text-4xl transition-all hover:scale-110" />,
+    2: <FrownOutlined className="text-4xl transition-all hover:scale-110" />,
+    3: <MehOutlined className="text-4xl transition-all hover:scale-110" />,
+    4: <SmileOutlined className="text-4xl transition-all hover:scale-110" />,
+    5: <SmileOutlined className="text-4xl transition-all hover:scale-110" />,
   };
 
   useEffect(() => {
-    const checkReviewStatus = async () => {
+    (async () => {
       if (currentStatus?.status_id === 5) {
         try {
           const response = await axiosInstancePatient.get(
@@ -46,139 +47,159 @@ const StatusTimeline = ({
           console.error("Error checking review status:", error);
         }
       }
-    };
-
-    checkReviewStatus();
+    })();
   }, [currentStatus, surgery_case_id]);
 
-  const handleOk = async () => {
+  const handleOk = useCallback(async () => {
+    setLoading(true);
     try {
       await axiosInstancePatient.post(`/link_cases/submit_review`, {
         surgery_case_id,
         review_text: suggestions,
         rating,
       });
-
       setIsModalVisible(false);
     } catch (error) {
       console.error("Error submitting review:", error);
+    } finally {
+      setLoading(false);
     }
-  };
+  }, [surgery_case_id, suggestions, rating]);
 
-  const handleCancel = () => {
+  const handleCancel = useCallback(() => {
     setIsModalVisible(false);
-  };
+  }, []);
 
   const timelineItems = useMemo(() => {
-    console.log("currentStatus", currentStatus);
+    return statusData
+      .filter((status) => status.status_id !== 0)
+      .map((status) => {
+        const historyEntry = sortedStatuses.find(
+          (history) => history.status_id === status.status_id
+        );
+        const isRecoveryRoomStatus = currentStatus?.status_id === 5;
+        const isLatestStatus =
+          currentStatus?.status_id === status.status_id &&
+          !isRecoveryRoomStatus;
+        const isPastStatus =
+          historyEntry &&
+          (currentStatus?.status_id !== status.status_id ||
+            isRecoveryRoomStatus);
 
-    const filteredStatusData = statusData.filter(
-      (status) => status.status_id !== 0
-    );
+        // ตรวจสอบว่าเป็นสถานะสำเร็จหรือไม่ (status_id = 4) และต้องเป็น LatestStatus
+        const isSuccessStatus = status.status_id === 4 && isLatestStatus;
 
-    return filteredStatusData.map((status) => {
-      const historyEntry = sortedStatuses.find(
-        (history) => history.status_id === status.status_id
-      );
+        // ถ้าเป็น status_id = 4 และเป็น LatestStatus ให้ให้สถานะเป็น success
+        const finalColor = isSuccessStatus
+          ? "success"
+          : isLatestStatus
+          ? "blue"
+          : isPastStatus
+          ? "green"
+          : "gray";
 
-      const isRecoveryRoomStatus = currentStatus?.status_id === 5;
-      const isLatestStatus =
-        currentStatus?.status_id === status.status_id && !isRecoveryRoomStatus;
-      const isPastStatus =
-        historyEntry &&
-        (currentStatus?.status_id !== status.status_id || isRecoveryRoomStatus);
+        const finalDotClass = isSuccessStatus
+          ? "bg-green-100 border-2 border-green-500"
+          : isLatestStatus
+          ? "bg-blue-100 border-2 border-blue-500"
+          : isPastStatus
+          ? "bg-green-100 border-2 border-green-500"
+          : "bg-gray-100 border-2 border-gray-300";
 
-      return {
-        key: status.status_id,
-        color: isLatestStatus ? "blue" : isPastStatus ? "green" : "gray",
-        dot: isLatestStatus ? (
-          <div className="flex items-center justify-center w-6 h-6 md:w-8 md:h-8 rounded-full bg-blue-100 border-2 border-blue-500 transition-all duration-300 hover:scale-110">
-            <Icon
-              icon="material-symbols:pending"
-              className="text-blue-500 text-lg md:text-xl"
-            />
-          </div>
-        ) : isPastStatus ? (
-          <div className="flex items-center justify-center w-6 h-6 md:w-8 md:h-8 rounded-full bg-green-100 border-2 border-green-500 transition-all duration-300 hover:scale-110">
-            <Icon
-              icon="material-symbols:check-circle"
-              className="text-green-500 text-lg md:text-xl"
-            />
-          </div>
-        ) : (
-          <div className="flex items-center justify-center w-6 h-6 md:w-8 md:h-8 rounded-full bg-gray-100 border-2 border-gray-300 transition-all duration-300 hover:scale-110">
-            <Icon
-              icon="material-symbols:circle-outline"
-              className="text-gray-500 text-lg md:text-xl"
-            />
-          </div>
-        ),
-        children: (
-          <div className="flex flex-col">
-            {historyEntry && (
-              <Text className="font-semibold text-sm md:text-base text-gray-600 bg-gray-50 px-2 md:px-3 py-1 rounded-md w-fit mb-4">
-                {dayjs(historyEntry.updated_at)
-                  .tz("Asia/Bangkok")
-                  .format("DD/MM/YYYY, HH:mm")}
-              </Text>
-            )}
-            <div className="flex flex-row gap-2 md:gap-6">
-              <div className="flex flex-col gap-1">
-                <Text
-                  className={`text-sm md:text-base ${
-                    isLatestStatus
-                      ? "text-blue-600"
-                      : isPastStatus
-                      ? "text-green-600"
-                      : "text-gray-600"
-                  } font-medium flex-2`}
-                >
-                  {status.translated_name}
+        const finalIcon = isSuccessStatus
+          ? "material-symbols:check-circle"
+          : isLatestStatus
+          ? "material-symbols:pending"
+          : isPastStatus
+          ? "material-symbols:check-circle"
+          : "material-symbols:circle-outline";
+
+        return {
+          key: status.status_id,
+          color: finalColor,
+          dot: (
+            <div
+              className={`flex items-center justify-center w-6 h-6 md:w-8 md:h-8 rounded-full transition-all duration-300 hover:scale-110 ${finalDotClass}`}
+            >
+              <Icon
+                icon={finalIcon}
+                className={`${
+                  isSuccessStatus
+                    ? "text-green-500"
+                    : isLatestStatus
+                    ? "text-blue-500"
+                    : isPastStatus
+                    ? "text-green-500"
+                    : "text-gray-500"
+                } text-lg md:text-xl`}
+              />
+            </div>
+          ),
+          children: (
+            <div className="flex flex-col">
+              {historyEntry && (
+                <Text className="font-semibold text-sm md:text-base text-gray-600 bg-gray-50 px-2 md:px-3 py-1 rounded-md w-fit mb-2">
+                  {dayjs(historyEntry.updated_at)
+                    .tz("Asia/Bangkok")
+                    .format("DD/MM/YYYY, HH:mm")}
                 </Text>
-                <Text
-                  className={`text-xs md:text-base ${
-                    isLatestStatus
-                      ? "text-blue-300"
-                      : isPastStatus
-                      ? "text-green-300"
-                      : "text-gray-300"
-                  } font-medium flex-2`}
-                >
-                  {status.translated_des}
-                </Text>
-              </div>
-              <div className="flex items-center flex-1 justify-end">
-                {isLatestStatus && (
-                  <Tag
-                    color="blue"
-                    className="text-xs md:text-sm px-2 md:px-3 py-0.5 rounded-full font-normal"
+              )}
+              <div className="flex flex-row justify-between gap-2 md:gap-6">
+                <div className="flex flex-col gap-1 mb-2">
+                  <Text
+                    className={`text-sm md:text-base ${
+                      isSuccessStatus
+                        ? "text-green-600"
+                        : isLatestStatus
+                        ? "text-blue-600"
+                        : isPastStatus
+                        ? "text-green-600"
+                        : "text-gray-600"
+                    } font-medium flex-2`}
                   >
+                    {status.translated_name}
+                  </Text>
+                  <Text
+                    className={`text-xs md:text-base ${
+                      isSuccessStatus
+                        ? "text-green-300"
+                        : isLatestStatus
+                        ? "text-blue-300"
+                        : isPastStatus
+                        ? "text-green-300"
+                        : "text-gray-300"
+                    } font-medium flex-2`}
+                  >
+                    {status.translated_des}
+                  </Text>
+                </div>
+                {isSuccessStatus && (
+                  <Tag color="success" className="h-fit">
+                    {t("common.COMPLETED")}
+                  </Tag>
+                )}
+                {isLatestStatus && !isSuccessStatus && (
+                  <Tag color="blue" className="h-fit">
                     {t("common.CURRENT")}
                   </Tag>
                 )}
-                {isPastStatus && (
-                  <Tag
-                    color="success"
-                    className="text-xs md:text-sm px-2 md:px-3 py-0.5 rounded-full font-normal"
-                  >
+                {isPastStatus && !isSuccessStatus && (
+                  <Tag color="success" className="h-fit">
                     {t("common.COMPLETED")}
                   </Tag>
                 )}
               </div>
+              <div className="border-b border-gray-100 "></div>
             </div>
-            <div className="border-b border-gray-100 pt-3"></div>
-          </div>
-        ),
-      };
-    });
+          ),
+        };
+      });
   }, [statusData, sortedStatuses, currentStatus, t]);
 
   return (
     <>
-      <div className="px-2 pt-6 items-start">
-        {currentStatus.status_id === 0 ? (
-          <Timeline items={timelineItems} className="max-w-3xl mx-auto" />
-        ) : (
+      <div className="px-2 pt-6 w-full">
+        {currentStatus?.status_id === 0 ? (
           <div className="text-center p-4 sm:p-6">
             <p className="text-base sm:text-lg md:text-xl lg:text-2xl font-semibold text-gray-800 mb-2">
               {t("view.pending_title")}
@@ -187,28 +208,39 @@ const StatusTimeline = ({
               {t("view.pending_des")}
             </p>
           </div>
+        ) : (
+          <>
+            {currentStatus && (
+              <>
+                <Timeline items={timelineItems} className="max-w-3xl mx-auto" />
+              </>
+            )}
+          </>
         )}
       </div>
+
       <Modal
         title={
-          <div className="text-lg sm:text-xl lg:text-2xl font-semibold text-gray-800 pb-3 border-b">
+          <div className="text-lg font-semibold">
             {t("review.review_title")}
           </div>
         }
         open={isModalVisible}
         onOk={handleOk}
         onCancel={handleCancel}
+        confirmLoading={loading}
         footer={
-          <div className="flex flex-col sm:flex-row sm:justify-end gap-2 sm:gap-3 pt-4 border-t border-gray-200">
+          <div className="flex flex-col sm:flex-row sm:justify-end gap-2">
             <button
               onClick={handleOk}
-              className="px-4 py-2 text-sm sm:text-base bg-blue-500 hover:bg-blue-600 text-white border border-blue-500 hover:border-blue-600 rounded-lg transition-colors w-full sm:w-auto"
+              disabled={loading}
+              className="px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg w-full sm:w-auto"
             >
-              {t("review.submit_review")}
+              {loading ? t("review.submitting") : t("review.submit_review")}
             </button>
             <button
               onClick={handleCancel}
-              className="px-4 py-2 text-sm sm:text-base border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors w-full sm:w-auto"
+              className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 w-full sm:w-auto"
             >
               {t("review.later")}
             </button>
@@ -216,40 +248,22 @@ const StatusTimeline = ({
         }
         width="90%"
         className="max-w-2xl"
-        style={{
-          content: {
-            padding: "16px sm:24px",
-            borderRadius: "12px",
-          },
-        }}
       >
-        <div className="space-y-4 sm:space-y-6">
-          <div>
-            <p className="text-sm sm:text-base lg:text-lg text-gray-700 mb-3 sm:mb-4">
-              {t("review.review_prompt")}
-            </p>
-            <div className="flex justify-center items-center py-4 sm:py-6 px-3 sm:px-4 bg-white rounded-lg">
-              <Rate
-                defaultValue={rating}
-                onChange={setRating}
-                character={({ index }) => customIcons[index + 1]}
-                className="flex justify-between w-full max-w-md"
-              />
-            </div>
-          </div>
-
-          <div>
-            <p className="text-sm sm:text-base lg:text-lg text-gray-700 mb-2 sm:mb-3">
-              {t("review.additional_suggestions")}
-            </p>
-            <Input.TextArea
-              onChange={(e) => setSuggestions(e.target.value)}
-              rows={4}
-              placeholder={t("review.suggestions_placeholder")}
-              className="w-full resize-none rounded-lg text-sm sm:text-base"
-            />
-          </div>
+        <p className="text-gray-700">{t("review.review_prompt")}</p>
+        <div className="flex justify-center py-4">
+          <Rate
+            value={rating}
+            onChange={setRating}
+            character={({ index }) => customIcons[index + 1]}
+            className="flex justify-between w-full max-w-md"
+          />
         </div>
+        <Input.TextArea
+          value={suggestions}
+          onChange={(e) => setSuggestions(e.target.value)}
+          rows={4}
+          placeholder={t("review.suggestions_placeholder")}
+        />
       </Modal>
     </>
   );

@@ -37,10 +37,10 @@ exports.validate_link = async (req, res) => {
       });
     }
 
-    const currentTime = new Date();
-    const expirationTime = new Date(linkStatus.expiration_time);
+    const currentTime = dayjs();
+    const expirationTime = dayjs(linkStatus.expiration_time);
 
-    if (currentTime > expirationTime) {
+    if (currentTime.isAfter(expirationTime)) {
       return res.status(403).json({
         valid: false,
         error: "LINK_EXPIRED",
@@ -141,14 +141,15 @@ exports.updatePatient = async (req, res) => {
   }
 };
 
-exports.createPatient = async (req, res) => {
+exports.createOrUpdatePatient = async (req, res) => {
   try {
     const patientData = req.body;
 
     if (
       !patientData.hn_code ||
       !patientData.first_name ||
-      !patientData.last_name
+      !patientData.last_name ||
+      !patientData.gender
     ) {
       return res
         .status(400)
@@ -160,9 +161,20 @@ exports.createPatient = async (req, res) => {
       .first();
 
     if (existingPatient) {
+      // อัปเดตข้อมูลแทน
+      const updatedPatient = await db("patients")
+        .where("hn_code", patientData.hn_code)
+        .update({
+          firstname: patientData.first_name,
+          lastname: patientData.last_name,
+          gender: patientData.gender,
+        })
+        .returning("*")
+        .then((patients) => patients[0]);
+
       return res.status(200).json({
-        message: "Patient already exists",
-        patient: existingPatient,
+        message: "Patient updated successfully",
+        patient: updatedPatient,
       });
     }
 
@@ -181,7 +193,7 @@ exports.createPatient = async (req, res) => {
       patient: newPatient,
     });
   } catch (error) {
-    console.error("Error creating or finding patient:", error);
+    console.error("Error creating or updating patient:", error);
     return res.status(500).json({
       message: "An error occurred while processing the patient data.",
     });

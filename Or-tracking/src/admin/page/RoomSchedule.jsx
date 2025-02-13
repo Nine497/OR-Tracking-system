@@ -36,13 +36,13 @@ function RoomSchedule() {
 
   return (
     <div className="w-full p-2 rounded-xl">
-      <div className="flex items-center justify-between mb-8">
-        <div className="flex items-baseline space-x-3 justify-between w-full">
-          <h2 className="text-3xl font-semibold">ตารางห้องผ่าตัดวันนี้</h2>
-          <p className="text-lg text-gray-500 font-medium">
-            {dayjs().format("วันdddd D MMMM YYYY")}
-          </p>
+      <div className="flex flex-col w-full sm:flex-row items-center justify-between sm:items-baseline space-y-2 sm:space-y-0 sm:space-x-3 mb-4 sm:mb-8">
+        <div className="text-lg sm:text-2xl font-semibold">
+          ตารางห้องผ่าตัดวันนี้
         </div>
+        <p className="text-sm sm:text-base md:text-lg text-gray-500 font-medium">
+          {dayjs().format("วันdddd D MMMM YYYY")}
+        </p>
       </div>
 
       {loading ? (

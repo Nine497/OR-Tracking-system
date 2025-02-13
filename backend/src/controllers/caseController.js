@@ -243,10 +243,7 @@ exports.createSurgeryCase = async (req, res) => {
     await db("surgery_case_status_history").insert({
       surgery_case_id: surgeryCaseId,
       status_id: 0,
-      updated_at: dayjs()
-        .tz("Asia/Bangkok", true)
-        .utc()
-        .format("YYYY-MM-DD HH:mm:ss"),
+      updated_at: dayjs().utc().format("YYYY-MM-DD HH:mm:ss"),
       updated_by: surgeryCaseData.created_by,
     });
 
@@ -273,7 +270,7 @@ exports.getCalendar = async (req, res) => {
         "patients.hn_code",
         "doctors.doctor_id",
         db.raw(
-          "CONCAT(doctors.firstname, ' ', doctors.lastname) AS doctor_fullname"
+          "CONCAT(doctors.prefix,doctors.firstname, ' ', doctors.lastname) AS doctor_fullname"
         )
       )
       .join("patients", "surgery_case.patient_id", "patients.patient_id")
@@ -500,7 +497,7 @@ exports.getAllCase = async (req, res) => {
   try {
     let { search, doctor_id, limit = 6, page = 1, isActive } = req.query;
     console.log("search", search);
-    console.log("isActive:", isActive);
+    console.log("isActive:", isActive, "Type:", typeof isActive);
     console.log("doctor_id", doctor_id);
 
     limit = parseInt(limit, 10);
@@ -533,17 +530,19 @@ exports.getAllCase = async (req, res) => {
         });
       }
 
-      if (isActive === "true") {
-        query.andWhere("surgery_case.isactive", true);
-      } else if (isActive === "false") {
-        query.andWhere("surgery_case.isactive", false);
+      if (isActive != null) {
+        if (isActive === "true") {
+          query.andWhere("surgery_case.isactive", true);
+        } else if (isActive === "false") {
+          query.andWhere("surgery_case.isactive", false);
+        }
       }
     };
 
-    const totalRecords = await db("surgery_case")
-      .count("* as total")
-      .first()
-      .then((result) => parseInt(result.total, 10) || 0);
+    const totalRecordsQuery = db("surgery_case").count("* as total").first();
+    const totalRecords = await totalRecordsQuery.then(
+      (result) => parseInt(result.total, 10) || 0
+    );
 
     let query = db("surgery_case")
       .select(
@@ -648,10 +647,13 @@ exports.getAllCase = async (req, res) => {
       }
     });
 
+    const totalPages = Math.ceil(filteredCount / limit);
+
     res.status(200).json({
       data: decryptedSurgeryCases,
       totalRecords,
       filteredCount,
+      totalPages,
     });
   } catch (err) {
     console.error("Server Error:", err);
@@ -825,5 +827,25 @@ exports.getAllSurgeryTypes = async (req, res) => {
       message: "Server error while fetching surgery types",
       error: error.message,
     });
+  }
+};
+
+exports.updateIsactive = async (req, res) => {
+  const { id } = req.params;
+  const { isActive } = req.body;
+
+  try {
+    console.log("id", id);
+    console.log("isActive", isActive);
+
+    const surgeryCase = await SurgeryCase.findByIdAndUpdate(id, isActive);
+
+    if (!surgeryCase) {
+      return res.status(404).json({ message: "surgeryCase not found" });
+    }
+
+    res.json({ message: "Status updated successfully", surgeryCase });
+  } catch (error) {
+    res.status(500).json({ message: "Server error", error: error.message });
   }
 };

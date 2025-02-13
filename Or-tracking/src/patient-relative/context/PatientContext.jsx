@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from "react";
 import { jwtDecode } from "jwt-decode";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 
 const PatientContext = createContext();
 
@@ -9,6 +9,7 @@ export const PatientProvider = ({ children }) => {
   const [surgery_case_id, setSurgery_case_id] = useState(null);
   const [patient_link, setPatient_link] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [searchParams] = useSearchParams();
   const navigate = useNavigate();
 
   const setPatient = (id) => {
@@ -25,6 +26,7 @@ export const PatientProvider = ({ children }) => {
 
   useEffect(() => {
     const token = localStorage.getItem("token");
+    const linkFromParams = searchParams.get("link") || null;
     if (token) {
       try {
         const payload = jwtDecode(token);
@@ -39,13 +41,14 @@ export const PatientProvider = ({ children }) => {
         console.error("Invalid token:", error);
         localStorage.removeItem("token");
 
-        const storedLink = localStorage.getItem("link");
-        if (storedLink) {
-          navigate(`/ptr?link=${storedLink}`);
+        if (linkFromParams) {
+          navigate(`/ptr?link=${linkFromParams}`);
         } else {
           navigate("/ptr");
         }
       }
+    } else {
+      navigate(`/ptr?link=${linkFromParams}`);
     }
     setIsLoading(false);
   }, [

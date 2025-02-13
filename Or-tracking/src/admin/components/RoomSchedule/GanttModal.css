@@ -27,6 +27,10 @@ div._1nBOt {
   display: none !important;
 }
 
-.gantt-h .ant-modal-content {
-  height: 95vh;
+.gantt-h .ant-modal-body {
+  @apply flex flex-col h-[80vh];
+}
+
+.gantt-card .ant-card-body {
+  @apply h-full justify-center items-center;
 }
