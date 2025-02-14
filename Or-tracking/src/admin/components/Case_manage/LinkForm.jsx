@@ -7,17 +7,18 @@ import {
   Modal,
   Spin,
   Tag,
-  Tooltip,
   Input,
   Typography,
-  QRCode,
-  Popconfirm,
 } from "antd";
-import dayjs from "dayjs";
 import { useAuth } from "../../context/AuthContext";
 import { axiosInstanceStaff } from "../../api/axiosInstance";
 import { Icon } from "@iconify/react";
-import Logo from "../../assets/Logo2.png";
+import dayjs from "dayjs";
+import utc from "dayjs/plugin/utc";
+import timezone from "dayjs/plugin/timezone";
+
+dayjs.extend(utc);
+dayjs.extend(timezone);
 
 const CancelLinkModal = ({ visible, onCancel, onConfirm }) => (
   <Modal
@@ -606,7 +607,7 @@ const LinkForm = ({ formLink, record }) => {
 
     createLink({
       surgery_case_id: record.surgery_case_id,
-      expiration_time: new Date(date),
+      expiration_time: date,
       created_by: user.id,
     });
   };
@@ -659,7 +660,9 @@ const LinkForm = ({ formLink, record }) => {
     <Form form={formLink} layout="vertical" className="w-full">
       <div className="space-y-6">
         {linkData?.expiration_time ? (
-          dayjs(linkData.expiration_time).isBefore(dayjs()) ? (
+          dayjs(linkData.expiration_time)
+            .tz("Asia/Bangkok")
+            .isBefore(dayjs().tz("Asia/Bangkok")) ? (
             <ExpiredLinkComponent
               link={linkUrl}
               record={record}

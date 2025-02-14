@@ -64,7 +64,9 @@ const linkCaseController = {
 
       const isactive = true;
 
-      const expirationTimeUtc = dayjs(expiration_time).utc().format();
+      const expirationTimeUtc = dayjs(expiration_time)
+        .utc()
+        .format("YYYY-MM-DD HH:mm:ss");
 
       const linkCaseData = {
         surgery_case_links_id: cleanHash,

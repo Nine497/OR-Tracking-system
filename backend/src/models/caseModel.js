@@ -22,7 +22,6 @@ const SurgeryCase = {
       .first();
   },
 
-  // ค้นหาข้อมูลกรณีการผ่าตัดตามเงื่อนไข
   findOne: (criteria) => {
     return db("surgery_case").where(criteria).first();
   },

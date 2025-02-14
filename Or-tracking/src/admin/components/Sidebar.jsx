@@ -1,11 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { Layout, Menu, Button, Drawer } from "antd";
 import { useLocation, NavLink } from "react-router-dom";
-import {
-  MenuOutlined,
-  MenuFoldOutlined,
-  MenuUnfoldOutlined,
-} from "@ant-design/icons";
 import { Icon } from "@iconify/react";
 import { useAuth } from "../context/AuthContext";
 import Logo from "../assets/Logo.png";
@@ -107,7 +102,19 @@ const Sidebar = ({ collapsed, setCollapsed, isMobile }) => {
           />
           <Button
             type="text"
-            icon={collapsed ? <MenuUnfoldOutlined /> : <MenuFoldOutlined />}
+            icon={
+              collapsed ? (
+                <Icon
+                  icon="mdi:arrow-expand-right"
+                  className="text-base border-none"
+                />
+              ) : (
+                <Icon
+                  icon="mdi:arrow-collapse-left"
+                  className="text-base border-none"
+                />
+              )
+            }
             onClick={() => setCollapsed(!collapsed)}
             className="hover:bg-gray-50"
           />
@@ -137,7 +144,7 @@ const Sidebar = ({ collapsed, setCollapsed, isMobile }) => {
       <img src={Logo} alt="Logo" className="h-8 w-auto" />
       <Button
         type="text"
-        icon={<MenuOutlined className="text-xl" />}
+        icon={<Icon icon="mdi:menu" className="text-xl" />}
         onClick={() => setDrawerVisible(true)}
         className="flex items-center justify-center hover:bg-gray-50"
       />
@@ -147,7 +154,7 @@ const Sidebar = ({ collapsed, setCollapsed, isMobile }) => {
   const MobileDrawer = () => (
     <Drawer
       title={
-        <div className="flex items-center space-x-3\">
+        <div className="flex items-center space-x-3">
           <img src={Logo} alt="Logo" className="h-8 w-auto" />
         </div>
       }

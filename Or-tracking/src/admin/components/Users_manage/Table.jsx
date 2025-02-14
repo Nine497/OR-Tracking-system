@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Input, Table, Switch, notification } from "antd";
+import { Input, Table, Switch, notification, Radio } from "antd";
 import { Icon } from "@iconify/react";
 import { axiosInstanceStaff } from "../../api/axiosInstance";
 import { Spin } from "antd";
@@ -18,55 +18,11 @@ function UsersTable({ refreshKey }) {
   const [searchTerm, setSearchTerm] = useState("");
   const [loading, setLoading] = useState(false);
   const [pagination, setPagination] = useState({ pageSize: 7, current: 1 });
-  const [reloadTrigger, setReloadTrigger] = useState(false);
   const [modalVisible, setModalVisible] = useState(false);
   const [selectedUser, setSelectedUser] = useState(null);
   const [dataLastestUpdated, setDataLastestUpdated] = useState(null);
   const { permissions, user } = useAuth();
-
-  const handleSearch = async (value) => {
-    setSearchTerm(value);
-    setPagination({ ...pagination, current: 1 });
-    setLoading(true);
-
-    try {
-      const response = await axiosInstanceStaff.get("/staff", {
-        params: {
-          search: value,
-          limit: pagination.pageSize,
-          page: 1,
-        },
-      });
-
-      const dataWithKeys = Array.isArray(response.data?.data)
-        ? response.data.data.map((item) => ({
-            ...item,
-            key: item.staff_id,
-          }))
-        : [];
-
-      const filteredUsers = dataWithKeys.filter(
-        (userData) => userData.staff_id !== user.id
-      );
-
-      setFilteredData(filteredUsers);
-      setPagination({
-        ...pagination,
-        total: response.data.totalRecords,
-      });
-    } catch (error) {
-      console.error("Error searching users:", error);
-      notification.error({
-        message: "ไม่สามารถค้นหาผู้ใช้ได้ กรุณาลองใหม่อีกครั้ง",
-        showProgress: true,
-        placement: "topRight",
-        pauseOnHover: true,
-        duration: 2,
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
+  const [activeSelected, setActiveSelected] = useState(null);
 
   const handleActiveToggle = async (record, checked) => {
     try {
@@ -86,7 +42,7 @@ function UsersTable({ refreshKey }) {
           duration: 2,
         });
 
-        setReloadTrigger((prev) => !prev);
+        fetchData();
       }
     } catch (error) {
       console.error("Error updating status:", error);
@@ -100,53 +56,54 @@ function UsersTable({ refreshKey }) {
     }
   };
 
+  const fetchData = async () => {
+    setLoading(true);
+    try {
+      const response = await axiosInstanceStaff.get("/staff", {
+        params: {
+          staff_id: user.id,
+          isActive: activeSelected,
+          search: searchTerm,
+          limit: pagination.pageSize,
+          page: pagination.current,
+        },
+      });
+
+      const dataWithKeys = Array.isArray(response.data?.data)
+        ? response.data.data.map((item) => ({
+            ...item,
+            key: item.staff_id,
+          }))
+        : [];
+      const filteredUsers = dataWithKeys.filter(
+        (userData) => userData.staff_id !== user.id
+      );
+
+      setFilteredData(filteredUsers);
+      setPagination({
+        ...pagination,
+        total: response.data.totalRecords,
+      });
+    } catch (error) {
+      console.error("Error fetching users:", error);
+      notification.error({
+        message: "ข้อผิดพลาดในการดึงข้อมูลผู้ใช้ กรุณาลองใหม่อีกครั้ง",
+        showProgress: true,
+        placement: "topRight",
+        pauseOnHover: true,
+        duration: 2,
+      });
+    } finally {
+      setDataLastestUpdated(dayjs().format("HH:mm A"));
+      setTimeout(() => {
+        setLoading(false);
+      }, 200);
+    }
+  };
+
   useEffect(() => {
-    const fetchData = async () => {
-      setLoading(true);
-
-      try {
-        const response = await axiosInstanceStaff.get("/staff", {
-          params: {
-            search: searchTerm,
-            limit: pagination.pageSize,
-            page: pagination.current,
-          },
-        });
-
-        const dataWithKeys = Array.isArray(response.data?.data)
-          ? response.data.data.map((item) => ({
-              ...item,
-              key: item.staff_id,
-            }))
-          : [];
-        const filteredUsers = dataWithKeys.filter(
-          (userData) => userData.staff_id !== user.id
-        );
-
-        setFilteredData(filteredUsers);
-        setPagination({
-          ...pagination,
-          total: response.data.totalRecords,
-        });
-      } catch (error) {
-        console.error("Error fetching users:", error);
-        notification.error({
-          message: "ข้อผิดพลาดในการดึงข้อมูลผู้ใช้ กรุณาลองใหม่อีกครั้ง",
-          showProgress: true,
-          placement: "topRight",
-          pauseOnHover: true,
-          duration: 2,
-        });
-      } finally {
-        setDataLastestUpdated(dayjs().format("HH:mm A"));
-        setTimeout(() => {
-          setLoading(false);
-        }, 200);
-      }
-    };
-
     fetchData();
-  }, [pagination.current, searchTerm, reloadTrigger, refreshKey]);
+  }, [pagination.current, searchTerm, activeSelected]);
 
   useEffect(() => {
     console.log("filteredData : ", filteredData);
@@ -249,21 +206,39 @@ function UsersTable({ refreshKey }) {
 
   return (
     <div className="flex flex-col p-1 sm:p-7 w-full h-full gap-4">
-      <div className="bg-gray-100 w-full rounded-lg flex flex-col sm:flex-row sm:justify-between items-start sm:items-center gap-4 sm:gap-0 px-5 sm:px-10 py-4">
+      <div className="bg-gray-100 w-full rounded-lg flex flex-col sm:flex-row sm:justify-between items-start sm:items-center gap-4 sm:gap-0 px-2 sm:px-10 py-4">
         <Input
           placeholder="ค้นหาด้วยหมายเลขผู้ใช้, ชื่อผู้ใช้, ชื่อ-นามสกุล..."
           className="w-full sm:w-1/3 h-10 text-base"
           prefix={<Icon icon="mingcute:search-line" className="mr-2 w-4 h-4" />}
-          onChange={(e) => handleSearch(e.target.value)}
+          onChange={(e) => setSearchTerm(e.target.value)}
           value={searchTerm}
         />
+
+        <Radio.Group
+          block
+          buttonStyle="solid"
+          className="w-full sm:w-1/4"
+          value={activeSelected}
+          onChange={(e) => {
+            setActiveSelected(e.target.value);
+            setPagination({
+              ...pagination,
+              current: 1,
+            });
+          }}
+          size="middle sm:small"
+        >
+          <Radio.Button value={null}>ทั้งหมด</Radio.Button>
+          <Radio.Button value={true}>เปิดใช้งาน</Radio.Button>
+          <Radio.Button value={false}>ปิดใช้งาน</Radio.Button>
+        </Radio.Group>
+
         <Button
           type="default"
           icon={<Icon icon="mdi:reload" className="w-4 h-4" />}
           onClick={() => {
-            setSearchTerm("");
-            setPagination({ ...pagination, current: 1 });
-            setReloadTrigger((prev) => !prev);
+            fetchData();
           }}
           className="w-full sm:w-auto"
           size="large"
@@ -288,7 +263,7 @@ function UsersTable({ refreshKey }) {
               current: pagination.current,
               total: pagination.total,
               onChange: handlePaginationChange,
-              showTotal: (total) => `ทั้งหมด ${total - 1} ผู้ใช้`,
+              showTotal: (total) => `ทั้งหมด ${total} ผู้ใช้`,
             }}
           />
         </Spin>

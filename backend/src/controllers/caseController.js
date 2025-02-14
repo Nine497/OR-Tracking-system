@@ -269,12 +269,21 @@ exports.getCalendar = async (req, res) => {
         "surgery_case.surgery_end_time",
         "patients.hn_code",
         "doctors.doctor_id",
+        "operating_room.room_name",
         db.raw(
           "CONCAT(doctors.prefix,doctors.firstname, ' ', doctors.lastname) AS doctor_fullname"
+        ),
+        db.raw(
+          "CONCAT(patients.firstname, ' ', patients.lastname) AS patients_fullname"
         )
       )
       .join("patients", "surgery_case.patient_id", "patients.patient_id")
-      .join("doctors", "surgery_case.doctor_id", "doctors.doctor_id");
+      .join("doctors", "surgery_case.doctor_id", "doctors.doctor_id")
+      .join(
+        "operating_room",
+        "surgery_case.operating_room_id",
+        "operating_room.operating_room_id"
+      );
 
     if (!caseCalendar || caseCalendar.length === 0) {
       return res.status(404).json({
@@ -496,55 +505,47 @@ exports.getCaseWithPatientById = async (req, res) => {
 exports.getAllCase = async (req, res) => {
   try {
     let { search, doctor_id, limit = 6, page = 1, isActive } = req.query;
-    console.log("search", search);
-    console.log("isActive:", isActive, "Type:", typeof isActive);
-    console.log("doctor_id", doctor_id);
-
     limit = parseInt(limit, 10);
     page = parseInt(page, 10);
     if (isNaN(limit) || limit <= 0) limit = 6;
     if (isNaN(page) || page <= 0) page = 1;
-
     const offset = (page - 1) * limit;
-    const lowerSearch = search ? search.trim().toLowerCase() : null;
+    const lowerSearch = search ? `%${search.trim().toLowerCase()}%` : null;
 
-    const addSearchConditions = (query) => {
-      if (doctor_id) {
-        query.where("surgery_case.doctor_id", doctor_id);
+    let query = db("surgery_case");
+
+    // กรอง doctor_id
+    if (doctor_id) {
+      query.andWhere("surgery_case.doctor_id", doctor_id);
+    }
+
+    // กรอง search
+    if (lowerSearch) {
+      query.andWhere((qb) => {
+        qb.whereRaw('LOWER(CAST("surgery_case_id" AS text)) LIKE ?', [
+          lowerSearch,
+        ])
+          .orWhereRaw("LOWER(patients.firstname) LIKE ?", [lowerSearch])
+          .orWhereRaw("LOWER(patients.hn_code) LIKE ?", [lowerSearch])
+          .orWhereRaw("LOWER(operating_room.room_name) LIKE ?", [lowerSearch]);
+      });
+    }
+
+    // กรอง isActive
+    if (isActive != null) {
+      if (isActive === "true") {
+        query.andWhere("surgery_case.isactive", true);
+      } else if (isActive === "false") {
+        query.andWhere("surgery_case.isactive", false);
       }
+    }
 
-      if (lowerSearch) {
-        query.andWhere((builder) => {
-          builder
-            .whereRaw(
-              'LOWER(CAST("surgery_case"."surgery_case_id" AS text)) LIKE ?',
-              [`%${lowerSearch}%`]
-            )
-            .orWhereRaw("LOWER(patients.firstname) LIKE ?", [
-              `%${lowerSearch}%`,
-            ])
-            .orWhereRaw("LOWER(patients.hn_code) LIKE ?", [`%${lowerSearch}%`])
-            .orWhereRaw("LOWER(operating_room.room_name) LIKE ?", [
-              `%${lowerSearch}%`,
-            ]);
-        });
-      }
+    // นับจำนวนที่ผ่านการกรอง
+    const totalRecords =
+      (await query.clone().count("* as total").first()).total || 0;
 
-      if (isActive != null) {
-        if (isActive === "true") {
-          query.andWhere("surgery_case.isactive", true);
-        } else if (isActive === "false") {
-          query.andWhere("surgery_case.isactive", false);
-        }
-      }
-    };
-
-    const totalRecordsQuery = db("surgery_case").count("* as total").first();
-    const totalRecords = await totalRecordsQuery.then(
-      (result) => parseInt(result.total, 10) || 0
-    );
-
-    let query = db("surgery_case")
+    // ดึงข้อมูลตาม pagination
+    const surgeryCases = await query
       .select(
         "surgery_case.*",
         "patients.firstname as patient_firstname",
@@ -594,18 +595,7 @@ exports.getAllCase = async (req, res) => {
           "=",
           "surgery_case_links.surgery_case_id"
         ).andOn("surgery_case_links.isactive", "=", db.raw("true"));
-      });
-
-    addSearchConditions(query);
-
-    const filteredCountQuery = query.clone();
-    const filteredCount = await filteredCountQuery
-      .clearSelect()
-      .count({ count: "surgery_case.surgery_case_id" })
-      .first()
-      .then((result) => parseInt(result.count, 10) || 0);
-
-    const surgeryCases = await query
+      })
       .orderBy("surgery_case.created_at", "desc")
       .limit(limit)
       .offset(offset);
@@ -647,13 +637,10 @@ exports.getAllCase = async (req, res) => {
       }
     });
 
-    const totalPages = Math.ceil(filteredCount / limit);
-
+    // ส่งข้อมูลที่มี pin_decrypted กลับไป
     res.status(200).json({
       data: decryptedSurgeryCases,
       totalRecords,
-      filteredCount,
-      totalPages,
     });
   } catch (err) {
     console.error("Server Error:", err);

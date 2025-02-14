@@ -129,9 +129,11 @@ const View = () => {
         }
       } catch (error) {
         if (error.response && error.response.status === 403) {
-          setErrorMessage(t("error.LINK_INACTIVE"));
+          setErrorMessage(t("errors.LINK_INACTIVE"));
+        } else if (error.response && error.response.status === 410) {
+          setErrorMessage(t("errors.LINK_EXPIRED"));
         } else {
-          setErrorMessage(t("error.FAILED_TO_LOAD"));
+          setErrorMessage(t("errors.FAILED_TO_LOAD"));
         }
       } finally {
         if (isMounted) {

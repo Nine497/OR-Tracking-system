@@ -10,42 +10,48 @@ dayjs.extend(timezone);
 // Search & getAllStaff Staff table
 exports.getAllStaff = async (req, res) => {
   try {
-    const { search, limit = 6, page = 1 } = req.query;
+    const { search, limit = 6, page = 1, isActive, staff_id } = req.query;
     const offset = (page - 1) * limit;
 
     let totalRecords;
     let staff;
 
+    const query = db("staff");
+
+    // กรอง isActive
+    if (isActive != null) {
+      if (isActive === "true") {
+        query.andWhere("isActive", true);
+      } else if (isActive === "false") {
+        query.andWhere("isActive", false);
+      }
+    }
+
+    // ตัดตัวเองออก
+    if (staff_id) {
+      query.andWhere("staff_id", "!=", staff_id);
+    }
+
+    // กรอง search
     if (search) {
       const lowerSearch = `%${search.trim().toLowerCase()}%`;
-
-      const totalQuery = await db("staff")
-        .count("* as total")
-        .whereRaw('LOWER(CAST("staff_id" AS text)) LIKE ?', [lowerSearch])
-        .orWhereRaw('LOWER("username") LIKE ?', [lowerSearch])
-        .orWhereRaw('LOWER("firstname") LIKE ?', [lowerSearch])
-        .orWhereRaw('LOWER("lastname") LIKE ?', [lowerSearch]);
-      totalRecords = totalQuery[0].total;
-
-      staff = await db("staff")
-        .select("*")
-        .whereRaw('LOWER(CAST("staff_id" AS text)) LIKE ?', [lowerSearch])
-        .orWhereRaw('LOWER("username") LIKE ?', [lowerSearch])
-        .orWhereRaw('LOWER("firstname") LIKE ?', [lowerSearch])
-        .orWhereRaw('LOWER("lastname") LIKE ?', [lowerSearch])
-        .orderBy("created_at", "desc")
-        .limit(Number(limit))
-        .offset(offset);
-    } else {
-      const totalQuery = await db("staff").count("* as total");
-      totalRecords = totalQuery[0].total;
-
-      staff = await db("staff")
-        .select("*")
-        .orderBy("created_at", "desc")
-        .limit(Number(limit))
-        .offset(offset);
+      query.andWhere((qb) => {
+        qb.whereRaw('LOWER(CAST("staff_id" AS text)) LIKE ?', [lowerSearch])
+          .orWhereRaw('LOWER("username") LIKE ?', [lowerSearch])
+          .orWhereRaw('LOWER("firstname") LIKE ?', [lowerSearch])
+          .orWhereRaw('LOWER("lastname") LIKE ?', [lowerSearch]);
+      });
     }
+
+    // นับ total ใหม่
+    totalRecords = (await query.clone().count("* as total"))[0].total;
+
+    // ดึงข้อมูล staff
+    staff = await query
+      .select("*")
+      .orderBy("created_at", "desc")
+      .limit(Number(limit))
+      .offset(offset);
 
     res.status(200).json({
       data: staff,

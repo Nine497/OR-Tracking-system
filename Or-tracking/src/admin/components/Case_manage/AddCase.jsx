@@ -141,12 +141,40 @@ function AddCase() {
     fetchAllSurgeryTypes();
   }, []);
 
+  const updateEndtime = (startTime) => {
+    if (!startTime) return;
+
+    const currentEndTime = surgeryData.surgery_end_time
+      ? dayjs(surgeryData.surgery_end_time)
+      : null;
+
+    if (!currentEndTime || dayjs(startTime).isAfter(currentEndTime)) {
+      const newEndTime = dayjs(startTime).add(5, "minute");
+
+      if (newEndTime.isValid()) {
+        setSurgeryData((prev) => ({
+          ...prev,
+          surgery_end_time: newEndTime.format("YYYY-MM-DD HH:mm"),
+        }));
+
+        form.setFieldsValue({
+          surgery_end_time: newEndTime,
+        });
+      } else {
+        console.error("Invalid date");
+      }
+    }
+  };
+
   const handleSurgeryDataChange = (name, value) => {
     setSurgeryData((prevState) => ({
       ...prevState,
       [name]: value,
     }));
-    console.log("surgeryData", surgeryData);
+
+    if (name === "surgery_start_time") {
+      updateEndtime(value);
+    }
   };
 
   // const handlePatientDobChange = (field, value) => {
@@ -794,9 +822,8 @@ function AddCase() {
                   <DatePicker
                     showTime={{
                       format: "HH:mm",
-                      defaultValue: dayjs("00:00", "HH:mm"),
                     }}
-                    format="YYYY/MM/DD HH:mm"
+                    format="YYYY-MM-DD HH:mm"
                     value={
                       surgeryData.surgery_start_time
                         ? dayjs(
@@ -805,14 +832,12 @@ function AddCase() {
                           )
                         : null
                     }
-                    onChange={(date) => {
-                      if (date) {
-                        handleSurgeryDataChange(
-                          "surgery_start_time",
-                          date.format("YYYY/MM/DD HH:mm")
-                        );
-                      }
-                    }}
+                    onChange={(date) =>
+                      handleSurgeryDataChange(
+                        "surgery_start_time",
+                        date ? date : null
+                      )
+                    }
                     className="h-11 text-base rounded-lg w-full"
                     inputReadOnly
                     needConfirm={false}
@@ -859,26 +884,31 @@ function AddCase() {
                           )
                         : null
                     }
-                    onChange={(date, dateString) =>
-                      handleSurgeryDataChange("surgery_end_time", dateString)
+                    onChange={(date) =>
+                      handleSurgeryDataChange(
+                        "surgery_end_time",
+                        date ? date : null
+                      )
                     }
                     disabledDate={(current) => {
                       const startTime = surgeryData.surgery_start_time
                         ? dayjs(
                             surgeryData.surgery_start_time,
                             "YYYY/MM/DD HH:mm"
-                          )
+                          ).tz("Asia/Bangkok")
                         : null;
-                      return startTime && current < startTime.startOf("day"); // ปิดวันที่อยู่ก่อนหน้า `surgery_start_time`
+                      return startTime && current < startTime.startOf("day");
                     }}
                     disabledTime={(current) => {
                       const startTime = surgeryData.surgery_start_time
                         ? dayjs(
                             surgeryData.surgery_start_time,
                             "YYYY/MM/DD HH:mm"
-                          )
+                          ).tz("Asia/Bangkok")
                         : null;
+
                       if (!startTime || !current) return {};
+
                       if (current.isSame(startTime, "day")) {
                         return {
                           disabledHours: () =>
@@ -889,12 +919,13 @@ function AddCase() {
                           disabledMinutes: (hour) =>
                             hour === startTime.hour()
                               ? Array.from(
-                                  { length: startTime.minute() },
+                                  { length: startTime.minute() + 5 },
                                   (_, i) => i
                                 )
                               : [],
                         };
                       }
+
                       return {};
                     }}
                     className="h-11 text-base rounded-lg w-full"

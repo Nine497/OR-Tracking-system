@@ -7,7 +7,6 @@ import {
   Button,
   Modal,
   Spin,
-  TimePicker,
   notification,
 } from "antd";
 import { Icon } from "@iconify/react";
@@ -44,8 +43,10 @@ function EditCase() {
     setSurgery_case_id(id);
   }, [location]);
 
-  const [surgeryData, setSurgeryData] = useState(null);
-
+  const [surgeryData, setSurgeryData] = useState({
+    surgery_start_time: null,
+    surgery_end_time: null,
+  });
   const [patientData, setPatientData] = useState(null);
 
   useEffect(() => {
@@ -74,12 +75,12 @@ function EditCase() {
           surgery_start_time:
             surgeryCase.surgery_start_time &&
             dayjs(surgeryCase.surgery_start_time).isValid()
-              ? dayjs(surgeryCase.surgery_start_time).tz("Asia/Bangkok", true)
+              ? dayjs(surgeryCase.surgery_start_time)
               : null,
           surgery_end_time:
             surgeryCase.surgery_end_time &&
             dayjs(surgeryCase.surgery_end_time).isValid()
-              ? dayjs(surgeryCase.surgery_end_time).tz("Asia/Bangkok", true)
+              ? dayjs(surgeryCase.surgery_end_time)
               : null,
 
           surgery_type_id: surgeryCase.surgery_type_id || null,
@@ -209,11 +210,40 @@ function EditCase() {
     }
   }, [surgery_case_id, user.id]);
 
+  const updateEndtime = (startTime) => {
+    if (!startTime) return;
+
+    const currentEndTime = surgeryData.surgery_end_time
+      ? dayjs(surgeryData.surgery_end_time)
+      : null;
+
+    if (!currentEndTime || dayjs(startTime).isAfter(currentEndTime)) {
+      const newEndTime = dayjs(startTime).add(5, "minute");
+
+      if (newEndTime.isValid()) {
+        setSurgeryData((prev) => ({
+          ...prev,
+          surgery_end_time: newEndTime.format("YYYY-MM-DD HH:mm"),
+        }));
+
+        form.setFieldsValue({
+          surgery_end_time: newEndTime,
+        });
+      } else {
+        console.error("Invalid date");
+      }
+    }
+  };
+
   const handleSurgeryDataChange = (name, value) => {
     setSurgeryData((prevState) => ({
       ...prevState,
       [name]: value,
     }));
+
+    if (name === "surgery_start_time") {
+      updateEndtime(value);
+    }
   };
 
   const handlePatientDataChange = (key, value) => {
@@ -278,18 +308,12 @@ function EditCase() {
       const surgeryCaseDataToSend = {
         surgery_type_id: surgeryData.surgery_type_id,
         doctor_id: surgeryData.doctor_id,
-        surgery_start_time: dayjs(surgeryData.surgery_start_time).format(
-          "YYYY-MM-DD HH:mm:ss"
-        ),
-        surgery_end_time: dayjs(surgeryData.surgery_end_time, "HH:mm").format(
-          "YYYY-MM-DD HH:mm:ss"
-        ),
+        surgery_start_time: surgeryData.surgery_start_time,
+        surgery_end_time: surgeryData.surgery_end_time,
         operating_room_id: surgeryData.operating_room_id,
         note: surgeryData.note || "",
         patient_id: patientId,
       };
-
-      console.log("Surgery Case Data to Send:", surgeryCaseDataToSend);
 
       const surgeryCaseResponse = await axiosInstanceStaff.put(
         `/surgery_case/${surgery_case_id}`,
@@ -959,26 +983,26 @@ function EditCase() {
                         ]}
                       >
                         <DatePicker
+                          needConfirm={false}
                           showTime={{
                             format: "HH:mm",
                           }}
                           format="YYYY-MM-DD HH:mm"
                           value={
                             surgeryData.surgery_start_time
-                              ? dayjs(
-                                  surgeryData.surgery_start_time,
-                                  "YYYY-MM-DD HH:mm"
-                                )
+                              ? dayjs(surgeryData.surgery_start_time)
+                                  .tz("Asia/Bangkok")
+                                  .format("YYYY-MM-DD HH:mm")
                               : null
                           }
-                          onChange={(date, dateString) =>
+                          onChange={(date) =>
                             handleSurgeryDataChange(
                               "surgery_start_time",
-                              dateString
+                              date ? date : null
                             )
                           }
                           className="h-11 text-base rounded-lg w-full"
-                        />{" "}
+                        />
                       </Form.Item>
 
                       <Form.Item
@@ -993,24 +1017,62 @@ function EditCase() {
                         ]}
                       >
                         <DatePicker
-                          showTime={{
-                            format: "HH:mm",
-                          }}
+                          needConfirm={false}
+                          showTime={{ format: "HH:mm" }}
                           format="YYYY-MM-DD HH:mm"
                           value={
                             surgeryData.surgery_end_time
-                              ? dayjs(
-                                  surgeryData.surgery_end_time,
-                                  "YYYY-MM-DD HH:mm"
-                                )
+                              ? dayjs(surgeryData.surgery_end_time)
+                                  .tz("Asia/Bangkok")
+                                  .format("YYYY-MM-DD HH:mm")
                               : null
                           }
-                          onChange={(date, dateString) =>
+                          onChange={(date) =>
                             handleSurgeryDataChange(
                               "surgery_end_time",
-                              dateString
+                              date ? date : null
                             )
                           }
+                          disabledDate={(current) => {
+                            const startTime = surgeryData.surgery_start_time
+                              ? dayjs(
+                                  surgeryData.surgery_start_time,
+                                  "YYYY/MM/DD HH:mm"
+                                ).tz("Asia/Bangkok")
+                              : null;
+                            return (
+                              startTime && current < startTime.startOf("day")
+                            );
+                          }}
+                          disabledTime={(current) => {
+                            const startTime = surgeryData.surgery_start_time
+                              ? dayjs(
+                                  surgeryData.surgery_start_time,
+                                  "YYYY/MM/DD HH:mm"
+                                ).tz("Asia/Bangkok")
+                              : null;
+
+                            if (!startTime || !current) return {};
+
+                            if (current.isSame(startTime, "day")) {
+                              return {
+                                disabledHours: () =>
+                                  Array.from(
+                                    { length: startTime.hour() },
+                                    (_, i) => i
+                                  ),
+                                disabledMinutes: (hour) =>
+                                  hour === startTime.hour()
+                                    ? Array.from(
+                                        { length: startTime.minute() + 5 },
+                                        (_, i) => i
+                                      )
+                                    : [],
+                              };
+                            }
+
+                            return {};
+                          }}
                           className="h-11 text-base rounded-lg w-full"
                         />
                       </Form.Item>

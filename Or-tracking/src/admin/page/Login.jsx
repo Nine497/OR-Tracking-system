@@ -14,7 +14,7 @@ const Login = () => {
   const [token, setToken] = useState(localStorage.getItem("jwtToken") || null);
 
   useEffect(() => {
-    if (user && token) {
+    if (token) {
       if (checkTokenExpiration(token)) {
         navigate("/admin/room_schedule");
       } else {
@@ -119,11 +119,16 @@ const Login = () => {
           {/* Logo and Title */}
           <div className="text-center">
             <div className="inline-block p-2 bg-blue-600 rounded-lg mb-4">
-              <h1 className="text-3xl font-bold text-white">OR-Tracking</h1>
+              <h1
+                className="text-3xl font-bold text-white select-none
+"
+              >
+                OR-Tracking
+              </h1>
             </div>
 
-            <p className="mt-2 text-gray-600">
-              กรุณาเข้าสู่ระบบเพื่อดำเนินการต่อ
+            <p className="mt-2 text-gray-600 select-none">
+              เจ้าหน้าที่เข้าสู่ระบบเพื่อดำเนินการต่อ
             </p>
           </div>
 

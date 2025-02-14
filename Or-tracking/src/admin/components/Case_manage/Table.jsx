@@ -32,7 +32,7 @@ function CaseTable() {
   const [doctorsData, setDoctorsData] = useState([]);
   const [allStatus, setAllStatus] = useState([]);
   const [allORrooms, setAllORrooms] = useState([]);
-  const [dataLastestUpdated, setDataLastestUpdated] = useState(null);
+  const [dataLastUpdated, setDataLastUpdated] = useState(null);
   const BASE_URL = import.meta.env.VITE_BASE_URL;
   const navigate = useNavigate();
   const { permissions } = useAuth();
@@ -174,27 +174,19 @@ function CaseTable() {
     setSearchTerm(e.target.value);
   };
 
-  const fetchData = async (resetPage = false) => {
-    setFilteredData([]);
+  const fetchData = async () => {
     try {
       setLoadingCases(true);
-      console.log("doctorSelectedOption", doctorSelectedOption);
-      console.log("activeSelected", activeSelected);
-      console.log("searchTerm", searchTerm);
 
       const response = await axiosInstanceStaff.get("/surgery_case/", {
         params: {
-          doctor_id: doctorSelectedOption || null,
-          isActive: activeSelected ?? null,
-          search: searchTerm || null,
+          doctor_id: doctorSelectedOption,
+          isActive: activeSelected,
+          search: searchTerm,
           limit: pagination.pageSize,
-          page: resetPage ? 1 : pagination.current,
+          page: pagination.current,
         },
       });
-
-      console.log("All Data : ", response.data?.data?.length);
-      console.log("Total Records: ", response.data.totalRecords);
-      console.log("Total Pages: ", response.data.totalPages);
 
       const dataWithKeys = Array.isArray(response.data?.data)
         ? response.data.data.map((item) => ({
@@ -203,18 +195,12 @@ function CaseTable() {
           }))
         : [];
 
-      const totalPages = response.data.totalPages || 1;
-      const newPage =
-        resetPage || pagination.current > totalPages ? 1 : pagination.current;
-
+      console.log("dataWithKeys", dataWithKeys);
       setFilteredData(dataWithKeys);
       setPagination({
         ...pagination,
-        current: newPage,
-        total: response.data.filteredCount,
+        total: response.data.totalRecords,
       });
-
-      setDataLastestUpdated(dayjs().format("HH:mm A"));
     } catch (error) {
       console.error("Error fetching cases:", error);
       notification.error({
@@ -223,9 +209,10 @@ function CaseTable() {
         duration: 2,
       });
     } finally {
+      setDataLastUpdated(dayjs().format("HH:mm A"));
       setTimeout(() => {
         setLoadingCases(false);
-      }, 600);
+      }, 200);
     }
   };
 
@@ -296,12 +283,8 @@ function CaseTable() {
   };
 
   useEffect(() => {
-    fetchData(true);
-  }, [searchTerm, activeSelected, doctorSelectedOption]);
-
-  useEffect(() => {
     fetchData();
-  }, [pagination.current]);
+  }, [pagination.current, searchTerm, activeSelected, doctorSelectedOption]);
 
   useEffect(() => {
     fetchORroomData();
@@ -326,7 +309,7 @@ function CaseTable() {
           pauseOnHover: true,
           duration: 2,
         });
-        fetchData(true);
+        fetchData();
       }
     } catch (error) {
       console.error("Error updating status:", error);
@@ -346,16 +329,29 @@ function CaseTable() {
       dataIndex: "hn_code",
       key: "hn_code",
       align: "left",
-      width: 100,
+      width: 90,
       ellipsis: true,
       render: (text) => <span className="text-base font-normal">{text}</span>,
+    },
+    {
+      title: <span className="text-base font-semibold">ชื่อคนไข้</span>,
+      dataIndex: "patient_fullname",
+      key: "patient_fullname",
+      align: "left",
+      width: 100,
+      ellipsis: true,
+      render: (_, record) => (
+        <span className="text-base font-normal">
+          {record.patient_firstname} {record.patient_lastname}
+        </span>
+      ),
     },
     {
       title: <span className="text-base font-semibold">ห้องผ่าตัด</span>,
       dataIndex: "room_name",
       key: "room_name",
       align: "left",
-      width: 150,
+      width: 70,
       render: (_, record) => (
         <OR_roomUpdateForm
           record={record}
@@ -369,7 +365,7 @@ function CaseTable() {
       dataIndex: "surgery_start_time",
       key: "surgery_start_time",
       align: "left",
-      width: 130,
+      width: 80,
       sorter: (a, b) =>
         dayjs(a.surgery_start_time).unix() - dayjs(b.surgery_start_time).unix(),
       showSorterTooltip: false,
@@ -393,7 +389,7 @@ function CaseTable() {
       title: <span className="text-base font-bold">สถานะ</span>,
       key: "status",
       align: "left",
-      width: 120,
+      width: 80,
       render: (_, record) => (
         <Button
           type="primary"
@@ -407,12 +403,12 @@ function CaseTable() {
     },
     {
       title: permissions.includes("5004") ? (
-        <span className="text-base font-bold">Link</span>
+        <span className="text-base font-bold">ลิงก์</span>
       ) : null,
       dataIndex: "status_id",
       key: "status_id",
       align: "left",
-      width: 180,
+      width: 130,
       render: (_, record) => {
         const hasPermission5004 = permissions.includes("5004");
         if (!hasPermission5004) return null;
@@ -454,7 +450,7 @@ function CaseTable() {
       title: <span className="text-base font-bold">จัดการ</span>,
       key: "Action",
       align: "left",
-      width: 200,
+      width: 160,
       render: (_, record) => (
         <div className="flex flex-between items-center space-x-4">
           <div className="w-full sm:w-auto">
@@ -510,21 +506,28 @@ function CaseTable() {
         </Select>
 
         <Radio.Group
+          size="middle sm:small"
+          block
           buttonStyle="solid"
           className="w-full sm:w-1/4"
           value={activeSelected}
-          onChange={(e) => handleActiveChange(e.target.value)}
+          onChange={(e) => {
+            handleActiveChange(e.target.value);
+            setPagination({
+              ...pagination,
+              current: 1,
+            });
+          }}
         >
-          <Radio.Button value={null}>ทั้งหมด</Radio.Button>
+          <Radio.Button value={null}>ทั้งหมด</Radio.Button>โ
           <Radio.Button value={true}>เปิดใช้งาน</Radio.Button>
-          <Radio.Button value={false}>ไม่เปิดใช้งาน</Radio.Button>
+          <Radio.Button value={false}>ปิดใช้งาน</Radio.Button>
         </Radio.Group>
 
         <Button
           type="default"
           icon={<Icon icon="mdi:reload" className="w-4 h-4" />}
           onClick={() => {
-            setSearchTerm("");
             fetchData();
           }}
           className="w-full sm:w-auto"
@@ -536,7 +539,7 @@ function CaseTable() {
 
       <div className="ml-auto text-right">
         <div className="text-gray-500 text-sm">
-          ข้อมูลอัปเดตเมื่อ: {dataLastestUpdated}
+          ข้อมูลอัปเดตเมื่อ: {dataLastUpdated}
         </div>
       </div>
 

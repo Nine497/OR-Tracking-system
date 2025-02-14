@@ -30,11 +30,10 @@ function UpdateModal({ visible, record, onClose, type }) {
       footer={null}
       centered
       className="rounded-lg min-w-[35%] sm:max-w-3xl md:max-w-2xl"
-      style={{
-        body: {
-          borderRadius: "8px",
-        },
-      }}
+      zIndex={2000}
+      modalRender={(modal) => (
+        <div style={{ borderRadius: "8px", overflow: "hidden" }}>{modal}</div>
+      )}
     >
       {type === "status" ? (
         <TimelineStatus onClose={onClose} record={record} />

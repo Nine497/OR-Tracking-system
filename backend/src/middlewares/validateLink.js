@@ -1,4 +1,8 @@
 const patientModel = require("../models/patientModel");
+const dayjs = require("dayjs");
+const utc = require("dayjs/plugin/utc");
+
+dayjs.extend(utc);
 
 const validateLinkStatus = async (req, res, next) => {
   const { patient_link } = req.body;
@@ -27,6 +31,20 @@ const validateLinkStatus = async (req, res, next) => {
         valid: false,
         error: "LINK_INACTIVE",
         message: "Link is inactive",
+      });
+    }
+
+    const now = dayjs().tz("Asia/Bangkok");
+
+    const expirationTime = dayjs
+      .utc(linkStatus.expiration_time, "YYYY-MM-DD HH:mm:ss")
+      .tz("Asia/Bangkok");
+
+    if (now.isAfter(expirationTime)) {
+      return res.status(410).json({
+        valid: false,
+        error: "LINK_EXPIRED",
+        message: "Link has expired",
       });
     }
 
