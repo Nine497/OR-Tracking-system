@@ -41,13 +41,19 @@ const View = () => {
   const [lastUpdated, setLastUpdated] = useState(dayjs().format("HH:mm"));
   const [modalVisible, setModalVisible] = useState(true);
   const [acceptedPolicy, setAcceptedPolicy] = useState(false);
+  const urlParams = new URLSearchParams(window.location.search);
+  const [expiration_time, setExpiration_time] = useState(null);
 
   useEffect(() => {
     const fetchPolicyStatus = async () => {
       try {
+        const patientLink = patient_link ? patient_link : urlParams.get("link");
         const response = await axiosInstancePatient.get(
-          `/link_cases/${patient_link}`
+          `/link_cases/${patientLink}`
         );
+        if (response.data) {
+          setExpiration_time(response.data?.expiration_time);
+        }
         const acceptedTimestamp = response.data?.accepted_terms;
 
         if (acceptedTimestamp) {
@@ -65,9 +71,9 @@ const View = () => {
 
   const fetchPatientData = async ({ surgery_case_id, patient_link }) => {
     try {
-      console.log("surgery_case_id", surgery_case_id);
-      console.log("patient_link", patient_link);
-      console.log("i18n.language", i18n.language);
+      // console.log("surgery_case_id", surgery_case_id);
+      // console.log("patient_link", patient_link);
+      // console.log("i18n.language", i18n.language);
 
       const [patientResponse, statusResponse, statusHisResponse] =
         await Promise.all([
@@ -120,7 +126,7 @@ const View = () => {
           });
 
         if (isMounted) {
-          console.log("tatus", statusData);
+          // console.log("tatus", statusData);
           setPatientData(patientData);
           setStatusData(statusData);
           setStatusHistory(statusHistory);
@@ -158,7 +164,7 @@ const View = () => {
           history.surgery_case_status_history_id === statusHistory.latestStatus
       );
 
-      console.log("Current Status:", currentStatus);
+      // console.log("Current Status:", currentStatus);
 
       const filteredStatuses = statusHistory.statusHistory.filter(
         (history) => history.status_id < currentStatus.status_id
@@ -180,13 +186,13 @@ const View = () => {
           b.surgery_case_status_history_id - a.surgery_case_status_history_id
       );
 
-      console.log("Filtered and Sorted Latest Statuses:", sortedLatestStatuses);
+      // console.log("Filtered and Sorted Latest Statuses:", sortedLatestStatuses);
 
       const finalStatuses = currentStatus
         ? [currentStatus, ...sortedLatestStatuses]
         : sortedLatestStatuses;
 
-      console.log("Final Statuses including Current:", finalStatuses);
+      // console.log("Final Statuses including Current:", finalStatuses);
 
       setSortedStatuses(finalStatuses);
       setPatient_currentStatus(currentStatus);
@@ -196,7 +202,7 @@ const View = () => {
   }, [statusHistory, lastUpdated]);
 
   useEffect(() => {
-    console.log(patientData);
+    // console.log(patientData);
 
     let timeout;
     if (!isLoading && isDataReady) {
@@ -240,7 +246,6 @@ const View = () => {
           patient_link,
         }
       );
-
       setPatientData(patientData);
       setStatusData(statusData);
       setStatusHistory(statusHistory);
@@ -407,6 +412,12 @@ const View = () => {
                           </>
                         )}
                       </div>
+                      <Text className="font-normal text-sm md:text-base text-gray-400 w-fit px-1">
+                        ลิงก์หมดอายุ :{" "}
+                        {dayjs(expiration_time)
+                          .tz("Asia/Bangkok")
+                          .format("DD/MM/YYYY HH:mm")}
+                      </Text>
                     </div>
                   </div>
                 </Card>

@@ -140,11 +140,11 @@ const LoginForm = ({ t, link }) => {
           `patient/getLockUntilByLinkId/${link}`
         );
         const { lock_until, attempt_count } = response.data;
-        console.log("response", response);
+        // console.log("response", response);
         if (attempt_count !== undefined) {
           const remainder = attempt_count % 5;
           const remainingAttempts = 5 - remainder;
-          console.log("remainingAttempts", remainingAttempts);
+          // console.log("remainingAttempts", remainingAttempts);
 
           let errorMsg =
             remainingAttempts > 0 && remainingAttempts < 5
@@ -175,12 +175,12 @@ const LoginForm = ({ t, link }) => {
     const lockTime = dayjs(lock_until).add(7, "hour");
     const currentTime = dayjs().tz("Asia/Bangkok");
 
-    console.log("lockTime", lockTime.format("DD/MM/YYYY HH:mm:ss"));
-    console.log("currentTime", currentTime.format("DD/MM/YYYY HH:mm:ss"));
+    // console.log("lockTime", lockTime.format("DD/MM/YYYY HH:mm:ss"));
+    // console.log("currentTime", currentTime.format("DD/MM/YYYY HH:mm:ss"));
 
     const remainingSeconds = lockTime.diff(currentTime, "second");
     setRemainingSecond(remainingSeconds);
-    console.log("remainingSeconds", remainingSeconds);
+    // console.log("remainingSeconds", remainingSeconds);
 
     if (remainingSeconds > 0) {
       startCountdown(remainingSeconds);
@@ -243,7 +243,7 @@ const LoginForm = ({ t, link }) => {
         });
 
         if (response.data.valid) {
-          console.log("link", link);
+          // console.log("link", link);
           localStorage.setItem("token", response.data.token);
           navigate(`/ptr/view?link=${link}`);
         } else {
@@ -254,7 +254,7 @@ const LoginForm = ({ t, link }) => {
 
         const errorAttemptCount = error.response?.data?.attempt_count;
         const lockData = error.response?.data?.lock_until[0].lock_until;
-        console.log("lockData", lockData);
+        // console.log("lockData", lockData);
 
         if (error.response?.data?.error === "ACCOUNT_LOCKED") {
           const parsedDate = dayjs(lockData, "YYYY-MM-DD HH:mm:ss.SSS");

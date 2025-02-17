@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useMemo } from "react";
-import { Spin, Timeline, Typography, notification } from "antd";
+import { Spin, Timeline, Typography, notification, Descriptions } from "antd";
 import { Icon } from "@iconify/react";
 import { axiosInstanceStaff } from "../../api/axiosInstance";
 import dayjs from "dayjs";
@@ -77,6 +77,8 @@ const TimelineStatus = ({ record }) => {
   };
 
   useEffect(() => {
+    console.log("record", record);
+
     const fetchSurgeryStatus = async () => {
       setIsLoading(true);
       try {
@@ -150,10 +152,59 @@ const TimelineStatus = ({ record }) => {
   }
 
   return (
-    <div className="min-h-[400px] bg-white p-6 rounded-lg">
-      <Timeline items={timelineItems} className="px-4" />
+    <div className="min-h-[400px] bg-white rounded-lg flex flex-row max-w-full mx-auto items-center p-6">
+      <div className="w-max">
+        <Timeline items={timelineItems} className="px-4" />
+      </div>
+      <div className="w-max">
+        <span className="text-lg font-semibold text-blue-800 mb-2">
+          รายละเอียดเคส
+        </span>{" "}
+        <div className="grid grid-cols-1 gap-4 max-w-sm">
+          <InfoRow label="HN Code" value={record.hn_code} />
+          <InfoRow
+            label="วัน เวลา ผ่าตัด"
+            value={`${dayjs(record.surgery_start_time)
+              .tz("Asia/Bangkok")
+              .format("YYYY/MM/DD HH:mm")} - ${dayjs(record.surgery_end_time)
+              .tz("Asia/Bangkok")
+              .format("HH:mm")}`}
+          />
+          <InfoRow
+            label="แพทย์"
+            value={`${record.doctor_prefix} ${record.doctor_firstname} ${record.doctor_lastname}`}
+          />
+          <InfoRow
+            label="ห้องผ่าตัด"
+            value={record.room_name !== "-" ? record.room_name : "N/A"}
+          />
+          <InfoRow
+            label="ประเภทการผ่าตัด"
+            value={
+              <span className="break-words whitespace-normal">
+                {record.operation_name}
+              </span>
+            }
+          />
+          <InfoRow
+            label="หมายเหตุ"
+            value={
+              <span className="break-words whitespace-normal">
+                {record.note || "ไม่มี"}
+              </span>
+            }
+          />
+        </div>
+      </div>
     </div>
   );
 };
+
+const InfoRow = ({ label, value }) => (
+  <div className="flex flex-col">
+    <span className="text-gray-600 text-sm font-medium">{label}</span>
+    <span className="text-base text-gray-900">{value}</span>
+  </div>
+);
 
 export default TimelineStatus;

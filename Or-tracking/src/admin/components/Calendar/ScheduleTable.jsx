@@ -25,7 +25,6 @@ function ScheduleTable() {
         const eventData = response.data.data || [];
         setEvents(eventData);
         setFilteredEvents(eventData);
-        console.log("eventData,", eventData);
       } catch (error) {
         console.error("Error fetching surgery events:", error);
         setEvents([]);

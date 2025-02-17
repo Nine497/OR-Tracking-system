@@ -137,18 +137,57 @@ function RoomCard({ room }) {
                   <Panel
                     key={caseIndex}
                     header={
-                      <div className="flex flex-row xs:flex-row justify-between items-start xs:items-center gap-2 xs:gap-0 w-full py-1.5 px-1">
-                        <span className="inline-flex items-center px-2.5 xs:px-3 py-1 text-xs sm:text-sm font-semibold bg-gradient-to-r from-indigo-50 to-violet-50 text-indigo-700 rounded-full ring-1 ring-indigo-200/50 tracking-wider">
-                          {c.patient_HN}
-                        </span>
-                        <div className="flex items-center gap-2">
-                          <div className="w-5 h-5 rounded-full bg-indigo-50 flex items-center justify-center">
-                            <ClockCircleOutlined className="text-indigo-500 text-xs" />
+                      <div className="flex flex-col">
+                        <div className="flex flex-row justify-between items-center gap-2 w-full py-1">
+                          <span
+                            className={`inline-flex items-center px-3 py-1 text-xs sm:text-sm font-semibold rounded-full ring-1
+    ${c.status_id === 0 ? "bg-gray-100 text-gray-600 ring-gray-300" : ""}
+    ${c.status_id === 4 ? "bg-green-100 text-green-700 ring-green-300" : ""}
+    ${
+      c.status_id !== 0 && c.status_id !== 4
+        ? "bg-yellow-100 text-yellow-700 ring-yellow-300"
+        : ""
+    }
+  `}
+                          >
+                            {c.patient_firstname} {c.patient_lastname}
+                          </span>
+
+                          <div className="flex items-center gap-2">
+                            <div
+                              className={`w-6 h-6 rounded-full flex items-center justify-center shadow-sm
+      ${c.status_id === 0 ? "bg-gray-200" : ""}
+      ${c.status_id === 4 ? "bg-green-200" : ""}
+      ${c.status_id !== 0 && c.status_id !== 4 ? "bg-yellow-200" : ""}
+    `}
+                            >
+                              <ClockCircleOutlined
+                                className={`text-sm
+        ${c.status_id === 0 ? "text-gray-600" : ""}
+        ${c.status_id === 4 ? "text-green-700" : ""}
+        ${c.status_id !== 0 && c.status_id !== 4 ? "text-yellow-700" : ""}
+      `}
+                              />
+                            </div>
+                            <span className="text-sm text-gray-700 font-medium">
+                              {dayjs(c.surgery_start_time)
+                                .tz("Asia/Bangkok", true)
+                                .format("HH:mm")}
+                            </span>
                           </div>
-                          <span className="text-xs sm:text-sm text-gray-600 font-medium">
-                            {dayjs(c.surgery_start_time)
-                              .tz("Asia/Bangkok", true)
-                              .format("HH:mm")}
+                        </div>
+                        <div className="my-2 p-2 rounded-md bg-blue-50">
+                          <span className="text-sm font-normal text-gray-800">
+                            Note :{" "}
+                          </span>
+                          <span className="text-sm text-gray-600">
+                            {c.note ? (
+                              c.note
+                            ) : (
+                              <span className="italic text-gray-400">
+                                ไม่มีหมายเหตุ
+                              </span>
+                            )}
                           </span>
                         </div>
                       </div>
@@ -173,7 +212,9 @@ function RoomCard({ room }) {
                               ? c.surgery_type_name
                               : key === "operation_name"
                               ? c.operation_name
-                              : c.status_th}
+                              : key === "Status"
+                              ? c.status_th
+                              : ""}
                           </span>
                         </div>
                       ))}

@@ -105,9 +105,9 @@ function UsersTable({ refreshKey }) {
     fetchData();
   }, [pagination.current, searchTerm, activeSelected]);
 
-  useEffect(() => {
-    console.log("filteredData : ", filteredData);
-  }, [filteredData]);
+  // useEffect(() => {
+  //   console.log("filteredData : ", filteredData);
+  // }, [filteredData]);
 
   const handlePaginationChange = (page, pageSize) => {
     setPagination({ current: page, pageSize });
@@ -122,9 +122,9 @@ function UsersTable({ refreshKey }) {
     setModalVisible(false);
   };
 
-  useEffect(() => {
-    console.log("permissions", permissions);
-  }, []);
+  // useEffect(() => {
+  //   console.log("permissions", permissions);
+  // }, []);
 
   const columns = [
     {

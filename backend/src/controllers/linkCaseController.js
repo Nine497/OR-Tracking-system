@@ -43,7 +43,7 @@ const linkCaseController = {
       return res.status(400).json({ message: "Missing required fields" });
     }
 
-    const created_at = dayjs().utc().format();
+    const created_at = dayjs().utc().format("YYYY-MM-DD HH:mm:ss");
     const timestamp = Date.now();
     const randomValue = crypto.randomInt(0, 1000);
     const surgery_case_links_id = `${timestamp}${randomValue}`;

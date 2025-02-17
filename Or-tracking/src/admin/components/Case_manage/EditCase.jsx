@@ -8,6 +8,7 @@ import {
   Modal,
   Spin,
   notification,
+  Popconfirm,
 } from "antd";
 import { Icon } from "@iconify/react";
 import IMask from "imask";
@@ -49,9 +50,9 @@ function EditCase() {
   });
   const [patientData, setPatientData] = useState(null);
 
-  useEffect(() => {
-    console.log("Fetched surgeryData:", surgeryData);
-  }, [surgeryData]);
+  // useEffect(() => {
+  //   console.log("Fetched surgeryData:", surgeryData);
+  // }, [surgeryData]);
 
   useEffect(() => {
     setIsLoading(true);
@@ -67,7 +68,7 @@ function EditCase() {
         if (!surgeryCase) {
           throw new Error("No surgery case data found");
         }
-        console.log("surgeryCase", surgeryCase);
+        // console.log("surgeryCase", surgeryCase);
 
         const transformedSurgeryData = {
           patient_id: surgeryCase.patient_id,
@@ -90,6 +91,7 @@ function EditCase() {
           operation_name: surgeryCase.operation_name || null,
           doctor_id: surgeryCase.doctor_id || null,
           note: surgeryCase.note || "",
+          isActive: surgeryCase.isactive || false,
         };
 
         const transformedPatientData = {
@@ -99,14 +101,15 @@ function EditCase() {
           patient_gender: surgeryCase.patient_gender || "",
         };
 
-        console.log("Transformed surgeryData:", transformedSurgeryData);
-        console.log("Transformed patientData:", transformedPatientData);
+        // console.log("Transformed surgeryData:", transformedSurgeryData);
+        // console.log("Transformed patientData:", transformedPatientData);
 
         const combinedData = {
           ...transformedSurgeryData,
           ...transformedPatientData,
         };
         form.setFieldsValue(combinedData);
+        // console.log("transformedSurgeryData", transformedSurgeryData);
 
         setSurgeryData(transformedSurgeryData);
         setPatientData(transformedPatientData);
@@ -122,9 +125,11 @@ function EditCase() {
 
     const fetchDoctors = async () => {
       try {
+        setDoctorsLoading(true);
         const response = await axiosInstanceStaff.get("/doctor/");
 
         if (response.status === 200) {
+          console.log("response.data.data", response.data.data);
           setDoctors(response.data.data);
         } else {
           throw new Error(`Failed to fetch doctors: ${response.statusText}`);
@@ -138,6 +143,8 @@ function EditCase() {
           pauseOnHover: true,
           duration: 2,
         });
+      } finally {
+        setDoctorsLoading(false);
       }
     };
 
@@ -277,7 +284,7 @@ function EditCase() {
         gender: patientData.patient_gender,
       };
 
-      console.log("Patient Data to Send:", patientDataToSend);
+      // console.log("Patient Data to Send:", patientDataToSend);
 
       let patientId;
       const existingPatientResponse = await axiosInstanceStaff.get(
@@ -290,14 +297,14 @@ function EditCase() {
           `/patient/${existingPatient.patient_id}`,
           patientDataToSend
         );
-        console.log("Patient Response (Update):", patientResponse.data);
+        // console.log("Patient Response (Update):", patientResponse.data);
         patientId = existingPatient.patient_id;
       } else {
         const patientResponse = await axiosInstanceStaff.post(
           `/patient`,
           patientDataToSend
         );
-        console.log("Patient Response (Create):", patientResponse.data);
+        // console.log("Patient Response (Create):", patientResponse.data);
         patientId = patientResponse.data?.patient?.id;
       }
 
@@ -319,7 +326,7 @@ function EditCase() {
         `/surgery_case/${surgery_case_id}`,
         surgeryCaseDataToSend
       );
-      console.log("Surgery Case Response:", surgeryCaseResponse.data);
+      // console.log("Surgery Case Response:", surgeryCaseResponse.data);
 
       if (surgeryCaseResponse.status === 200) {
         const OperationDataToSend = {
@@ -327,13 +334,13 @@ function EditCase() {
           surgery_case_id: surgery_case_id,
         };
 
-        console.log("Operation Data to Send:", OperationDataToSend);
+        // console.log("Operation Data to Send:", OperationDataToSend);
 
         const operationResponse = await axiosInstanceStaff.post(
           `/surgery_case/operation/`,
           OperationDataToSend
         );
-        console.log("Operation Response:", operationResponse.data);
+        // console.log("Operation Response:", operationResponse.data);
 
         if (
           operationResponse.status === 200 ||
@@ -370,6 +377,37 @@ function EditCase() {
       console.error("Error in onFinish:", error);
       notification.error({
         message: "เกิดปัญหาในการดำเนินการคำขอของคุณ กรุณาลองใหม่อีกครั้ง",
+        showProgress: true,
+        placement: "topRight",
+        pauseOnHover: true,
+        duration: 2,
+      });
+    }
+  };
+
+  const handleDeleteConfirm = async () => {
+    try {
+      const response = await axiosInstanceStaff.patch(
+        `/surgery_case/isActive/${surgery_case_id}`,
+        {
+          isActive: surgeryData.isActive === true ? false : true,
+        }
+      );
+
+      if (response.status === 200) {
+        navigate("/admin/case_manage");
+        notification.success({
+          message: "สถานะเคสผ่าตัดถูกอัปเดตแล้ว",
+          showProgress: true,
+          placement: "topRight",
+          pauseOnHover: true,
+          duration: 2,
+        });
+      }
+    } catch (error) {
+      console.error("Error updating status:", error);
+      notification.error({
+        message: "ไม่สามารถอัปเดตสถานะได้ กรุณาลองใหม่อีกครั้ง",
         showProgress: true,
         placement: "topRight",
         pauseOnHover: true,
@@ -431,7 +469,7 @@ function EditCase() {
       if (response.data.success) {
         const patientInfo = response.data.data;
 
-        console.log("patientInfo", patientInfo);
+        // console.log("patientInfo", patientInfo);
 
         const updatedPatientData = {
           ...patientData,
@@ -890,12 +928,8 @@ function EditCase() {
                           loading={surgeryTypesLoading}
                           optionLabelProp="label"
                         >
-                          {surgeryTypes
-                            .sort((a, b) =>
-                              a.surgery_type_name.localeCompare(
-                                b.surgery_type_name
-                              )
-                            )
+                          {(surgeryTypes ?? [])
+                            .filter((type) => type.surgery_type_name)
                             .map((type) => (
                               <Option
                                 key={type.surgery_type_id}
@@ -1138,9 +1172,30 @@ function EditCase() {
                       htmlType="submit"
                       className="text-lg h-11 px-8 bg-blue-600 hover:bg-blue-700 flex items-center justify-center w-full"
                     >
-                      Submit
+                      บันทึก
                       <Icon icon="mdi:check-circle" className="ml-2" />
                     </Button>
+                    {/* <Popconfirm
+                      title="ยืนยันการลบเคสผ่าตัด"
+                      okText="ยืนยัน"
+                      cancelText="ยกเลิก"
+                      onConfirm={handleDeleteConfirm}
+                    >
+                      <Button
+                        type="danger"
+                        className="text-lg h-11 px-8 bg-red-600 hover:bg-red-700 flex text-white items-center justify-center w-full"
+                      >
+                        {surgeryData.isActive === true ? "Delete" : "Revert"}
+                        <Icon
+                          icon={
+                            surgeryData.isActive === true
+                              ? "solar:trash-bin-trash-bold"
+                              : "grommet-icons:revert"
+                          }
+                          className="ml-2"
+                        />
+                      </Button>
+                    </Popconfirm> */}
                   </div>
                 </Form>
               </div>

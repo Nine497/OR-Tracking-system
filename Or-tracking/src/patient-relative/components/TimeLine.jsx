@@ -23,7 +23,7 @@ const StatusTimeline = ({
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [rating, setRating] = useState(0);
   const [suggestions, setSuggestions] = useState("");
-  const [loading, setLoading] = useState(false); // State สำหรับป้องกันการกดซ้ำ
+  const [loading, setLoading] = useState(false);
 
   const customIcons = {
     1: <FrownOutlined className="text-4xl transition-all hover:scale-110" />,

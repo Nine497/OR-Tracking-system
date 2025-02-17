@@ -34,3 +34,7 @@ div._1nBOt {
 .gantt-card .ant-card-body {
   @apply h-full justify-center items-center;
 }
+
+.bar text {
+  @apply text-base font-normal tracking-wider;
+}

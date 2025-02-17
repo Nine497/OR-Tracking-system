@@ -25,7 +25,7 @@ const Policy = ({ t, handleAcceptPolicy, visible, link }) => {
 
       if (response.status === 200) {
         const data = response.data;
-        console.log("Terms accepted successfully", data);
+        // console.log("Terms accepted successfully", data);
       } else {
         throw new Error("Failed to save terms acceptance");
       }

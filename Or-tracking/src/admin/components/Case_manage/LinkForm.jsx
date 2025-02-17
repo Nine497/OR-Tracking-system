@@ -9,6 +9,7 @@ import {
   Tag,
   Input,
   Typography,
+  QRCode,
 } from "antd";
 import { useAuth } from "../../context/AuthContext";
 import { axiosInstanceStaff } from "../../api/axiosInstance";
@@ -55,7 +56,8 @@ const NoLinkComponent = ({ onGenerateLink }) => {
 
   return (
     <LinkContainer>
-      <div className="space-y-4">
+      <div className="space-y-2">
+        <span className="text-base ">เลือกวัน/เวลาที่ลิงก์จะหมดอายุ</span>
         <DatePicker
           showTime
           className="w-full"
@@ -70,9 +72,9 @@ const NoLinkComponent = ({ onGenerateLink }) => {
           showNow={false}
           defaultValue={dayjs().add(1, "day")}
         />
-        <span className="text-sm text-gray-500">
+        <div className="text-sm text-gray-500">
           * ค่าเริ่มต้นคือ +24 ชั่วโมง จากเวลาปัจจุบัน
-        </span>
+        </div>
         <Button
           type="primary"
           onClick={() => onGenerateLink(selectedDate)}
@@ -101,9 +103,9 @@ const LinkDisplay = ({
   isActive,
   record,
 }) => {
-  useEffect(() => {
-    console.log("record", record);
-  }, []);
+  // useEffect(() => {
+  //   console.log("record", record);
+  // }, []);
 
   return (
     <div className="w-full max-w-full bg-gray-50 rounded-xl p-4 sm:p-5 lg:p-6 space-y-4 shadow-sm border border-gray-100">
@@ -256,7 +258,7 @@ const ActiveLinkComponent = ({
 
     if (response.status === 200) {
       setExpirationTime(response.data.data.expiration_time);
-      console.log("Expiration time updated successfully");
+      // console.log("Expiration time updated successfully");
       fetchData();
     } else {
       console.error("Failed to update expiration time");
@@ -272,13 +274,19 @@ const ActiveLinkComponent = ({
         isActive={true}
         record={record}
       />
+      <div className="w-full flex justify-center">
+        <QRCode
+          errorLevel="H"
+          value={link}
+          icon="https://gw.alipayobjects.com/zos/rmsportal/KDpgvguMpGfqaHPjicRK.svg"
+        />
+      </div>
       <div className="bg-gray-50 rounded-lg p-4 space-y-4">
         <div className="flex items-center justify-between">
           <Typography.Title level={5} className="!m-0">
             รายละเอียดลิงก์
           </Typography.Title>
         </div>
-
         <div className="flex items-center gap-1">
           <div className="flex gap-2">
             <InfoItem
@@ -286,7 +294,10 @@ const ActiveLinkComponent = ({
               value={
                 isEditing
                   ? newExpirationTime
-                  : dayjs(linkData.expiration_time).format("YYYY-MM-DD, HH:mm")
+                  : dayjs
+                      .utc(linkData.expiration_time)
+                      .tz("Asia/Bangkok")
+                      .format("YYYY-MM-DD, HH:mm")
               }
               isActive={true}
             >
@@ -384,7 +395,9 @@ const ActiveLinkComponent = ({
         <div className="space-y-3">
           <InfoItem
             label="สร้างเมื่อ"
-            value={dayjs(linkData.created_at).format("YYYY-MM-DD, HH:mm")}
+            value={dayjs(linkData.created_at)
+              .tz("Asia/Bangkok")
+              .format("YYYY-MM-DD, HH:mm")}
           />
           <InfoItem label="สร้างโดย" value={linkData.staff_fullname} />
         </div>
@@ -451,12 +464,12 @@ const LinkForm = ({ formLink, record }) => {
   const [isModalVisible, setIsModalVisible] = useState(false);
   const BASE_URL = import.meta.env.VITE_BASE_URL;
 
-  useEffect(() => {
-    console.log("linkData", linkData);
-  }, [linkData]);
-  useEffect(() => {
-    console.log("record", record);
-  }, [record]);
+  // useEffect(() => {
+  //   console.log("linkData", linkData);
+  // }, [linkData]);
+  // useEffect(() => {
+  //   console.log("record", record);
+  // }, [record]);
   useEffect(() => {
     fetchData();
   }, [record.surgery_case_id, user.id]);
@@ -515,14 +528,14 @@ const LinkForm = ({ formLink, record }) => {
   const fetchData = async () => {
     setLoading(true);
     try {
-      console.log("Fetch ID", record.surgery_case_id);
+      // console.log("Fetch ID", record.surgery_case_id);
 
       const response = await axiosInstanceStaff.get(
         `link_cases/getLast/${record.surgery_case_id}`
       );
 
       if (response.status === 200 && response.data) {
-        console.log("Res Data", response.data);
+        // console.log("Res Data", response.data);
 
         setLinkData(response.data);
       } else {
@@ -558,7 +571,7 @@ const LinkForm = ({ formLink, record }) => {
     try {
       const response = await axiosInstanceStaff.post("/link_cases/", linkData);
       if (response.data) {
-        console.log("Return response.data", response.data);
+        // console.log("Return response.data", response.data);
 
         setLinkData(response.data);
         notification.success({

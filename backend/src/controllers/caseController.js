@@ -19,12 +19,14 @@ exports.newSurgerycaseFromAPI = async (req, res) => {
     await Promise.all(
       surgeryCaseData.map(async (data) => {
         try {
+          const opType = data.op_type ? data.op_type : "-";
+
           const existingSurgeryType = await SurgeryCase.getSurgeryTypeByName(
-            data.op_type
+            opType
           );
           let surgeryTypeId = existingSurgeryType
             ? existingSurgeryType.surgery_type_id
-            : await SurgeryCase.createSurgeryType(data.op_type);
+            : await SurgeryCase.createSurgeryType(opType);
 
           const existingOperatingRoom =
             await SurgeryCase.getOperatingRoomByName(data.room);
@@ -512,40 +514,7 @@ exports.getAllCase = async (req, res) => {
     const offset = (page - 1) * limit;
     const lowerSearch = search ? `%${search.trim().toLowerCase()}%` : null;
 
-    let query = db("surgery_case");
-
-    // กรอง doctor_id
-    if (doctor_id) {
-      query.andWhere("surgery_case.doctor_id", doctor_id);
-    }
-
-    // กรอง search
-    if (lowerSearch) {
-      query.andWhere((qb) => {
-        qb.whereRaw('LOWER(CAST("surgery_case_id" AS text)) LIKE ?', [
-          lowerSearch,
-        ])
-          .orWhereRaw("LOWER(patients.firstname) LIKE ?", [lowerSearch])
-          .orWhereRaw("LOWER(patients.hn_code) LIKE ?", [lowerSearch])
-          .orWhereRaw("LOWER(operating_room.room_name) LIKE ?", [lowerSearch]);
-      });
-    }
-
-    // กรอง isActive
-    if (isActive != null) {
-      if (isActive === "true") {
-        query.andWhere("surgery_case.isactive", true);
-      } else if (isActive === "false") {
-        query.andWhere("surgery_case.isactive", false);
-      }
-    }
-
-    // นับจำนวนที่ผ่านการกรอง
-    const totalRecords =
-      (await query.clone().count("* as total").first()).total || 0;
-
-    // ดึงข้อมูลตาม pagination
-    const surgeryCases = await query
+    let query = db("surgery_case")
       .select(
         "surgery_case.*",
         "patients.firstname as patient_firstname",
@@ -595,10 +564,45 @@ exports.getAllCase = async (req, res) => {
           "=",
           "surgery_case_links.surgery_case_id"
         ).andOn("surgery_case_links.isactive", "=", db.raw("true"));
-      })
-      .orderBy("surgery_case.created_at", "desc")
-      .limit(limit)
-      .offset(offset);
+      });
+
+    // กรอง doctor_id
+    if (doctor_id) {
+      query.andWhere("surgery_case.doctor_id", doctor_id);
+    }
+
+    // กรอง search
+    if (lowerSearch) {
+      query.andWhere((qb) => {
+        qb.whereRaw('LOWER(CAST("surgery_case_id" AS text)) LIKE ?', [
+          lowerSearch,
+        ])
+          .orWhereRaw("LOWER(patients.firstname) LIKE ?", [lowerSearch])
+          .orWhereRaw("LOWER(patients.hn_code) LIKE ?", [lowerSearch])
+          .orWhereRaw("LOWER(operating_room.room_name) LIKE ?", [lowerSearch]);
+      });
+    }
+
+    // กรอง isActive
+    if (isActive != null) {
+      if (isActive === "true") {
+        query.andWhere("surgery_case.isactive", true);
+      } else if (isActive === "false") {
+        query.andWhere("surgery_case.isactive", false);
+      }
+    }
+
+    // นับจำนวนที่ผ่านการกรอง
+    const totalQuery = query.clone().clearSelect().count("* as total").first();
+    const totalRecords = (await totalQuery)?.total || 0;
+
+    // เรียงลำดับให้ใกล้ปัจจุบันที่สุดก่อน
+    query.orderByRaw(
+      "ABS(EXTRACT(EPOCH FROM (surgery_start_time - NOW()))) NULLS LAST"
+    );
+
+    // ดึงข้อมูลตาม pagination
+    const surgeryCases = await query.limit(limit).offset(offset);
 
     const decryptedSurgeryCases = surgeryCases.map((caseRecord) => {
       try {

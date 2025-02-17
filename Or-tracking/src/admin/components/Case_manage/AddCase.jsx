@@ -227,8 +227,8 @@ function AddCase() {
         return;
       }
 
-      console.log("surgeryStartTime", surgeryStartTime);
-      console.log("surgeryEndTime", surgeryEndTime);
+      // console.log("surgeryStartTime", surgeryStartTime);
+      // console.log("surgeryEndTime", surgeryEndTime);
 
       const patientRequestData = {
         hn_code: patientData.hn_code,
@@ -263,7 +263,7 @@ function AddCase() {
         note: surgeryData.note,
       };
 
-      console.log("ข้อมูลการผ่าตัดที่ส่งไปยังเซิร์ฟเวอร์:", surgeryCaseData);
+      // console.log("ข้อมูลการผ่าตัดที่ส่งไปยังเซิร์ฟเวอร์:", surgeryCaseData);
 
       const caseResponse = await axiosInstanceStaff.post(
         `/surgery_case/${patientId}`,

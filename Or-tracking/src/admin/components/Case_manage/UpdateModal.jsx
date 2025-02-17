@@ -5,9 +5,9 @@ import LinkForm from "./LinkForm";
 
 function UpdateModal({ visible, record, onClose, type }) {
   const [formLink] = Form.useForm();
-  useEffect(() => {
-    console.log("UpdateModal record ", record);
-  }, []);
+  // useEffect(() => {
+  //   console.log("UpdateModal record ", record);
+  // }, []);
 
   if (!record) {
     return null;
@@ -21,7 +21,7 @@ function UpdateModal({ visible, record, onClose, type }) {
             {type === "status" ? "Status Timeline" : "การตั้งค่าลิงก์"}
           </span>
           <span className="text-2xl font-semibold text-blue-600">
-            HN : {record.hn_code}
+            ชื่อ : {record.patient_firstname} {record.patient_lastname}
           </span>
         </div>
       }
@@ -29,7 +29,15 @@ function UpdateModal({ visible, record, onClose, type }) {
       onCancel={onClose}
       footer={null}
       centered
-      className="rounded-lg min-w-[35%] sm:max-w-3xl md:max-w-2xl"
+      className="rounded-lg"
+      width={{
+        xs: "90%",
+        sm: "80%",
+        md: "70%",
+        lg: "60%",
+        xl: "50%",
+        xxl: "40%",
+      }}
       zIndex={2000}
       modalRender={(modal) => (
         <div style={{ borderRadius: "8px", overflow: "hidden" }}>{modal}</div>

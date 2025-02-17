@@ -46,7 +46,7 @@ const RoomSchedule = () => {
   const handleDateClick = (date) => {
     if (calendarControls) {
       const currentView = calendarControls.getView();
-      console.log("Current View:", currentView);
+      // console.log("Current View:", currentView);
 
       if (currentView === "month-grid") {
         calendarControls.setView("day");
@@ -95,10 +95,10 @@ const RoomSchedule = () => {
 
             return {
               id: c.hn_code,
-              title: c.hn_code,
+              title: `${c.patient_firstname} ${c.patient_lastname} ( ${c.room_name} )`,
               start: validStartTime,
               end: validEndTime,
-              location: c.room_name,
+              // location: c.room_name,
               resourceId: c.operating_room_id,
               caseData: c,
               style: {
@@ -131,8 +131,6 @@ const RoomSchedule = () => {
   }, []);
 
   const handleEventClick = (event) => {
-    console.log("event", event);
-
     setSelectedCase(event.caseData);
     setDrawerVisible(true);
   };
@@ -150,12 +148,17 @@ const RoomSchedule = () => {
 
   const InfoRow = ({ label, value, hasBorder = true }) => (
     <div
-      className={`flex items-center justify-between py-3 ${
+      className={`flex items-start py-3 ${
         hasBorder ? "border-b border-gray-100" : ""
       }`}
     >
-      <span className="text-gray-600 text-base font-medium">{label}</span>
-      <span className="font-medium text-gray-900 text-base">
+      <span className="text-gray-600 text-base font-medium mr-2 whitespace-nowrap">
+        {label}
+      </span>
+      <span
+        className="font-medium text-gray-900 text-base flex-1 "
+        title={value}
+      >
         {value || "-"}
       </span>
     </div>

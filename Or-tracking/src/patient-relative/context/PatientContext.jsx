@@ -30,7 +30,7 @@ export const PatientProvider = ({ children }) => {
     if (token) {
       try {
         const payload = jwtDecode(token);
-        console.log("Payload:", payload);
+        // console.log("Payload:", payload);
 
         const link = payload.link || null;
         setPatient_id(payload.patient_id || null);

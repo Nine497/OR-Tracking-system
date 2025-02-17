@@ -3,6 +3,8 @@ const router = express.Router();
 const surgeryController = require("../controllers/caseController");
 const verifyToken = require("../middlewares/verifyToken");
 
+// 📌 Route สำหรับสร้างเคสใหม่
+router.post("/newSurgeryCase", surgeryController.newSurgerycaseFromAPI);
 // 📌 Route ที่เฉพาะเจาะจงควรมาก่อน
 router.patch("/isActive/:id", verifyToken, surgeryController.updateIsactive);
 router.put(
@@ -48,8 +50,5 @@ router.put(
   surgeryController.updateSurgeryCase
 );
 router.get("/", verifyToken, surgeryController.getAllCase);
-
-// 📌 Route สำหรับสร้างเคสใหม่
-router.post("/newSurgeryCase", surgeryController.newSurgerycaseFromAPI);
 
 module.exports = router;

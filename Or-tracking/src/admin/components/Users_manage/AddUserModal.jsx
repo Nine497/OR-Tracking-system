@@ -16,30 +16,31 @@ function AddUserModal({ visible, onClose }) {
       centered: true,
       onOk: async () => {
         try {
-          console.log("values: ", { ...values, created_by: user.id });
-
           const response = await axiosInstanceStaff.post("/staff", {
             ...values,
             created_by: user.id,
           });
 
-          if (response.status === 201) {
+          if (response?.status === 201) {
             notification.success({
-              message: "ข้อมูลผู้ใช้ได้ถูกบันทึกสำเร็จแล้ว",
-              showProgress: true,
+              message: "บันทึกข้อมูลสำเร็จ",
+              description: "ข้อมูลผู้ใช้ถูกบันทึกแล้ว",
               placement: "topRight",
-              pauseOnHover: true,
               duration: 2,
             });
+
+            fetchData();
             onClose();
           }
         } catch (error) {
-          console.error("Error saving user details:", error);
+          const status = error.response?.status;
+
           notification.error({
-            message: "ไม่สามารถบันทึกข้อมูลผู้ใช้ได้ กรุณาลองใหม่อีกครั้ง",
-            showProgress: true,
+            message:
+              status === 409
+                ? "ชื่อผู้ใช้นี้มีอยู่แล้ว โปรดใช้ชื่อผู้ใช้อื่น"
+                : "เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง",
             placement: "topRight",
-            pauseOnHover: true,
             duration: 2,
           });
         }

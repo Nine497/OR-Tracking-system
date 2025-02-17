@@ -59,6 +59,7 @@ const SurgeryCase = {
         "surgery_case.surgery_end_time",
         "surgery_case.surgery_start_time",
         "surgery_case.surgery_type_id",
+        "surgery_case.note",
         "patients.firstname as patient_firstname",
         "patients.lastname as patient_lastname",
         "patients.hn_code as patient_HN",
@@ -97,9 +98,14 @@ const SurgeryCase = {
         );
       })
       .where("surgery_case.operating_room_id", operating_room_id)
-      .whereRaw(
-        "DATE(surgery_case.surgery_start_time AT TIME ZONE 'Asia/Bangkok') = CURRENT_DATE"
-      );
+      .andWhere("surgery_case.isactive", true)
+      .andWhere(function () {
+        this.whereRaw(
+          "DATE(surgery_case.surgery_start_time AT TIME ZONE 'Asia/Bangkok') = CURRENT_DATE"
+        ).orWhereRaw(
+          "DATE(surgery_case.surgery_end_time AT TIME ZONE 'Asia/Bangkok') = CURRENT_DATE"
+        );
+      });
   },
 
   // เพิ่มกรณีการผ่าตัดใหม่
@@ -203,9 +209,9 @@ const SurgeryCase = {
   // CREATE CASE API
   getSurgeryTypeByName: (opType) => {
     return db("surgery_type")
-      .where("surgery_type_name", opType)
+      .where("surgery_type_name", opType.trim())
       .select("surgery_type_id")
-      .first(); // ให้แน่ใจว่าใช้ .first() เพื่อคืนค่า 1 รายการ
+      .first();
   },
 
   createSurgeryType: (opType) => {

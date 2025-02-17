@@ -20,7 +20,7 @@ export const AuthProvider = ({ children }) => {
           console.warn("Token หมดอายุแล้ว");
           logout();
         } else {
-          console.log("Decoded User:", decodedUser);
+          // console.log("Decoded User:", decodedUser);
           setUser(decodedUser);
           fetchPermissions(decodedUser.id);
         }
@@ -52,7 +52,7 @@ export const AuthProvider = ({ children }) => {
   const login = (token) => {
     try {
       const decodedUser = jwtDecode(token);
-      console.log("Decoded User:", decodedUser);
+      // console.log("Decoded User:", decodedUser);
       setUser(decodedUser);
       localStorage.setItem("jwtToken", token);
       fetchPermissions(decodedUser.id);

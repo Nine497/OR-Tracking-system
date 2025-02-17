@@ -5,7 +5,7 @@ import {
   Button,
   Select,
   notification,
-  Switch,
+  Popconfirm,
   Radio,
   Flex,
 } from "antd";
@@ -13,10 +13,14 @@ import { Icon } from "@iconify/react";
 import { axiosInstanceStaff } from "../../api/axiosInstance";
 import UpdateModal from "./UpdateModal";
 import StatusUpdateForm from "./Status_update";
-import dayjs from "dayjs";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
+import dayjs from "dayjs";
+import utc from "dayjs/plugin/utc";
+import timezone from "dayjs/plugin/timezone";
 
+dayjs.extend(utc);
+dayjs.extend(timezone);
 function CaseTable() {
   const [selectedRecord, setSelectedRecord] = useState(null);
   const [isStatusModalVisible, setIsStatusModalVisible] = useState(false);
@@ -36,7 +40,7 @@ function CaseTable() {
   const BASE_URL = import.meta.env.VITE_BASE_URL;
   const navigate = useNavigate();
   const { permissions } = useAuth();
-  const [activeSelected, setActiveSelected] = useState(null);
+  const [activeSelected, setActiveSelected] = useState(true);
 
   // const handleSearch = async (
   //   isActive = activeSelected,
@@ -195,7 +199,7 @@ function CaseTable() {
           }))
         : [];
 
-      console.log("dataWithKeys", dataWithKeys);
+      // console.log("dataWithKeys", dataWithKeys);
       setFilteredData(dataWithKeys);
       setPagination({
         ...pagination,
@@ -266,7 +270,7 @@ function CaseTable() {
         "patient/getAllStatus?language_code=th"
       );
       if (response.status === 200 && response.data) {
-        console.log("response.data:", response.data);
+        // console.log("response.data:", response.data);
         setAllStatus(response.data);
       }
     } catch (err) {
@@ -292,16 +296,17 @@ function CaseTable() {
     fetchDoctorsData();
   }, []);
 
-  const handleActiveToggle = async (record, checked) => {
+  const handleActiveToggle = async (record) => {
     try {
       const response = await axiosInstanceStaff.patch(
         `/surgery_case/isActive/${record.surgery_case_id}`,
         {
-          isActive: checked,
+          isActive: !record.isactive,
         }
       );
 
       if (response.status === 200) {
+        console.log("response", response);
         notification.success({
           message: "สถานะเคสผ่าตัดถูกอัปเดตแล้ว",
           showProgress: true,
@@ -313,8 +318,11 @@ function CaseTable() {
       }
     } catch (error) {
       console.error("Error updating status:", error);
+      const errorMessage =
+        error.response?.data?.message ||
+        "ไม่สามารถอัปเดตสถานะได้ กรุณาลองใหม่อีกครั้ง";
       notification.error({
-        message: "ไม่สามารถอัปเดตสถานะได้ กรุณาลองใหม่อีกครั้ง",
+        message: errorMessage,
         showProgress: true,
         placement: "topRight",
         pauseOnHover: true,
@@ -324,21 +332,21 @@ function CaseTable() {
   };
 
   const columns = [
-    {
-      title: <span className="text-base font-semibold">HN</span>,
-      dataIndex: "hn_code",
-      key: "hn_code",
-      align: "left",
-      width: 90,
-      ellipsis: true,
-      render: (text) => <span className="text-base font-normal">{text}</span>,
-    },
+    // {
+    //   title: <span className="text-base font-semibold">HN</span>,
+    //   dataIndex: "hn_code",
+    //   key: "hn_code",
+    //   align: "left",
+    //   width: 90,
+    //   ellipsis: true,
+    //   render: (text) => <span className="text-base font-normal">{text}</span>,
+    // },
     {
       title: <span className="text-base font-semibold">ชื่อคนไข้</span>,
       dataIndex: "patient_fullname",
       key: "patient_fullname",
       align: "left",
-      width: 100,
+      width: 160,
       ellipsis: true,
       render: (_, record) => (
         <span className="text-base font-normal">
@@ -357,6 +365,7 @@ function CaseTable() {
           record={record}
           allORrooms={allORrooms}
           fetchTable={fetchData}
+          activeSelected={activeSelected}
         />
       ),
     },
@@ -371,7 +380,20 @@ function CaseTable() {
       showSorterTooltip: false,
       render: (text) => (
         <span className="text-base font-normal">
-          {dayjs(text).format("YYYY/MM/DD")}
+          {dayjs(text).tz("Asia/Bangkok").format("YYYY/MM/DD")}
+        </span>
+      ),
+    },
+    {
+      title: <span className="text-base font-semibold">เวลา</span>,
+      dataIndex: "surgery_time",
+      key: "surgery_time",
+      align: "left",
+      width: 80,
+      render: (_, record) => (
+        <span className="text-base font-normal">
+          {dayjs(record.surgery_start_time).tz("Asia/Bangkok").format("HH:mm")}{" "}
+          - {dayjs(record.surgery_end_time).tz("Asia/Bangkok").format("HH:mm")}
         </span>
       ),
     },
@@ -392,6 +414,7 @@ function CaseTable() {
       width: 80,
       render: (_, record) => (
         <Button
+          loading={loadingCases}
           type="primary"
           icon={<Icon icon="mdi:eye" className="h-5" />}
           onClick={() => openStatusModal(record)}
@@ -416,6 +439,7 @@ function CaseTable() {
         return (
           <div className="flex flex-wrap items-center justify-between gap-2">
             <Button
+              loading={loadingCases}
               type="default"
               icon={<Icon icon="lucide:settings" />}
               onClick={() => openLinkModal(record)}
@@ -450,20 +474,56 @@ function CaseTable() {
       title: <span className="text-base font-bold">จัดการ</span>,
       key: "Action",
       align: "left",
-      width: 160,
+      width: 130,
       render: (_, record) => (
         <div className="flex flex-between items-center space-x-4">
           <div className="w-full sm:w-auto">
             <Button
+              loading={loadingCases}
               type="primary"
-              icon={<Icon icon="lucide:edit" className="mr-2 w-4 h-4" />}
+              icon={<Icon icon="lucide:edit" className="w-4 h-4" />}
               onClick={() => handleEditRecord(record)}
               className="flex items-center gap-2"
             >
               <span className="font-medium text-base">แก้ไข</span>
             </Button>
           </div>
-          <div className="flex items-center space-x-2 bg-gray-100 px-3 py-1 rounded-lg">
+          <div className="w-full sm:w-auto">
+            <Popconfirm
+              title={
+                activeSelected === true
+                  ? "คุณแน่ใจที่จะลบรายการนี้?"
+                  : "คุณแน่ใจที่จะกู้คืนรายการนี้?"
+              }
+              onConfirm={() => handleActiveToggle(record)}
+              okText="ยืนยัน"
+              cancelText="ยกเลิก"
+              placement="topRight"
+            >
+              <Button
+                loading={loadingCases}
+                type="primary"
+                icon={
+                  <Icon
+                    icon={
+                      activeSelected === true
+                        ? "solar:trash-bin-trash-bold"
+                        : "grommet-icons:revert"
+                    }
+                    className="w-4 h-4"
+                  />
+                }
+                className={`flex items-center gap-2 ${
+                  activeSelected === true ? "bg-red-400" : "bg-green-500"
+                }`}
+              >
+                <span className="font-medium text-base">
+                  {activeSelected === true ? "ลบ" : "กู้คืน"}
+                </span>
+              </Button>
+            </Popconfirm>
+          </div>
+          {/* <div className="flex items-center space-x-2 bg-gray-100 px-3 py-1 rounded-lg">
             <Switch
               size="small"
               className="bg-gray-300"
@@ -473,7 +533,7 @@ function CaseTable() {
             <span className="font-medium text-base text-gray-700">
               เปิดใช้งาน
             </span>
-          </div>
+          </div> */}
         </div>
       ),
     },
@@ -519,9 +579,12 @@ function CaseTable() {
             });
           }}
         >
-          <Radio.Button value={null}>ทั้งหมด</Radio.Button>โ
-          <Radio.Button value={true}>เปิดใช้งาน</Radio.Button>
-          <Radio.Button value={false}>ปิดใช้งาน</Radio.Button>
+          {/* <Radio.Button value={null}>ทั้งหมด</Radio.Button>โ */}
+          <Radio.Button value={true}>Current Case</Radio.Button>
+          <Radio.Button value={false} className="flex flex-col">
+            {/* <Icon icon="solar:trash-bin-trash-bold" /> */}
+            Trash
+          </Radio.Button>
         </Radio.Group>
 
         <Button
@@ -577,7 +640,12 @@ function CaseTable() {
   );
 }
 
-const OR_roomUpdateForm = ({ record, allORrooms, fetchTable }) => {
+const OR_roomUpdateForm = ({
+  record,
+  allORrooms,
+  fetchTable,
+  activeSelected,
+}) => {
   const handleChange = async (value) => {
     try {
       const response = await axiosInstanceStaff.put(
@@ -611,6 +679,7 @@ const OR_roomUpdateForm = ({ record, allORrooms, fetchTable }) => {
       defaultValue={record?.operating_room_id}
       w
       onChange={handleChange}
+      disabled={activeSelected ? false : true}
     >
       {allORrooms.map((room) => (
         <Select.Option

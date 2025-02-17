@@ -16,9 +16,9 @@ const GanttModal = ({ cases, isOpen, onClose }) => {
   const [totalHours, setTotalHours] = useState(0);
   const containerRef = useRef(null);
 
-  useEffect(() => {
-    console.log("Grantt cases", cases);
-  }, [cases]);
+  // useEffect(() => {
+  //   console.log("Grantt cases", cases);
+  // }, [cases]);
 
   useEffect(() => {
     if (!Array.isArray(cases) || cases.length === 0) return;
@@ -46,7 +46,7 @@ const GanttModal = ({ cases, isOpen, onClose }) => {
       const end = new Date(c.surgery_end_time);
       return {
         id: c.id ? c.id.toString() : (index + 1).toString(),
-        name: `${c.patient_HN}`,
+        name: `${c.patient_firstname} ${c.patient_lastname}`,
         start,
         end,
         progress: 100,
