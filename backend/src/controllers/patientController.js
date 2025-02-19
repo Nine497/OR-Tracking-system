@@ -3,56 +3,65 @@ const patientModel = require("../models/patientModel");
 const linkCaseModel = require("../models/linkCaseModel");
 const db = require("../config/database");
 const crypto = require("crypto");
+require("dotenv").config();
 const dayjs = require("dayjs");
 const timezone = require("dayjs/plugin/timezone");
 const utc = require("dayjs/plugin/utc");
-require("dotenv").config();
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
 
 exports.validate_link = async (req, res) => {
-  const { link } = req.body;
-  const trimmedLink = link?.trim().replace(/[^\w]/g, "");
-
-  if (!trimmedLink) {
-    return res.status(400).json({
-      valid: false,
-      error: "NO_LINK_PROVIDED",
-      message: "LINK is required",
-    });
-  } else {
-    console.log("trimmedLink", trimmedLink);
-  }
-
   try {
-    const linkStatus = await patientModel.getLinkStatusById(trimmedLink);
+    const { link } = req.body;
+    const trimmedLink = link?.trim();
 
-    if (!linkStatus || !linkStatus.isactive) {
+    if (!trimmedLink) {
+      return res.status(400).json({
+        valid: false,
+        error: "NO_LINK_PROVIDED",
+        message: "LINK is required",
+      });
+    }
+
+    const linkData = await db("surgery_case_links")
+      .join(
+        "surgery_case",
+        "surgery_case.surgery_case_id",
+        "=",
+        "surgery_case_links.surgery_case_id"
+      )
+      .leftJoin(
+        "patients",
+        "patients.patient_id",
+        "=",
+        "surgery_case.patient_id"
+      )
+      .select(
+        "surgery_case_links.*",
+        "surgery_case.isactive as case_active",
+        "patients.patient_id"
+      )
+      .where("surgery_case_links_id", trimmedLink)
+      .first();
+
+    console.log("linkData", linkData);
+
+    if (!linkData || !linkData.isactive || !linkData.case_active) {
       return res.status(403).json({
         valid: false,
         error: "LINK_INACTIVE_OR_NOT_FOUND",
         message: "Link is inactive or not found",
-        isactive: linkStatus.isactive,
       });
     }
 
-    const currentTime = dayjs();
-    const expirationTime = dayjs(linkStatus.expiration_time);
-
-    if (currentTime.isAfter(expirationTime)) {
-      return res.status(403).json({
-        valid: false,
-        error: "LINK_EXPIRED",
-        message: "Link expired",
-      });
+    if (dayjs().isAfter(dayjs(linkData.expiration_time))) {
+      return res
+        .status(403)
+        .json({ valid: false, error: "LINK_EXPIRED", message: "Link expired" });
     }
 
-    const patientData = await patientModel.getPatientIdByCaseId(
-      linkStatus.surgery_case_id
-    );
-
-    if (!patientData) {
+    if (!linkData.patient_id) {
       return res.status(404).json({
         valid: false,
         error: "PATIENT_NOT_FOUND",
@@ -62,13 +71,13 @@ exports.validate_link = async (req, res) => {
 
     return res.json({
       valid: true,
-      patient_id: patientData.patient_id,
-      surgery_case_id: linkStatus.surgery_case_id,
+      patient_id: linkData.patient_id,
+      surgery_case_id: linkData.surgery_case_id,
       linkStatus: {
-        isactive: linkStatus.isactive,
-        expirationTime: expirationTime,
-        lock_until: linkStatus.lock_until,
-        attempt_count: linkStatus.attempt_count,
+        isactive: linkData.isactive,
+        expirationTime: linkData.expiration_time,
+        lock_until: linkData.lock_until,
+        attempt_count: linkData.attempt_count,
       },
     });
   } catch (error) {
@@ -76,10 +85,7 @@ exports.validate_link = async (req, res) => {
       valid: false,
       error: "SERVER_ERROR",
       message: "Internal server error",
-      details: {
-        name: error.name,
-        message: error.message,
-      },
+      details: { name: error.name, message: error.message },
     });
   }
 };
@@ -108,12 +114,14 @@ exports.updatePatient = async (req, res) => {
   try {
     const { patient_id } = req.params;
     const patientData = req.body;
+    console.log("patientData", patientData);
 
     if (
       !patientData.hn_code ||
       !patientData.firstname ||
       !patientData.lastname ||
-      !patientData.gender
+      !patientData.gender ||
+      !patientData.dob
     ) {
       return res
         .status(400)
@@ -144,12 +152,14 @@ exports.updatePatient = async (req, res) => {
 exports.createOrUpdatePatient = async (req, res) => {
   try {
     const patientData = req.body;
+    console.log("patientData", patientData);
 
     if (
       !patientData.hn_code ||
       !patientData.first_name ||
       !patientData.last_name ||
-      !patientData.gender
+      !patientData.gender ||
+      !patientData.dob
     ) {
       return res
         .status(400)
@@ -161,13 +171,13 @@ exports.createOrUpdatePatient = async (req, res) => {
       .first();
 
     if (existingPatient) {
-      // อัปเดตข้อมูลแทน
       const updatedPatient = await db("patients")
         .where("hn_code", patientData.hn_code)
         .update({
           firstname: patientData.first_name,
           lastname: patientData.last_name,
           gender: patientData.gender,
+          dob: patientData.dob,
         })
         .returning("*")
         .then((patients) => patients[0]);
@@ -184,6 +194,7 @@ exports.createOrUpdatePatient = async (req, res) => {
         firstname: patientData.first_name,
         lastname: patientData.last_name,
         gender: patientData.gender,
+        dob: patientData.dob,
       })
       .returning("*")
       .then((patients) => patients[0]);
@@ -201,13 +212,14 @@ exports.createOrUpdatePatient = async (req, res) => {
 };
 
 exports.login = async (req, res) => {
-  const { pin, surgery_case_id, link } = req.body;
+  const { dob, surgery_case_id, link } = req.body;
+  console.log("dob", dob);
 
-  if (!pin || !surgery_case_id) {
+  if (!dob || !surgery_case_id) {
     return res.status(400).json({
       valid: false,
-      error: "NO_PIN_CASEID_PROVIDED",
-      message: "PIN and CaseId are required",
+      error: "NO_DOB_CASEID_PROVIDED",
+      message: "DOB and CaseId are required",
     });
   }
 
@@ -215,7 +227,6 @@ exports.login = async (req, res) => {
     const linkCase = await linkCaseModel.getLatestActiveLinkCaseBySurgeryCaseId(
       surgery_case_id
     );
-
     if (!linkCase) {
       return res.status(404).json({
         valid: false,
@@ -225,13 +236,9 @@ exports.login = async (req, res) => {
     }
 
     let { attempt_count, lock_until } = linkCase;
-    const now = Date.now();
+    const now = dayjs().utc();
 
-    console.log(
-      `Current attempt_count: ${attempt_count}, lock_until: ${lock_until}, now: ${now}`
-    );
-
-    if (lock_until && now < lock_until) {
+    if (lock_until && now.isBefore(dayjs.utc(lock_until))) {
       return res.status(403).json({
         valid: false,
         error: "ACCOUNT_LOCKED",
@@ -241,61 +248,69 @@ exports.login = async (req, res) => {
       });
     }
 
-    // 🔑 ถอดรหัส PIN
-    const decipher = crypto.createDecipheriv(
-      "aes-128-cbc",
-      Buffer.from(process.env.SECRET_KEY, "hex"),
-      Buffer.from(process.env.IV, "hex")
+    const patientDetails = await patientModel.getPatientDetailsByCaseId(
+      surgery_case_id
     );
-    let decryptedPin = decipher.update(
-      linkCase.pin_encrypted,
-      "base64",
-      "utf8"
-    );
-    decryptedPin += decipher.final("utf8");
+    if (!patientDetails) {
+      return res.status(404).json({
+        valid: false,
+        error: "PATIENT_NOT_FOUND",
+        message: "No patient found for this surgery_case_id",
+      });
+    }
 
-    console.log(`Decrypted PIN: ${decryptedPin}`);
+    // ✅ ตรวจสอบว่า DOB ตรงกันหรือไม่
+    const formattedDob = dayjs.utc(dob).format("YYYY-MM-DD");
+    const patientDob = dayjs(patientDetails.dob).format("YYYY-MM-DD");
 
-    if (pin !== decryptedPin) {
+    console.log("formattedDob", formattedDob);
+    console.log("patientDob", patientDob);
+
+    if (patientDob !== formattedDob) {
       attempt_count += 1;
       let newLockUntil = null;
 
       if (attempt_count % 5 === 0) {
-        newLockUntil = dayjs().add(1, "minute").format("YYYY-MM-DD HH:mm:ss");
-        console.log(`Locking account until: ${newLockUntil}`);
+        newLockUntil = dayjs().utc().add(1, "minute").toISOString();
       }
 
-      const linkUpdated = await linkCaseModel.updateAttemptCount(
-        link,
-        attempt_count,
-        newLockUntil
-      );
-      console.log("linkUpdated", linkUpdated);
+      console.log("link", link);
+      console.log("attempt_count", attempt_count, newLockUntil);
+      console.log("newLockUntil", newLockUntil);
 
-      return res.status(400).json({
-        valid: false,
-        error: "INVALID_PIN",
-        message: "Incorrect PIN. Please try again.",
-        attempt_count,
-        lock_until: linkUpdated,
-      });
+      if (newLockUntil) {
+        await linkCaseModel.updateLockUntil(link, attempt_count, newLockUntil);
+      } else {
+        await linkCaseModel.updateAttemptCount(
+          surgery_case_id,
+          attempt_count,
+          now.toISOString()
+        );
+      }
+
+      if (attempt_count % 5 === 0) {
+        return res.status(400).json({
+          valid: false,
+          error: "ACCOUNT_LOCKED",
+          message: "Account locked. Please wait and try again.",
+          attempt_count,
+          lock_until: newLockUntil,
+        });
+      } else {
+        return res.status(400).json({
+          valid: false,
+          error: "INVALID_DOB",
+          message: "Incorrect DOB. Please try again.",
+          attempt_count,
+          lock_until: newLockUntil,
+        });
+      }
     }
 
+    // ✅ รีเซ็ตจำนวนครั้งที่พยายามผิดพลาด
     await linkCaseModel.resetAttemptCount(link);
 
-    const patientDetails = await patientModel.getPatientDetailsByCaseId(
-      surgery_case_id
-    );
-
-    if (!patientDetails) {
-      return res.status(404).json({
-        valid: false,
-        error: "PATIENT_DETAILS_NOT_MATCH",
-        message: "Invalid HN or DOB. Please try again.",
-      });
-    }
-
-    // 🔥 สร้าง JWT Token
+    // ✅ สร้าง JWT Token
     const payload = {
       patient_id: patientDetails.patient_id,
       surgery_case_id,

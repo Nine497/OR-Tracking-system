@@ -25,9 +25,7 @@
     "login": {
         "TITLE": "OR-Tracking",
         "HN": "Hospital Number",
-        "PIN": "PIN Code",
-        "PIN_REQUIRED": "Please enter your PIN code",
-        "PIN_INVALID": "PIN code must be 6 digits",
+        "INVALID_DOB": "Invalid patient date of birth",
         "HN_REQUIRED": "Please enter your HN",
         "HN_INVALID": "Invalid HN",
         "DOB": "Date of Birth",
@@ -44,7 +42,13 @@
         "AGREE": "I agree to the ",
         "errorMsgRemainingAttempts": "You have {{remainingAttempts}} attempts left to enter the PIN incorrectly",
         "errorMsgExceededAttempts": "You have entered the wrong PIN {{attempt_count}} times. Please try again later.",
-        "waitForPin": "Please wait for {{minutes}} m and {{seconds}} s\nbefore entering the PIN again."
+        "waitForPin": "Please wait for {{minutes}} m and {{seconds}} s\nbefore entering the PIN again.",
+        "errorMsgLoginFailed": "The date of birth is incorrect. Please try again.",
+        "errorMsgYearFormat": "Invalid year format",
+        "errorMsgRequiredYear": "Year is required",
+        "errorMsgRequiredMonth": "Month is required",
+        "errorMsgRequiredDay": "Day is required",
+        "errorMsgAllFieldRequired": "All fields are required"
     },
     "or_tracking": {
         "TITLE": "OR-Tracking"

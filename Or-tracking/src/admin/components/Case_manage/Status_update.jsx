@@ -4,7 +4,12 @@ import { axiosInstanceStaff } from "../../api/axiosInstance";
 import { useAuth } from "../../context/AuthContext";
 import "./StatusUpdateForm.css";
 
-const StatusUpdateForm = ({ record, allStatus, onStatusUpdate }) => {
+const StatusUpdateForm = ({
+  record,
+  allStatus,
+  onStatusUpdate,
+  activeSelected,
+}) => {
   const [loading, setLoading] = useState(false);
   const [selectedStatus, setSelectedStatus] = useState(null);
   const [tempStatus, setTempStatus] = useState(null);
@@ -100,6 +105,7 @@ const StatusUpdateForm = ({ record, allStatus, onStatusUpdate }) => {
   return (
     <div className="flex items-center text-left space-x-2">
       <Select
+        disabled={activeSelected === false}
         loading={loading}
         placeholder="Select a status"
         size="middle"

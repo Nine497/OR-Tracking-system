@@ -24,9 +24,7 @@
   },
   "login": {
     "TITLE": "OR-Tracking",
-    "PIN": "Kode PIN",
-    "PIN_REQUIRED": "Harap masukkan Kode PIN",
-    "PIN_INVALID": "Kode PIN harus terdiri dari 6 angka",
+    "INVALID_DOB": "Tanggal lahir pasien tidak valid",
     "HN": "Nomor Rumah Sakit",
     "HN_REQUIRED": "Harap masukkan Nomor Rumah Sakit",
     "HN_INVALID": "Nomor Rumah Sakit tidak valid",
@@ -44,7 +42,13 @@
     "AGREE": "Saya setuju dengan ",
     "errorMsgRemainingAttempts": "Anda memiliki {{remainingAttempts}} kesempatan lagi untuk memasukkan PIN yang salah",
     "errorMsgExceededAttempts": "Anda telah memasukkan PIN yang salah sebanyak {{attempt_count}} kali. Silakan coba lagi nanti.",
-    "waitForPin": "Harap tunggu selama {{minutes}} menit {{seconds}} detik\nsebelum memasukkan PIN lagi."
+    "waitForPin": "Harap tunggu selama {{minutes}} menit {{seconds}} detik\nsebelum memasukkan PIN lagi.",
+    "errorMsgLoginFailed": "Tanggal lahir tidak benar. Silakan coba lagi.",
+    "errorMsgYearFormat": "Format tahun tidak valid",
+    "errorMsgRequiredYear": "Tahun harus diisi",
+    "errorMsgRequiredMonth": "Bulan harus diisi",
+    "errorMsgRequiredDay": "Hari harus diisi",
+    "errorMsgAllFieldRequired": "Semua kolom harus diisi"
   },
   "or_tracking": {
     "TITLE": "Pelacakan OR"

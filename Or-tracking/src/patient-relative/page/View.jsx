@@ -44,6 +44,26 @@ const View = () => {
   const urlParams = new URLSearchParams(window.location.search);
   const [expiration_time, setExpiration_time] = useState(null);
 
+  const checkLink = async () => {
+    try {
+      const linkValidResponse = await axiosInstancePatient.post(
+        "patient/validate_link",
+        {
+          link: patient_link,
+        }
+      );
+
+      if (!linkValidResponse.data.valid) {
+        return false;
+      }
+
+      return true;
+    } catch (error) {
+      console.error("checkLink error:", error);
+      throw error;
+    }
+  };
+
   useEffect(() => {
     const fetchPolicyStatus = async () => {
       try {
@@ -114,6 +134,13 @@ const View = () => {
       try {
         startLoading();
 
+        const linkValidResponse = await checkLink();
+
+        if (!linkValidResponse) {
+          setErrorMessage(t("error.INVALID_LINK"));
+          setTimelineLoading(false);
+          return;
+        }
         if (!patient_id || !surgery_case_id || !patient_link) {
           setIsDataReady(false);
           return;
@@ -227,14 +254,9 @@ const View = () => {
     try {
       setTimelineLoading(true);
 
-      const linkValidResponse = await axiosInstancePatient.post(
-        "patient/validate_link",
-        {
-          link: patient_link,
-        }
-      );
+      const linkValidResponse = await checkLink();
 
-      if (!linkValidResponse.data.valid) {
+      if (!linkValidResponse) {
         setErrorMessage(t("error.INVALID_LINK"));
         setTimelineLoading(false);
         return;

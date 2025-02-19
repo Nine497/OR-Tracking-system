@@ -22,7 +22,7 @@ function Users_Table_Header({ refreshTable }) {
       <div className="text-lg sm:text-2xl font-semibold">
         การจัดการผู้ใช้งาน
       </div>
-      {permissions.includes("5002") && (
+      {permissions.includes("10") && (
         <Button
           type="primary"
           icon={<Icon icon="typcn:plus" className="text-sm sm:text-lg" />}

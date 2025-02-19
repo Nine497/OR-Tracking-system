@@ -40,13 +40,13 @@ function App() {
 
               <Route
                 path="users_manage"
-                element={<PermissionRoute requiredPermission={"5002"} />}
+                element={<PermissionRoute requiredPermission={"10"} />}
               >
                 <Route path="" element={<Users_manage />} />
               </Route>
               <Route
                 path="case_manage"
-                element={<PermissionRoute requiredPermission={"5003"} />}
+                element={<PermissionRoute requiredPermission={"20"} />}
               >
                 <Route path="" element={<Case_manage />} />
                 <Route path="add_case" element={<AddCase />} />

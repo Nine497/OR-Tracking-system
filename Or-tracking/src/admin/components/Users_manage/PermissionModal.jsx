@@ -155,16 +155,18 @@ function PermissionModal({ visible, staff, onClose }) {
           >
             <div className="flex flex-col gap-6 items-end select-none">
               <div className="grid grid-cols-2 gap-6 ">
-                {allPermissions.map((item) => (
-                  <CustomCheckbox
-                    key={item.permission_id}
-                    value={item.permission_id}
-                    staff={staffPermissions}
-                    onChange={handleCheckboxChange}
-                    label={item.permission_name}
-                    des={item.permission_des}
-                  />
-                ))}
+                {allPermissions
+                  .sort((a, b) => a.permission_id - b.permission_id)
+                  .map((item) => (
+                    <CustomCheckbox
+                      key={item.permission_id}
+                      value={item.permission_id}
+                      staff={staffPermissions}
+                      onChange={handleCheckboxChange}
+                      label={item.permission_name}
+                      des={item.permission_des}
+                    />
+                  ))}
               </div>
               <Checkbox
                 checked={isFullAccessChecked}
@@ -197,29 +199,43 @@ function PermissionModal({ visible, staff, onClose }) {
   );
 }
 
-const CustomCheckbox = memo(({ value, label, staff, onChange, des }) => {
-  const isChecked = staff.some((item) => item.permission_id === value);
+const CustomCheckbox = memo(
+  ({ value, label, staff, onChange, des, disabled }) => {
+    const isChecked = staff.some((item) => item.permission_id === value);
 
-  const handleClick = () => {
-    onChange(value, !isChecked);
-  };
+    const formattedValue =
+      value % 10 === 0
+        ? Math.floor(value / 10)
+        : Math.floor(value / 10) + "." + (value % 10);
 
-  return (
-    <div
-      className={`flex flex-col cursor-pointer p-3 hover:bg-blue-50 border rounded-lg ${
-        isChecked ? "bg-blue-100" : ""
-      }`}
-      onClick={handleClick}
-    >
-      <div className="flex items-center space-x-2 ">
-        <Checkbox checked={isChecked} className="w-4 h-4" />
-        <span className="text-base font-medium text-gray-700 ml-2">
-          {label}
-        </span>
+    const handleClick = () => {
+      if (disabled) return;
+      onChange(value, !isChecked);
+    };
+
+    return (
+      <div
+        className={`flex flex-col cursor-pointer p-3 hover:bg-blue-50 border rounded-lg ${
+          isChecked ? "bg-blue-100" : ""
+        } ${
+          disabled ? "bg-gray-200 cursor-not-allowed hover:bg-gray-200" : ""
+        }`}
+        onClick={handleClick}
+      >
+        <div className="flex items-center space-x-2 ">
+          <Checkbox
+            checked={isChecked}
+            className="w-4 h-4"
+            disabled={disabled}
+          />
+          <span className="text-base font-medium text-gray-700 ml-2">
+            {formattedValue}. {label}
+          </span>
+        </div>
+        <p className="text-sm text-gray-500 mt-1.5 ml-6">{des}</p>
       </div>
-      <p className="text-sm text-gray-500 mt-1.5 ml-6">{des}</p>
-    </div>
-  );
-});
+    );
+  }
+);
 
 export default PermissionModal;

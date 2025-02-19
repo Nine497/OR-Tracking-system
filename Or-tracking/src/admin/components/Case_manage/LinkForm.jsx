@@ -476,14 +476,10 @@ const LinkForm = ({ formLink, record }) => {
 
   const handleCopyLink = async () => {
     const linkUrl = `${BASE_URL}ptr?link=${linkData.surgery_case_links_id}`;
-    const pin_decrypted =
-      linkData.pin_decrypted !== undefined
-        ? linkData.pin_decrypted
-        : linkData.pin;
-    const patient_fullname = `${linkData.patient_firstname} ${linkData.patient_lastname}`;
-    if (!linkUrl || !pin_decrypted) {
+
+    if (!linkUrl) {
       notification.warning({
-        message: "ไม่มีข้อมูลให้คัดลอก กรุณาสร้างลิงก์และ PIN ก่อน",
+        message: "ไม่มีข้อมูลให้คัดลอก กรุณาสร้างลิงก์ก่อน",
         showProgress: true,
         placement: "topRight",
         pauseOnHover: true,
@@ -492,10 +488,8 @@ const LinkForm = ({ formLink, record }) => {
       return;
     }
 
-    const textToCopy = `คุณ ${patient_fullname}\nURL: ${linkUrl}\nPIN: ${pin_decrypted}`;
-
     const textArea = document.createElement("textarea");
-    textArea.value = textToCopy;
+    textArea.value = linkUrl;
     textArea.style.position = "fixed";
     textArea.style.left = "-9999px";
     document.body.appendChild(textArea);
@@ -505,7 +499,7 @@ const LinkForm = ({ formLink, record }) => {
       document.execCommand("copy");
 
       notification.success({
-        message: "ลิงก์และ PIN ได้ถูกคัดลอกไปยังคลิปบอร์ดของคุณแล้ว",
+        message: "ลิงก์ได้ถูกคัดลอกไปยังคลิปบอร์ดของคุณแล้ว",
         showProgress: true,
         placement: "topRight",
         pauseOnHover: true,
@@ -513,7 +507,7 @@ const LinkForm = ({ formLink, record }) => {
       });
     } catch (err) {
       notification.error({
-        message: "ไม่สามารถคัดลอกข้อมูลได้ กรุณาคัดลอกด้วยตนเอง",
+        message: "ไม่สามารถคัดลอกลิงก์ได้ กรุณาคัดลอกด้วยตนเอง",
         showProgress: true,
         placement: "topRight",
         pauseOnHover: true,

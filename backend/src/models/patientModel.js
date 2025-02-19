@@ -22,7 +22,7 @@ const patient = {
   getPatientDetailsByCaseId: (surgery_case_id, hn) => {
     return db("surgery_case")
       .join("patients", "surgery_case.patient_id", "=", "patients.patient_id")
-      .select("patients.hn_code", "patients.patient_id")
+      .select("patients.hn_code", "patients.patient_id", "patients.dob")
       .where("surgery_case.surgery_case_id", surgery_case_id)
       .first();
   },

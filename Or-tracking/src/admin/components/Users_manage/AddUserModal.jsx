@@ -6,6 +6,13 @@ import { useAuth } from "../../context/AuthContext";
 
 function AddUserModal({ visible, onClose }) {
   const { user } = useAuth();
+  const [form] = Form.useForm();
+
+  const formatName = (str) => {
+    return str
+      .replace(/^\s+|\s+$/g, "")
+      .replace(/\b[a-z]/g, (char) => char.toUpperCase());
+  };
 
   const handleFinish = async (values) => {
     Modal.confirm({
@@ -16,8 +23,21 @@ function AddUserModal({ visible, onClose }) {
       centered: true,
       onOk: async () => {
         try {
+          const trimmedValues = Object.fromEntries(
+            Object.entries(values).map(([key, value]) => {
+              if (typeof value === "string") {
+                let formattedValue = value.trim();
+                if (key === "firstname" || key === "lastname") {
+                  formattedValue = formatName(formattedValue);
+                }
+                return [key, formattedValue];
+              }
+              return [key, value];
+            })
+          );
+
           const response = await axiosInstanceStaff.post("/staff", {
-            ...values,
+            ...trimmedValues,
             created_by: user.id,
           });
 
@@ -29,20 +49,20 @@ function AddUserModal({ visible, onClose }) {
               duration: 2,
             });
 
-            fetchData();
+            form.resetFields();
             onClose();
+          } else {
+            notification.error({
+              message:
+                response?.status === 409
+                  ? "ชื่อผู้ใช้นี้มีอยู่แล้ว โปรดใช้ชื่อผู้ใช้อื่น"
+                  : "เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง",
+              placement: "topRight",
+              duration: 2,
+            });
           }
         } catch (error) {
-          const status = error.response?.status;
-
-          notification.error({
-            message:
-              status === 409
-                ? "ชื่อผู้ใช้นี้มีอยู่แล้ว โปรดใช้ชื่อผู้ใช้อื่น"
-                : "เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง",
-            placement: "topRight",
-            duration: 2,
-          });
+          console.error("Error in handleFinish:", error);
         }
       },
     });
@@ -81,7 +101,10 @@ function AddUserModal({ visible, onClose }) {
                 <span className="text-lg font-medium text-gray-700">ชื่อ</span>
               }
               name="firstname"
-              rules={[{ required: true, message: "กรุณากรอกชื่อจริงของคุณ!" }]}
+              rules={[
+                { required: true, message: "กรุณากรอกชื่อจริงของคุณ!" },
+                { pattern: /^[^\d]+$/, message: "ห้ามมีตัวเลขในชื่อ!" },
+              ]}
             >
               <Input
                 className="p-3 text-base border rounded-lg border-gray-300 focus:border-blue-400 focus:ring focus:ring-blue-200 focus:ring-opacity-50"
@@ -99,7 +122,10 @@ function AddUserModal({ visible, onClose }) {
                 </span>
               }
               name="lastname"
-              rules={[{ required: true, message: "กรุณากรอกนามสกุลของคุณ!" }]}
+              rules={[
+                { required: true, message: "กรุณากรอกนามสกุลของคุณ!" },
+                { pattern: /^[^\d]+$/, message: "ห้ามมีตัวเลขในนามสกุล!" },
+              ]}
             >
               <Input
                 className="p-3 text-base border rounded-lg border-gray-300 focus:border-blue-400 focus:ring focus:ring-blue-200 focus:ring-opacity-50"
@@ -112,9 +138,14 @@ function AddUserModal({ visible, onClose }) {
           <Col xs={24} sm={12}>
             <Form.Item
               label={
-                <span className="text-lg font-medium text-gray-700">
-                  ชื่อผู้ใช้
-                </span>
+                <div className="flex flex-row items-baseline">
+                  <span className="text-lg font-medium text-gray-700">
+                    ชื่อผู้ใช้
+                  </span>
+                  <span className="text-sm font-medium text-gray-400 ml-1">
+                    (ห้ามซ้ำ)
+                  </span>
+                </div>
               }
               name="username"
               rules={[

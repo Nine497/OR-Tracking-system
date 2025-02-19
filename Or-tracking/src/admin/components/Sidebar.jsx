@@ -25,14 +25,14 @@ const items = [
     to: "/admin/case_manage",
     icon: <Icon icon="ic:outline-description" className="text-lg" />,
     key: "case_manage",
-    permissionRequired: "5003",
+    permissionRequired: "20",
   },
   {
     label: "ผู้ใช้",
     to: "/admin/users_manage",
     icon: <Icon icon="ic:baseline-group-add" className="text-lg" />,
     key: "users_manage",
-    permissionRequired: "5002",
+    permissionRequired: "10",
   },
 ];
 

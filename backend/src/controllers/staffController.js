@@ -272,3 +272,36 @@ exports.updateStaffActive = async (req, res) => {
     res.status(500).json({ message: "Internal server error" });
   }
 };
+
+exports.updateStaff = async (req, res) => {
+  const { staff_id } = req.params;
+  const { firstname, lastname, newPassword } = req.body;
+
+  try {
+    let updateData = {};
+
+    if (firstname) updateData.firstname = firstname;
+    if (lastname) updateData.lastname = lastname;
+    if (newPassword) {
+      updateData.password = await bcrypt.hash(newPassword, 10);
+    }
+
+    if (Object.keys(updateData).length === 0) {
+      return res.status(400).json({ message: "ไม่มีข้อมูลที่ต้องแก้ไข" });
+    }
+
+    const result = await db("staff")
+      .where({ staff_id })
+      .update(updateData)
+      .returning("*");
+
+    if (result.length > 0) {
+      res.status(200).json({ message: "แก้ไขข้อมูลสำเร็จ", staff: result[0] });
+    } else {
+      res.status(404).json({ message: "ไม่พบพนักงานที่ต้องการแก้ไขข้อมูล" });
+    }
+  } catch (error) {
+    console.error("Error updating staff data:", error);
+    res.status(500).json({ message: "เกิดข้อผิดพลาดภายในเซิร์ฟเวอร์" });
+  }
+};

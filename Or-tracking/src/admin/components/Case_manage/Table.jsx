@@ -96,10 +96,10 @@ function CaseTable() {
     navigate(`/admin/case_manage/edit_case?id=${record.surgery_case_id}`);
   };
 
-  const copyLink = (linkUrl, pin_decrypted, patient_fullname) => {
-    if (!linkUrl || !pin_decrypted) {
+  const copyLink = (linkUrl) => {
+    if (!linkUrl) {
       notification.warning({
-        message: "ไม่มีข้อมูลให้คัดลอก กรุณาสร้างลิงก์และ PIN ก่อน",
+        message: "ไม่มีข้อมูลให้คัดลอก กรุณาสร้างลิงก์ก่อน",
         showProgress: true,
         placement: "topRight",
         pauseOnHover: true,
@@ -108,10 +108,8 @@ function CaseTable() {
       return;
     }
 
-    const textToCopy = `คุณ ${patient_fullname}\nURL: ${linkUrl}\nPIN: ${pin_decrypted}`;
-
     const textArea = document.createElement("textarea");
-    textArea.value = textToCopy;
+    textArea.value = linkUrl;
     textArea.style.position = "fixed";
     textArea.style.left = "-9999px";
     document.body.appendChild(textArea);
@@ -121,7 +119,7 @@ function CaseTable() {
       document.execCommand("copy");
 
       notification.success({
-        message: "ลิงก์และ PIN ได้ถูกคัดลอกไปยังคลิปบอร์ดของคุณแล้ว",
+        message: "ลิงก์ได้ถูกคัดลอกไปยังคลิปบอร์ดของคุณแล้ว",
         showProgress: true,
         placement: "topRight",
         pauseOnHover: true,
@@ -129,7 +127,7 @@ function CaseTable() {
       });
     } catch (err) {
       notification.error({
-        message: "ไม่สามารถคัดลอกข้อมูลได้ กรุณาคัดลอกด้วยตนเอง",
+        message: "ไม่สามารถคัดลอกลิงก์ได้ กรุณาคัดลอกด้วยตนเอง",
         showProgress: true,
         placement: "topRight",
         pauseOnHover: true,
@@ -296,40 +294,40 @@ function CaseTable() {
     fetchDoctorsData();
   }, []);
 
-  const handleActiveToggle = async (record) => {
-    try {
-      const response = await axiosInstanceStaff.patch(
-        `/surgery_case/isActive/${record.surgery_case_id}`,
-        {
-          isActive: !record.isactive,
-        }
-      );
+  // const handleActiveToggle = async (record) => {
+  //   try {
+  //     const response = await axiosInstanceStaff.patch(
+  //       `/surgery_case/isActive/${record.surgery_case_id}`,
+  //       {
+  //         isActive: !record.isactive,
+  //       }
+  //     );
 
-      if (response.status === 200) {
-        console.log("response", response);
-        notification.success({
-          message: "สถานะเคสผ่าตัดถูกอัปเดตแล้ว",
-          showProgress: true,
-          placement: "topRight",
-          pauseOnHover: true,
-          duration: 2,
-        });
-        fetchData();
-      }
-    } catch (error) {
-      console.error("Error updating status:", error);
-      const errorMessage =
-        error.response?.data?.message ||
-        "ไม่สามารถอัปเดตสถานะได้ กรุณาลองใหม่อีกครั้ง";
-      notification.error({
-        message: errorMessage,
-        showProgress: true,
-        placement: "topRight",
-        pauseOnHover: true,
-        duration: 2,
-      });
-    }
-  };
+  //     if (response.status === 200) {
+  //       console.log("response", response);
+  //       notification.success({
+  //         message: "สถานะเคสผ่าตัดถูกอัปเดตแล้ว",
+  //         showProgress: true,
+  //         placement: "topRight",
+  //         pauseOnHover: true,
+  //         duration: 2,
+  //       });
+  //       fetchData();
+  //     }
+  //   } catch (error) {
+  //     console.error("Error updating status:", error);
+  //     const errorMessage =
+  //       error.response?.data?.message ||
+  //       "ไม่สามารถอัปเดตสถานะได้ กรุณาลองใหม่อีกครั้ง";
+  //     notification.error({
+  //       message: errorMessage,
+  //       showProgress: true,
+  //       placement: "topRight",
+  //       pauseOnHover: true,
+  //       duration: 2,
+  //     });
+  //   }
+  // };
 
   const columns = [
     // {
@@ -389,7 +387,7 @@ function CaseTable() {
       dataIndex: "surgery_time",
       key: "surgery_time",
       align: "left",
-      width: 80,
+      width: 90,
       render: (_, record) => (
         <span className="text-base font-normal">
           {dayjs(record.surgery_start_time).tz("Asia/Bangkok").format("HH:mm")}{" "}
@@ -404,7 +402,11 @@ function CaseTable() {
       align: "left",
       width: 150,
       render: (_, record) => (
-        <StatusUpdateForm record={record} allStatus={allStatus} />
+        <StatusUpdateForm
+          record={record}
+          allStatus={allStatus}
+          activeSelected={activeSelected}
+        />
       ),
     },
     {
@@ -424,21 +426,18 @@ function CaseTable() {
         </Button>
       ),
     },
-    {
-      title: permissions.includes("5004") ? (
-        <span className="text-base font-bold">ลิงก์</span>
-      ) : null,
+
+    permissions.includes("21") && {
+      title: <span className="text-base font-bold">ลิงก์</span>,
       dataIndex: "status_id",
       key: "status_id",
       align: "left",
       width: 130,
       render: (_, record) => {
-        const hasPermission5004 = permissions.includes("5004");
-        if (!hasPermission5004) return null;
-
         return (
           <div className="flex flex-wrap items-center justify-between gap-2">
             <Button
+              disabled={activeSelected === false}
               loading={loadingCases}
               type="default"
               icon={<Icon icon="lucide:settings" />}
@@ -448,17 +447,14 @@ function CaseTable() {
               ตั้งค่า
             </Button>
             {record.link_id &&
+            activeSelected === true &&
             record.link_active === true &&
             new Date(record.expiration_time) > Date.now() ? (
               <Button
                 type="default"
                 icon={<Icon icon="bx:bx-link" />}
                 onClick={() =>
-                  copyLink(
-                    `${BASE_URL}ptr?link=${record.link_id}`,
-                    record.pin_decrypted,
-                    `${record.patient_firstname} ${record.patient_lastname}`
-                  )
+                  copyLink(`${BASE_URL}ptr?link=${record.link_id}`)
                 }
                 className="flex items-center gap-1"
                 loading={copyLoading}
@@ -470,11 +466,12 @@ function CaseTable() {
         );
       },
     },
+
     {
       title: <span className="text-base font-bold">จัดการ</span>,
       key: "Action",
       align: "left",
-      width: 130,
+      width: 80,
       render: (_, record) => (
         <div className="flex flex-between items-center space-x-4">
           <div className="w-full sm:w-auto">
@@ -488,7 +485,7 @@ function CaseTable() {
               <span className="font-medium text-base">แก้ไข</span>
             </Button>
           </div>
-          <div className="w-full sm:w-auto">
+          {/* <div className="w-full sm:w-auto">
             <Popconfirm
               title={
                 activeSelected === true
@@ -502,7 +499,6 @@ function CaseTable() {
             >
               <Button
                 loading={loadingCases}
-                type="primary"
                 icon={
                   <Icon
                     icon={
@@ -513,8 +509,10 @@ function CaseTable() {
                     className="w-4 h-4"
                   />
                 }
-                className={`flex items-center gap-2 ${
-                  activeSelected === true ? "bg-red-400" : "bg-green-500"
+                className={`flex items-center gap-2 transition-colors border-none !shadow-none ${
+                  activeSelected === true
+                    ? "bg-red-400 hover:!bg-red-600 text-white hover:!text-white"
+                    : "bg-gray-200 hover:!bg-gray-300 hover:!text-black"
                 }`}
               >
                 <span className="font-medium text-base">
@@ -522,7 +520,7 @@ function CaseTable() {
                 </span>
               </Button>
             </Popconfirm>
-          </div>
+          </div> */}
           {/* <div className="flex items-center space-x-2 bg-gray-100 px-3 py-1 rounded-lg">
             <Switch
               size="small"
@@ -537,7 +535,7 @@ function CaseTable() {
         </div>
       ),
     },
-  ];
+  ].filter(Boolean);
 
   return (
     <div className="flex flex-col p-2 sm:p-7 w-full h-full gap-4">
@@ -548,6 +546,7 @@ function CaseTable() {
           prefix={<Icon icon="mingcute:search-line" />}
           onChange={handleInputChange}
           value={searchTerm}
+          allowClear
         />
         <Select
           className="w-full sm:w-1/4 h-10"

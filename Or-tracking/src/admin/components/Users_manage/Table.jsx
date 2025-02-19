@@ -4,6 +4,7 @@ import { Icon } from "@iconify/react";
 import { axiosInstanceStaff } from "../../api/axiosInstance";
 import { Spin } from "antd";
 import PermissionModal from "./PermissionModal";
+import EditStaffModal from "./EditStaff";
 import { Button } from "antd";
 import { useAuth } from "../../context/AuthContext";
 import dayjs from "dayjs";
@@ -13,7 +14,7 @@ import timezone from "dayjs/plugin/timezone";
 dayjs.extend(utc);
 dayjs.extend(timezone);
 
-function UsersTable({ refreshKey }) {
+function UsersTable() {
   const [filteredData, setFilteredData] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [loading, setLoading] = useState(false);
@@ -23,6 +24,7 @@ function UsersTable({ refreshKey }) {
   const [dataLastestUpdated, setDataLastestUpdated] = useState(null);
   const { permissions, user } = useAuth();
   const [activeSelected, setActiveSelected] = useState(null);
+  const [editStaffmodalVisible, setEditStaffmodalVisible] = useState(false);
 
   const handleActiveToggle = async (record, checked) => {
     try {
@@ -118,8 +120,18 @@ function UsersTable({ refreshKey }) {
     setModalVisible(true);
   };
 
+  const handleEditStaff = (record) => {
+    setSelectedUser(record);
+    setEditStaffmodalVisible(true);
+  };
+
   const handleModalClose = () => {
     setModalVisible(false);
+  };
+
+  const handleEditStaffModalClose = () => {
+    setEditStaffmodalVisible(false);
+    fetchData();
   };
 
   // useEffect(() => {
@@ -160,44 +172,74 @@ function UsersTable({ refreshKey }) {
       ),
     },
     {
-      title: permissions.includes("5001") ? (
-        <span className="text-base font-bold">จัดการ</span>
-      ) : null,
+      title: <span className="text-base font-bold">จัดการ</span>,
       key: "action",
       render: (_, record) => {
-        const hasPermission5001 = permissions.includes("5001");
-
-        if (!hasPermission5001) return null;
+        const hasPermission11 = permissions.includes("11");
 
         return (
           <div className="flex flex-between items-center space-x-4">
-            <div>
-              <Button
-                type="primary"
-                icon={
-                  <Icon
-                    icon="weui:setting-filled"
-                    className="mr-1 w-4 h-4 text-white"
+            {!hasPermission11 ? (
+              <div>
+                <Button
+                  type="primary"
+                  icon={
+                    <Icon
+                      icon="weui:setting-filled"
+                      className="mr-1 w-4 h-4 text-white"
+                    />
+                  }
+                  onClick={() => handleEditStaff(record)}
+                  className="w-full sm:w-auto"
+                >
+                  <span className="font-medium text-base">แก้ไขข้อมูล</span>
+                </Button>
+              </div>
+            ) : (
+              <>
+                <div>
+                  <Button
+                    type="primary"
+                    icon={
+                      <Icon
+                        icon="weui:setting-filled"
+                        className="mr-1 w-4 h-4 text-white"
+                      />
+                    }
+                    onClick={() => handleEditStaff(record)}
+                    className="w-full sm:w-auto"
+                  >
+                    <span className="font-medium text-base">แก้ไขข้อมูล</span>
+                  </Button>
+                </div>
+                <div>
+                  <Button
+                    type="primary"
+                    icon={
+                      <Icon
+                        icon="weui:setting-filled"
+                        className="mr-1 w-4 h-4 text-white"
+                      />
+                    }
+                    onClick={() => handlePermission(record)}
+                    className="w-full sm:w-auto"
+                  >
+                    <span className="font-medium text-base">จัดการสิทธิ์</span>
+                  </Button>
+                </div>
+                <div className="flex items-center space-x-2 bg-gray-100 px-3 py-1 rounded-lg">
+                  <Switch
+                    size="small"
+                    className="bg-gray-300"
+                    checked={record.isActive}
+                    onChange={(checked) => handleActiveToggle(record, checked)}
                   />
-                }
-                onClick={() => handlePermission(record)}
-                className="w-full sm:w-auto"
-              >
-                <span className="font-medium text-base">จัดการสิทธิ์</span>
-              </Button>
-            </div>
-
-            <div className="flex items-center space-x-2 bg-gray-100 px-3 py-1 rounded-lg">
-              <Switch
-                size="small"
-                className="bg-gray-300"
-                checked={record.isActive}
-                onChange={(checked) => handleActiveToggle(record, checked)}
-              />
-              <span className="font-medium text-base text-gray-700">
-                เปิดใช้งานบัญชี
-              </span>
-            </div>
+                  <span className="font-medium text-base text-gray-700">
+                    เปิดใช้งานบัญชี
+                  </span>
+                </div>
+              </>
+            )}
           </div>
         );
       },
@@ -213,6 +255,7 @@ function UsersTable({ refreshKey }) {
           prefix={<Icon icon="mingcute:search-line" className="mr-2 w-4 h-4" />}
           onChange={(e) => setSearchTerm(e.target.value)}
           value={searchTerm}
+          allowClear
         />
 
         <Radio.Group
@@ -272,6 +315,12 @@ function UsersTable({ refreshKey }) {
         visible={modalVisible}
         staff={selectedUser}
         onClose={handleModalClose}
+      />
+
+      <EditStaffModal
+        visible={editStaffmodalVisible}
+        staff={selectedUser}
+        onClose={handleEditStaffModalClose}
       />
     </div>
   );

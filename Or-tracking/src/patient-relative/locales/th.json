@@ -32,9 +32,7 @@
     },
     "login": {
         "TITLE": "OR-Tracking",
-        "PIN": "รหัส PIN",
-        "PIN_REQUIRED": "กรุณากรอกรหัส PIN",
-        "PIN_INVALID": "รหัส PIN ต้องเป็นตัวเลข 6 หลัก",
+        "INVALID_DOB": "วันเกิดของผู้ป่วยไม่ถูกต้อง",
         "HN": "หมายเลขโรงพยาบาล",
         "HN_REQUIRED": "กรุณากรอกหมายเลขโรงพยาบาลของคุณ",
         "HN_INVALID": "หมายเลขโรงพยาบาลไม่ถูกต้อง",
@@ -52,7 +50,13 @@
         "AGREE": "ฉันยอมรับ",
         "errorMsgRemainingAttempts": "คุณกรอก PIN ผิดได้อีก {{remainingAttempts}} ครั้ง",
         "errorMsgExceededAttempts": "คุณได้ทำการใส่ PIN ผิดครบ {{attempt_count}} ครั้งแล้ว กรุณาลองใหม่ภายหลัง",
-        "waitForPin": "กรุณารอ {{minutes}} นาที {{seconds}} วินาที\nเพื่อกรอก PIN อีกครั้ง"
+        "waitForPin": "กรุณารอ {{minutes}} นาที {{seconds}} วินาที\nเพื่อกรอก PIN อีกครั้ง",
+        "errorMsgLoginFailed": "วันเกิดไม่ถูกต้อง กรุณาลองใหม่อีกครั้ง",
+        "errorMsgYearFormat": "รูปแบบปีไม่ถูกต้อง",
+        "errorMsgRequiredYear": "กรุณากรอกปี",
+        "errorMsgRequiredMonth": "กรุณากรอกเดือน",
+        "errorMsgRequiredDay": "กรุณากรอกวัน",
+        "errorMsgAllFieldRequired": "กรุณากรอกทุกช่อง"
     },
     "or_tracking": {
         "TITLE": "ติดตามการผ่าตัด"

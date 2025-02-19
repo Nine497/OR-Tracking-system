@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import {
   Form,
   Input,
@@ -32,12 +32,17 @@ function AddCase() {
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
   const [open, setOpen] = useState(false);
+  const [patientDobData, setPatientDobData] = useState(null);
+  const yearRef = useRef(null);
+  const monthRef = useRef(null);
+  const dayRef = useRef(null);
 
   const [patientData, setPatientData] = useState({
     hn_code: "",
     firstname: "",
     lastname: "",
     gender: "",
+    dob: "",
   });
 
   const [surgeryData, setSurgeryData] = useState({
@@ -177,44 +182,83 @@ function AddCase() {
     }
   };
 
-  // const handlePatientDobChange = (field, value) => {
-  //   setPatientDobData((prevData) => ({
-  //     ...prevData,
-  //     [field]: value,
-  //   }));
+  const handlePatientDobChange = (field, value) => {
+    setPatientDobData((prevData) => ({
+      ...prevData,
+      [field]: value,
+    }));
 
-  //   form.setFieldsValue({
-  //     [field]: value,
-  //   });
-  // };
+    form.setFieldsValue({
+      [field]: value,
+    });
 
-  // const updateDobInPatientData = () => {
-  //   const formattedDob = getFormattedDob();
-  //   handlePatientDataChange("patient_dob", formattedDob);
-  // };
+    if (field === "patient_dob_year" && value.length === 4) {
+      monthRef.current?.focus();
+    }
 
-  // const getFormattedDob = () => {
-  //   const { patient_dob_year, patient_dob_month, patient_dob_day } =
-  //     patientDobData;
+    if (
+      field === "patient_dob_month" &&
+      (value.length === 2 || (value >= 3 && value <= 9))
+    ) {
+      dayRef.current?.focus();
+    }
 
-  //   if (patient_dob_year && patient_dob_month && patient_dob_day) {
-  //     return `${patient_dob_year.padStart(4, "0")}-${patient_dob_month.padStart(
-  //       2,
-  //       "0"
-  //     )}-${patient_dob_day.padStart(2, "0")}`;
-  //   }
-  //   return "";
-  // };
+    if (
+      field === "patient_dob_day" &&
+      (value.length === 2 || (value >= 3 && value <= 9))
+    ) {
+      updateDobInPatientData();
+    }
+  };
+
+  const updateDobInPatientData = () => {
+    const formattedDob = getFormattedDob();
+
+    if (formattedDob) {
+      setPatientData((prevData) => ({
+        ...prevData,
+        dob: formattedDob,
+      }));
+      console.log("formattedDob:", formattedDob);
+    }
+  };
+
+  const getFormattedDob = () => {
+    const { patient_dob_year, patient_dob_month, patient_dob_day } =
+      patientDobData;
+    if (
+      patient_dob_year &&
+      patient_dob_month &&
+      patient_dob_day &&
+      patient_dob_month >= 1 &&
+      patient_dob_month <= 12 &&
+      patient_dob_day >= 1 &&
+      patient_dob_day <= 31
+    ) {
+      return `${patient_dob_year.padStart(4, "0")}-${patient_dob_month.padStart(
+        2,
+        "0"
+      )}-${patient_dob_day.padStart(2, "0")}`;
+    }
+    return "";
+  };
 
   const onFinish = async () => {
+    console.log("patientData", patientData);
     try {
       if (
         !patientData.hn_code ||
         !patientData.firstname ||
         !patientData.lastname ||
+        !patientData.dob ||
         !surgeryData.surgery_start_time ||
         !surgeryData.surgery_end_time
       ) {
+        message.error("กรุณากรอกข้อมูลในช่องที่จำเป็นให้ครบถ้วน");
+        return;
+      }
+
+      if (dayjs(patientData.dob).isAfter(dayjs(), "day")) {
         message.error("กรุณากรอกข้อมูลในช่องที่จำเป็นให้ครบถ้วน");
         return;
       }
@@ -235,6 +279,7 @@ function AddCase() {
         first_name: patientData.firstname,
         last_name: patientData.lastname,
         gender: patientData.gender,
+        dob: patientData.dob,
       };
 
       const patientResponse = await axiosInstanceStaff.post(
@@ -323,12 +368,12 @@ function AddCase() {
     const { name, value } = e.target;
     setPatientData((prevState) => ({
       ...prevState,
-      [name]: value,
+      [name]: value.trim(),
     }));
   };
 
   const handleSeachHNClick = async () => {
-    const hnCode = patientData.hn_code;
+    const hnCode = patientData.hn_code.trim();
 
     if (hnCode) {
       setIsLoading(true);
@@ -343,20 +388,31 @@ function AddCase() {
             firstname = "",
             lastname = "",
             gender = "",
+            dob = "",
           } = response.data.data;
+
+          const dobDate = dayjs(dob);
 
           setPatientData({
             hn_code,
             firstname,
             lastname,
             gender,
+            dob,
           });
+
+          const dob_year = dobDate.year();
+          const dob_month = dobDate.month() + 1;
+          const dob_day = dobDate.date(); // วัน
 
           form.setFieldsValue({
             hn_code,
             firstname,
             lastname,
             gender,
+            patient_dob_year: dob_year,
+            patient_dob_month: dob_month,
+            patient_dob_day: dob_day,
           });
         } else {
           notification.success({
@@ -377,6 +433,9 @@ function AddCase() {
           firstname: "",
           lastname: "",
           gender: null,
+          patient_dob_year: null,
+          patient_dob_month: null,
+          patient_dob_day: null,
         });
 
         setPatientData({
@@ -384,6 +443,7 @@ function AddCase() {
           firstname: "",
           lastname: "",
           gender: "",
+          dob: "",
         });
 
         // แจ้งเตือนเมื่อเกิดข้อผิดพลาด
@@ -434,7 +494,15 @@ function AddCase() {
                 rules={[
                   {
                     required: true,
-                    message: "Please enter the hospital number code!",
+                    message: "กรุณากรอก HN",
+                  },
+                  {
+                    validator: (_, value) => {
+                      if (!value.trim()) {
+                        return Promise.reject("ห้ามเว้นว่างหรือใส่แต่ช่องว่าง");
+                      }
+                      return Promise.resolve();
+                    },
                   },
                 ]}
               >
@@ -458,7 +526,7 @@ function AddCase() {
                   </Button>
                 </div>
               </Form.Item>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <Form.Item
                   label={
                     <span className="text-base font-medium text-gray-700">
@@ -476,6 +544,11 @@ function AddCase() {
                     onChange={handlePatientDataChange}
                     className="h-11 text-base rounded-lg"
                     placeholder="Enter First Name"
+                    onKeyPress={(e) => {
+                      if (!/[a-zA-Zก-๙]/.test(e.key)) {
+                        e.preventDefault();
+                      }
+                    }}
                   />
                 </Form.Item>
 
@@ -523,7 +596,7 @@ function AddCase() {
                   </Select>
                 </Form.Item>
 
-                {/* <Form.Item
+                <Form.Item
                   label={
                     <span className="text-base font-medium text-gray-700">
                       ปี/เดือน/วัน เกิด{" "}
@@ -539,6 +612,7 @@ function AddCase() {
                 >
                   <Input.Group className="flex">
                     <Form.Item
+                      inputMode="numeric"
                       name="patient_dob_year"
                       noStyle
                       rules={[
@@ -550,14 +624,29 @@ function AddCase() {
                           pattern: /^\d{4}$/,
                           message: "รูปแบบปีไม่ถูกต้อง",
                         },
+                        {
+                          validator: (_, value) => {
+                            const currentYear = new Date().getFullYear();
+                            if (
+                              value &&
+                              (value < 1900 || value > currentYear)
+                            ) {
+                              return Promise.reject(
+                                "ปีไม่ถูกต้อง กรุณากรอกปีที่เหมาะสม"
+                              );
+                            }
+                            return Promise.resolve();
+                          },
+                        },
                       ]}
                     >
                       <Input
+                        ref={yearRef}
                         value={patientData.patient_dob_year}
                         onChange={(e) =>
                           handlePatientDobChange(
                             "patient_dob_year",
-                            e.target.value
+                            e.target.value.replace(/\s+/g, "")
                           )
                         }
                         placeholder="YYYY"
@@ -565,6 +654,7 @@ function AddCase() {
                         maxLength={4}
                       />
                     </Form.Item>
+
                     <Form.Item
                       name="patient_dob_month"
                       noStyle
@@ -574,34 +664,40 @@ function AddCase() {
                           message: "จำเป็นต้องกรอกเดือน",
                         },
                         {
+                          pattern: /^(0[1-9]|1[0-2])$/,
+                          message: "กรุณากรอกเดือนในรูปแบบที่ถูกต้อง (01-12)",
+                        },
+                        {
                           validator: (_, value) => {
-                            if (!value || (value >= 1 && value <= 12)) {
-                              return Promise.resolve();
+                            if (value < 1 || value > 12) {
+                              return Promise.reject(
+                                "กรุณากรอกเดือนที่อยู่ในช่วง 1-12"
+                              );
                             }
-                            return Promise.reject(
-                              "กรุณากรอกเดือนที่อยู่ในช่วง 1-12"
-                            );
+                            return Promise.resolve();
                           },
                         },
                       ]}
                     >
                       <Input
+                        ref={monthRef}
                         value={patientData.patient_dob_month}
-                        onChange={(e) => {
-                          let value = e.target.value;
-                          if (!isNaN(value) && value >= 1 && value <= 12) {
-                            handlePatientDobChange("patient_dob_month", value);
-                          }
-                        }}
+                        onChange={(e) =>
+                          handlePatientDobChange(
+                            "patient_dob_month",
+                            e.target.value.replace(/\s+/g, "")
+                          )
+                        }
                         placeholder="MM"
                         className="h-11 text-base rounded-lg w-20 text-center border-gray-300 focus:border-blue-500 focus:ring-blue-500"
                         maxLength={2}
                         onBlur={(e) => {
-                          let value = e.target.value;
-                          if (value && value.length === 1) {
+                          let value = e.target.value.replace(/\s+/g, "");
+                          let numValue = parseInt(value);
+                          if (numValue < 10 && value.length === 1) {
                             value = `0${value}`;
                           }
-                          if (value > 12) {
+                          if (numValue >= 13) {
                             value = "12";
                           }
                           handlePatientDobChange("patient_dob_month", value);
@@ -617,25 +713,67 @@ function AddCase() {
                           required: true,
                           message: "จำเป็นต้องกรอกวัน",
                         },
+                        {
+                          pattern: /^(0[1-9]|[12][0-9]|3[01])$/,
+                          message: "กรุณากรอกวันในรูปแบบที่ถูกต้อง (01-31)",
+                        },
+                        {
+                          validator: (_, value) => {
+                            const month = parseInt(
+                              patientData.patient_dob_month,
+                              10
+                            );
+                            const day = parseInt(value, 10);
+                            const isLeapYear = (year) => {
+                              return (
+                                (year % 4 === 0 && year % 100 !== 0) ||
+                                year % 400 === 0
+                              );
+                            };
+                            if (month === 2) {
+                              // กุมภาพันธ์ (เดือน 2)
+                              const maxDay = isLeapYear(
+                                patientData.patient_dob_year
+                              )
+                                ? 29
+                                : 28;
+                              if (day > maxDay) {
+                                return Promise.reject(
+                                  `เดือนกุมภาพันธ์มีแค่ ${maxDay} วัน`
+                                );
+                              }
+                            } else if (
+                              [4, 6, 9, 11].includes(month) &&
+                              day > 30
+                            ) {
+                              return Promise.reject("เดือนนี้มีแค่ 30 วัน");
+                            } else if (day > 31) {
+                              return Promise.reject("เดือนนี้มีแค่ 31 วัน");
+                            }
+                            return Promise.resolve();
+                          },
+                        },
                       ]}
                     >
                       <Input
+                        ref={dayRef}
                         value={patientData.patient_dob_day}
-                        onChange={(e) => {
-                          let value = e.target.value;
-                          if (!isNaN(value) && value <= 31) {
-                            handlePatientDobChange("patient_dob_day", value);
-                          }
-                        }}
+                        onChange={(e) =>
+                          handlePatientDobChange(
+                            "patient_dob_day",
+                            e.target.value.replace(/\s+/g, "")
+                          )
+                        }
                         placeholder="DD"
                         className="h-11 text-base rounded-lg w-20 text-center border-gray-300 focus:border-blue-500 focus:ring-blue-500"
                         maxLength={2}
                         onBlur={(e) => {
-                          let value = e.target.value;
-                          if (value && value.length === 1) {
+                          let value = e.target.value.replace(/\s+/g, "");
+                          let numValue = parseInt(value);
+                          if (numValue < 10 && value.length === 1) {
                             value = `0${value}`;
                           }
-                          if (value > 31) {
+                          if (numValue >= 32) {
                             value = "31";
                           }
                           handlePatientDobChange("patient_dob_day", value);
@@ -643,7 +781,7 @@ function AddCase() {
                       />
                     </Form.Item>
                   </Input.Group>
-                </Form.Item> */}
+                </Form.Item>
               </div>
             </section>
 
@@ -991,7 +1129,7 @@ function AddCase() {
                 htmlType="submit"
                 className="text-lg h-11 px-8 bg-blue-600 hover:bg-blue-700 flex items-center justify-center w-full"
               >
-                Submit
+                บันทึก
                 <Icon icon="mdi:check-circle" className="ml-2" />
               </Button>
             </div>

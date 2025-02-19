@@ -7,9 +7,13 @@ router.use(verifyToken);
 router.get("/", staffController.getAllStaff);
 router.post("/", staffController.createStaff);
 router.put("/:id", staffController.updateStaff);
+router.patch("/update/:staff_id", staffController.updateStaff);
 router.patch("/:id/active", staffController.updateActiveStaff);
 router.get("/permissions/:staffId", staffController.getPermissionsByStaffId);
-router.get("/getPermissions/:staffId", staffController.getAllPermissionsByStaffId);
+router.get(
+  "/getPermissions/:staffId",
+  staffController.getAllPermissionsByStaffId
+);
 router.get("/permissions", staffController.getAllPermissions);
 router.put("/isActive/:staff_id", staffController.updateStaffActive);
 router.post("/update_permissions/:staff_id", staffController.updatePermissions);

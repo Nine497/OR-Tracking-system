@@ -574,9 +574,10 @@ exports.getAllCase = async (req, res) => {
     // กรอง search
     if (lowerSearch) {
       query.andWhere((qb) => {
-        qb.whereRaw('LOWER(CAST("surgery_case_id" AS text)) LIKE ?', [
-          lowerSearch,
-        ])
+        qb.whereRaw(
+          "LOWER(CAST(surgery_case.surgery_case_id AS text)) LIKE ?",
+          [lowerSearch]
+        )
           .orWhereRaw("LOWER(patients.firstname) LIKE ?", [lowerSearch])
           .orWhereRaw("LOWER(patients.hn_code) LIKE ?", [lowerSearch])
           .orWhereRaw("LOWER(operating_room.room_name) LIKE ?", [lowerSearch]);
@@ -593,7 +594,11 @@ exports.getAllCase = async (req, res) => {
     }
 
     // นับจำนวนที่ผ่านการกรอง
-    const totalQuery = query.clone().clearSelect().count("* as total").first();
+    const totalQuery = query
+      .clone()
+      .clearSelect()
+      .count("surgery_case.surgery_case_id as total")
+      .first();
     const totalRecords = (await totalQuery)?.total || 0;
 
     // เรียงลำดับให้ใกล้ปัจจุบันที่สุดก่อน
@@ -604,46 +609,8 @@ exports.getAllCase = async (req, res) => {
     // ดึงข้อมูลตาม pagination
     const surgeryCases = await query.limit(limit).offset(offset);
 
-    const decryptedSurgeryCases = surgeryCases.map((caseRecord) => {
-      try {
-        if (!caseRecord.pin_encrypted) {
-          return {
-            ...caseRecord,
-            pin_decrypted: null,
-          };
-        }
-
-        const key = Buffer.from(SECRET_KEY, "hex");
-        const iv = Buffer.from(IV, "hex");
-        const decipher = crypto.createDecipheriv("aes-128-cbc", key, iv);
-
-        let decryptedPin = decipher.update(
-          caseRecord.pin_encrypted,
-          "base64",
-          "utf8"
-        );
-        decryptedPin += decipher.final("utf8");
-
-        return {
-          ...caseRecord,
-          pin_decrypted: decryptedPin,
-        };
-      } catch (err) {
-        console.error(
-          "Error decrypting PIN for case ID:",
-          caseRecord.surgery_case_id,
-          err
-        );
-        return {
-          ...caseRecord,
-          pin_decrypted: null,
-        };
-      }
-    });
-
-    // ส่งข้อมูลที่มี pin_decrypted กลับไป
     res.status(200).json({
-      data: decryptedSurgeryCases,
+      data: surgeryCases,
       totalRecords,
     });
   } catch (err) {

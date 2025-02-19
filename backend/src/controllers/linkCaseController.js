@@ -49,21 +49,10 @@ const linkCaseController = {
     const surgery_case_links_id = `${timestamp}${randomValue}`;
 
     try {
-      const pin = crypto.randomInt(100000, 999999).toString();
-
-      const cipher = crypto.createCipheriv(
-        "aes-128-cbc",
-        Buffer.from(process.env.SECRET_KEY, "hex"),
-        Buffer.from(process.env.IV, "hex")
-      );
-      let encryptedPin = cipher.update(pin, "utf8", "base64");
-      encryptedPin += cipher.final("base64");
-
       const hash = await bcrypt.hash(surgery_case_links_id, 10);
       const cleanHash = hash.replace(/[^\w\s]/g, "");
 
       const isactive = true;
-
       const expirationTimeUtc = dayjs(expiration_time)
         .utc()
         .format("YYYY-MM-DD HH:mm:ss");
@@ -75,15 +64,11 @@ const linkCaseController = {
         created_by,
         isactive,
         expiration_time: expirationTimeUtc,
-        pin_encrypted: encryptedPin,
       };
 
       const newLink = await linkCase.createLink(linkCaseData);
 
-      res.status(201).json({
-        ...newLink,
-        pin: pin,
-      });
+      res.status(201).json(newLink);
     } catch (error) {
       console.error("Error creating link case:", error);
       res.status(500).json({ message: error.message });
@@ -149,46 +134,7 @@ const linkCaseController = {
         });
       }
 
-      let pin_decrypted = null;
-
-      try {
-        if (data.pin_encrypted) {
-          console.log("Encrypted PIN:", data.pin_encrypted);
-
-          const key = Buffer.from(process.env.SECRET_KEY, "hex");
-          const iv = Buffer.from(process.env.IV, "hex");
-
-          if (key.length !== 16 || iv.length !== 16) {
-            throw new Error(
-              "Invalid SECRET_KEY or IV length. Must be 16 bytes."
-            );
-          }
-
-          const decipher = crypto.createDecipheriv("aes-128-cbc", key, iv);
-
-          let decryptedPin = decipher.update(
-            data.pin_encrypted,
-            "base64",
-            "utf8"
-          );
-          decryptedPin += decipher.final("utf8");
-
-          pin_decrypted = decryptedPin;
-        }
-      } catch (err) {
-        console.error(
-          "Error decrypting PIN for case ID:",
-          surgery_case_id,
-          err
-        );
-      }
-
-      const responseData = {
-        ...data,
-        pin_decrypted,
-      };
-
-      res.status(200).json(responseData);
+      res.status(200).json(data);
     } catch (error) {
       console.error("Error fetching latest active link case: ", error);
       res.status(500).json({

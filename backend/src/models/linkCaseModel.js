@@ -1,5 +1,10 @@
 const db = require("../config/database");
+const dayjs = require("dayjs");
+const timezone = require("dayjs/plugin/timezone");
+const utc = require("dayjs/plugin/utc");
 
+dayjs.extend(utc);
+dayjs.extend(timezone);
 const linkCase = {
   getAllLinkCase: () => {
     return db("surgery_case_links").select("*");
@@ -7,6 +12,13 @@ const linkCase = {
 
   getLinkById: (id) => {
     return db("surgery_case_links").where("surgery_case_links_id", id).first();
+  },
+
+  getIsActiveById: (id) => {
+    return db("surgery_case_links")
+      .select("isactive")
+      .where("surgery_case_links_id", id)
+      .first();
   },
 
   createLink: async (linkCaseData) => {
@@ -129,11 +141,11 @@ const linkCase = {
       .where("surgery_case_id", surgery_case_id)
       .update({
         attempt_count: newAttemptCount,
-        last_attempt_time: new Date(lastAttemptTime),
+        last_attempt_time: dayjs(lastAttemptTime).toDate(),
       });
   },
 
-  updateAttemptCount: (link, attempt_count, lock_until) => {
+  updateLockUntil: (link, attempt_count, lock_until) => {
     return db("surgery_case_links")
       .where("surgery_case_links_id", link)
       .update({

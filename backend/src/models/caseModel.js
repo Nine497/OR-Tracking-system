@@ -1,4 +1,5 @@
 const db = require("../config/database");
+const dayjs = require("dayjs");
 
 const SurgeryCase = {
   getCaseWithPatientById: (surgeryCaseId) => {
@@ -9,6 +10,7 @@ const SurgeryCase = {
         "patients.lastname as patient_lastname",
         "patients.hn_code as patient_hn_code",
         "patients.gender as patient_gender",
+        "patients.dob as patient_dob",
         "operation.operation_id",
         "operation.operation_name"
       )
@@ -275,17 +277,20 @@ const SurgeryCase = {
         firstname: data.firstname,
         lastname: data.lastname,
         gender: data.gender,
+        dob: data.dob,
       })
       .returning("patient_id")
       .then(([newPatient]) => newPatient.patient_id);
   },
 
-  updatePatient: (patientId, data) => {
+  updatePatient: async (patientId, data) => {
     return db("patients")
       .where("patient_id", patientId)
       .update({
         firstname: data.firstname,
         lastname: data.lastname,
+        gender: data.gender,
+        dob: data.dob,
       })
       .returning("patient_id")
       .then(([updatePatient]) => updatePatient.patient_id);
