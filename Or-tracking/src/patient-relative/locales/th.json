@@ -20,7 +20,8 @@
         "SURGERY_START_TIME": "เริ่มผ่าตัด",
         "SURGERY_FINSIH_TIME": "สิ้นสุด",
         "male": "ชาย",
-        "female": "หญิง"
+        "female": "หญิง",
+        "expiration_time": "ลิงก์หมดอายุเวลา :"
     },
     "view": {
         "patient_information": "ข้อมูลผู้ป่วย",

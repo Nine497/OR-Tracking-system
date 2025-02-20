@@ -20,7 +20,8 @@
     "SURGERY_START_TIME": "Waktu Mulai Operasi",
     "SURGERY_FINSIH_TIME": "Waktu Selesai",
     "male": "Laki-laki",
-    "female": "Perempuan"
+    "female": "Perempuan",
+    "expiration_time": "Ligo espirigas je :"
   },
   "login": {
     "TITLE": "OR-Tracking",

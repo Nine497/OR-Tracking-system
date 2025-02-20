@@ -20,7 +20,8 @@
         "SURGERY_START_TIME": "Surgery Start",
         "SURGERY_FINSIH_TIME": "Finish",
         "male": "Male",
-        "female": "Female"
+        "female": "Female",
+        "expiration_time": "Link expires at :"
     },
     "login": {
         "TITLE": "OR-Tracking",

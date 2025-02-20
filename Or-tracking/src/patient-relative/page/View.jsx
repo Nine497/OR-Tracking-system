@@ -435,10 +435,10 @@ const View = () => {
                         )}
                       </div>
                       <Text className="font-normal text-sm md:text-base text-gray-400 w-fit px-1">
-                        ลิงก์หมดอายุ :{" "}
+                        {t("patient_info.expiration_time")}{" "}
                         {dayjs(expiration_time)
                           .tz("Asia/Bangkok")
-                          .format("DD/MM/YYYY HH:mm")}
+                          .format("HH:mm DD/MM/YYYY")}
                       </Text>
                     </div>
                   </div>
