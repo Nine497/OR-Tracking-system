@@ -23,6 +23,268 @@ const RoomSchedule = () => {
   const [selectedCase, setSelectedCase] = useState(null);
 
   const eventsService = createEventsServicePlugin();
+  const calendars = {
+    OR1: {
+      colorName: "OR1",
+      lightColors: {
+        main: "#AEEEEE", // ฟ้า
+        container: "#AEEEEE",
+        onContainer: "#00008b",
+      },
+      darkColors: {
+        main: "#1C3D5B",
+        container: "#3E6B8D",
+        onContainer: "#00008b",
+      },
+    },
+    OR2: {
+      colorName: "OR2",
+      lightColors: {
+        main: "#fcd5f6", // เขียวสด
+        container: "#fcd5f6",
+        onContainer: "#00008b",
+      },
+      darkColors: {
+        main: "#4CAF50",
+        container: "#388E3C",
+        onContainer: "#00008b",
+      },
+    },
+    OR3: {
+      colorName: "OR3",
+      lightColors: {
+        main: "#ffd500", // เหลืองทอง
+        container: "#ffd500",
+        onContainer: "#00008b",
+      },
+      darkColors: {
+        main: "#FFB800",
+        container: "#D37F00",
+        onContainer: "#00008b",
+      },
+    },
+    OR4: {
+      colorName: "OR4",
+      lightColors: {
+        main: "#8A2BE2", // ม่วง
+        container: "#D2C8FF",
+        onContainer: "#00008b",
+      },
+      darkColors: {
+        main: "#6A1E99",
+        container: "#8B5FE6",
+        onContainer: "#00008b",
+      },
+    },
+    OR5: {
+      colorName: "OR5",
+      lightColors: {
+        main: "#9dff00", // ฟ้าอมเขียว
+        container: "#9dff00",
+        onContainer: "#00008b",
+      },
+      darkColors: {
+        main: "#008B8B",
+        container: "#006F6F",
+        onContainer: "#00008b",
+      },
+    },
+    OR6: {
+      colorName: "OR6",
+      lightColors: {
+        main: "#7FFF00",
+        container: "#D3FFD3",
+        onContainer: "#00008b",
+      },
+      darkColors: {
+        main: "#4CAF50",
+        container: "#388E3C",
+        onContainer: "#00008b",
+      },
+    },
+    OR7: {
+      colorName: "OR7",
+      lightColors: {
+        main: "#00CED1",
+        container: "#AEEEEE",
+        onContainer: "#00008b",
+      },
+      darkColors: {
+        main: "#008B8B",
+        container: "#006F6F",
+        onContainer: "#00008b",
+      },
+    },
+    OR8: {
+      colorName: "OR8",
+      lightColors: {
+        main: "#FF6347",
+        container: "#F7D6D2",
+        onContainer: "#00008b",
+      },
+      darkColors: {
+        main: "#D9382C",
+        container: "#9F4C42",
+        onContainer: "#00008b",
+      },
+    },
+    OR9: {
+      colorName: "OR9",
+      lightColors: {
+        main: "#1E90FF",
+        container: "#C9DFFF",
+        onContainer: "#00008b",
+      },
+      darkColors: {
+        main: "#1B6BB8",
+        container: "#93AEDD",
+        onContainer: "#00008b",
+      },
+    },
+    OR10: {
+      colorName: "OR10",
+      lightColors: {
+        main: "#8A2BE2",
+        container: "#D2C8FF",
+        onContainer: "#00008b",
+      },
+      darkColors: {
+        main: "#6A1E99",
+        container: "#8B5FE6",
+        onContainer: "#00008b",
+      },
+    },
+    // OR11: {
+    //   colorName: "OR11",
+    //   lightColors: {
+    //     main: "#4B0082",
+    //     container: "#D9C8FF",
+    //     onContainer: "#2E0066",
+    //   },
+    //   darkColors: {
+    //     main: "#370D61",
+    //     container: "#6E4A8A",
+    //     onContainer: "#1A0042",
+    //   },
+    // },
+    // OR12: {
+    //   colorName: "OR12",
+    //   lightColors: {
+    //     main: "#FF1493",
+    //     container: "#F5A3F7",
+    //     onContainer: "#C70071",
+    //   },
+    //   darkColors: {
+    //     main: "#D80078",
+    //     container: "#9A1F4B",
+    //     onContainer: "#A5005C",
+    //   },
+    // },
+    // OR13: {
+    //   colorName: "OR13",
+    //   lightColors: {
+    //     main: "#F0E68C",
+    //     container: "#F1F7D7",
+    //     onContainer: "#A0A00A",
+    //   },
+    //   darkColors: {
+    //     main: "#D3D240",
+    //     container: "#6A6D2F",
+    //     onContainer: "#6C6B1F",
+    //   },
+    // },
+    // OR14: {
+    //   colorName: "OR14",
+    //   lightColors: {
+    //     main: "#20B2AA",
+    //     container: "#A7D8D1",
+    //     onContainer: "#168A70",
+    //   },
+    //   darkColors: {
+    //     main: "#168F7E",
+    //     container: "#409B95",
+    //     onContainer: "#0D5B3E",
+    //   },
+    // },
+    // OR15: {
+    //   colorName: "OR15",
+    //   lightColors: {
+    //     main: "#8A2BE2",
+    //     container: "#D2C8FF",
+    //     onContainer: "#5E2BC0",
+    //   },
+    //   darkColors: {
+    //     main: "#6A1E99",
+    //     container: "#8B5FE6",
+    //     onContainer: "#4C1B80",
+    //   },
+    // },
+    // OR16: {
+    //   colorName: "OR16",
+    //   lightColors: {
+    //     main: "#A52A2A",
+    //     container: "#F0D0D0",
+    //     onContainer: "#6B0D0D",
+    //   },
+    //   darkColors: {
+    //     main: "#8B1A1A",
+    //     container: "#B47A7A",
+    //     onContainer: "#420000",
+    //   },
+    // },
+    // OR17: {
+    //   colorName: "OR17",
+    //   lightColors: {
+    //     main: "#2F4F4F",
+    //     container: "#A7B5B5",
+    //     onContainer: "#1C3D3D",
+    //   },
+    //   darkColors: {
+    //     main: "#1C3D3D",
+    //     container: "#4C7070",
+    //     onContainer: "#123434",
+    //   },
+    // },
+    // OR18: {
+    //   colorName: "OR18",
+    //   lightColors: {
+    //     main: "#FF4500",
+    //     container: "#F1D3C6",
+    //     onContainer: "#D84D00",
+    //   },
+    //   darkColors: {
+    //     main: "#D63A00",
+    //     container: "#9E6A4C",
+    //     onContainer: "#B74100",
+    //   },
+    // },
+    // OR19: {
+    //   colorName: "OR19",
+    //   lightColors: {
+    //     main: "#B22222",
+    //     container: "#F4B7B0",
+    //     onContainer: "#8C1212",
+    //   },
+    //   darkColors: {
+    //     main: "#9B1D1D",
+    //     container: "#D0736E",
+    //     onContainer: "#670000",
+    //   },
+    // },
+    // OR20: {
+    //   colorName: "OR20",
+    //   lightColors: {
+    //     main: "#32CD37",
+    //     container: "#D0F0C0",
+    //     onContainer: "#1A7A1A",
+    //   },
+    //   darkColors: {
+    //     main: "#28A029",
+    //     container: "#A2E0A2",
+    //     onContainer: "#0D5E0D",
+    //   },
+    // },
+  };
 
   const calendar = useCalendarApp({
     views: [createViewDay(), createViewMonthGrid(), createViewMonthAgenda()],
@@ -30,7 +292,7 @@ const RoomSchedule = () => {
     locale: "th-TH",
     firstDayOfWeek: 1,
     isDark: false,
-
+    calendars: calendars,
     isResponsive: true,
     plugins: [eventsService, calendarControls],
     callbacks: {
@@ -95,21 +357,21 @@ const RoomSchedule = () => {
 
             return {
               id: c.hn_code,
-              title: `${c.patient_firstname} ${c.patient_lastname} ( ${c.room_name} )`,
+              title: `${c.patient_firstname} ${c.patient_lastname} (${c.room_name})`,
               start: validStartTime,
               end: validEndTime,
               // location: c.room_name,
               resourceId: c.operating_room_id,
               caseData: c,
-              style: {
-                background: "linear-gradient(45deg, #f91c45, #1c7df9)",
-                opacity: 0.5,
-              },
+              // calendarId: c.room_name.toString().trim(),
+              calendarId: c.room_name,
             };
           })
           .filter((event) => event.start && event.end);
 
         if (eventsService) {
+          console.log("eventList", eventList);
+
           eventsService.set(eventList);
         } else {
           console.error("eventsService is not initialized.");
@@ -131,6 +393,8 @@ const RoomSchedule = () => {
   }, []);
 
   const handleEventClick = (event) => {
+    // console.log("event", event);
+
     setSelectedCase(event.caseData);
     setDrawerVisible(true);
   };

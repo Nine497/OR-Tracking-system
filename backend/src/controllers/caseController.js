@@ -207,7 +207,7 @@ exports.createSurgeryCase = async (req, res) => {
       });
 
     if (overlappingCases.length > 0) {
-      return res.status(400).json({
+      return res.status(409).json({
         message:
           "The selected operating room has overlapping cases at this time.",
       });

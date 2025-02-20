@@ -241,6 +241,10 @@ function EditCase() {
     }
   }, [surgery_case_id, user.id]);
 
+  useEffect(() => {
+    console.log("patientData", patientData);
+  }, [patientData]);
+
   const updateEndtime = (startTime) => {
     if (!startTime) return;
 
@@ -269,7 +273,7 @@ function EditCase() {
   const handleSurgeryDataChange = (name, value) => {
     setSurgeryData((prevState) => ({
       ...prevState,
-      [name]: value.trim(),
+      [name]: value,
     }));
 
     if (name === "surgery_start_time") {
@@ -303,6 +307,7 @@ function EditCase() {
     console.log("patientData", patientData);
     console.log("patientData DOB", dayjs(patientData.dob));
     console.log("dayjs", dayjs());
+
     try {
       const patientDataToSend = {
         hn_code: patientData.hn_code,
@@ -316,7 +321,18 @@ function EditCase() {
         return;
       }
 
-      // console.log("Patient Data to Send:", patientDataToSend);
+      const isValidDate = (dateString) => {
+        console.log("dateString ก่อนแปลง", dateString);
+        const formattedDate = dayjs(dateString).format("YYYY-MM-DD");
+        console.log("formattedDate", formattedDate);
+
+        return dayjs(formattedDate, "YYYY-MM-DD", true).isValid();
+      };
+
+      if (!isValidDate(patientData.dob)) {
+        message.error("กรุณากรอกข้อมูลวันเกิดให้ถูกต้อง");
+        return;
+      }
 
       let patientId;
       const existingPatientResponse = await axiosInstanceStaff.get(
@@ -417,9 +433,7 @@ function EditCase() {
     }
   };
 
-  const handlePatientDobChange = (field, value) => {
-    console.log("field, value", field, value);
-
+  const handlePatientDobChange = (field, value, event) => {
     setPatientDobData((prevData) => ({
       ...prevData,
       [field]: value,
@@ -428,6 +442,15 @@ function EditCase() {
     form.setFieldsValue({
       [field]: value,
     });
+
+    // ถ้ากด Backspace และ input ว่าง → ย้ายโฟกัสไปยัง input ก่อนหน้า
+    if (event?.key === "Backspace" && value === "") {
+      if (field === "patient_dob_month") {
+        yearRef.current?.focus();
+      } else if (field === "patient_dob_day") {
+        monthRef.current?.focus();
+      }
+    }
 
     if (field === "patient_dob_year" && value.length === 4) {
       monthRef.current?.focus();
@@ -446,8 +469,8 @@ function EditCase() {
     ) {
       updateDobInPatientData();
     }
-
-    console.log("patient DOB Data", patientDobData);
+    console.log("value", value);
+    console.log("event?.key", event?.nativeEvent);
   };
 
   const updateDobInPatientData = () => {
@@ -575,8 +598,8 @@ function EditCase() {
         };
         const dobDate = dayjs(patientInfo.dob);
         const dob_year = dobDate.year();
-        const dob_month = dobDate.month() + 1;
-        const dob_day = dobDate.date();
+        const dob_month = String(dobDate.month() + 1).padStart(2, "0");
+        const dob_day = String(dobDate.date()).padStart(2, "0");
 
         setPatientData(updatedPatientData);
         form.setFieldsValue({
@@ -692,7 +715,7 @@ function EditCase() {
                           onChange={(event) =>
                             handlePatientDataChange(
                               "hn_code",
-                              event.target.value
+                              event.target.value.trim()
                             )
                           }
                           ref={hnInputRef}
@@ -821,6 +844,7 @@ function EditCase() {
                       >
                         <Input.Group className="flex">
                           <Form.Item
+                            inputMode="numeric"
                             name="patient_dob_year"
                             noStyle
                             rules={[
@@ -840,7 +864,7 @@ function EditCase() {
                                     (value < 1900 || value > currentYear)
                                   ) {
                                     return Promise.reject(
-                                      "กรุณากรอกปีที่เหมาะสม"
+                                      "ปีไม่ถูกต้อง กรุณากรอกปีที่เหมาะสม"
                                     );
                                   }
                                   return Promise.resolve();
@@ -849,15 +873,20 @@ function EditCase() {
                             ]}
                           >
                             <Input
-                              onFocus={() =>
-                                handlePatientDobChange("patient_dob_year", "")
-                              }
                               ref={yearRef}
                               value={patientData.patient_dob_year}
+                              onKeyDown={(e) =>
+                                handlePatientDobChange(
+                                  "patient_dob_year",
+                                  e.target.value,
+                                  e
+                                )
+                              }
                               onChange={(e) =>
                                 handlePatientDobChange(
                                   "patient_dob_year",
-                                  e.target.value.replace(/\s+/g, "")
+                                  e.target.value.replace(/\D/g, ""),
+                                  e
                                 )
                               }
                               placeholder="YYYY"
@@ -879,27 +908,35 @@ function EditCase() {
                                 message:
                                   "กรุณากรอกเดือนในรูปแบบที่ถูกต้อง (01-12)",
                               },
+                              {
+                                validator: (_, value) => {
+                                  if (value < 1 || value > 12) {
+                                    return Promise.reject(
+                                      "กรุณากรอกเดือนที่อยู่ในช่วง 1-12"
+                                    );
+                                  }
+                                  return Promise.resolve();
+                                },
+                              },
                             ]}
                           >
                             <Input
-                              onFocus={() =>
-                                handlePatientDobChange("patient_dob_month", "")
-                              }
                               ref={monthRef}
                               value={patientData.patient_dob_month}
-                              onChange={(e) => {
-                                let value = e.target.value.replace(/\s+/g, "");
-                                if (
-                                  !isNaN(value) &&
-                                  value >= 1 &&
-                                  value <= 12
-                                ) {
-                                  handlePatientDobChange(
-                                    "patient_dob_month",
-                                    value
-                                  );
-                                }
-                              }}
+                              onKeyDown={(e) =>
+                                handlePatientDobChange(
+                                  "patient_dob_month",
+                                  e.target.value,
+                                  e
+                                )
+                              }
+                              onChange={(e) =>
+                                handlePatientDobChange(
+                                  "patient_dob_month",
+                                  e.target.value.replace(/\D/g, ""),
+                                  e
+                                )
+                              }
                               placeholder="MM"
                               className="h-11 text-base rounded-lg w-20 text-center border-gray-300 focus:border-blue-500 focus:ring-blue-500"
                               maxLength={2}
@@ -914,7 +951,7 @@ function EditCase() {
                                 }
                                 handlePatientDobChange(
                                   "patient_dob_month",
-                                  value
+                                  value.replace(/\D/g, "")
                                 );
                               }}
                             />
@@ -936,20 +973,22 @@ function EditCase() {
                             ]}
                           >
                             <Input
-                              onFocus={() =>
-                                handlePatientDobChange("patient_dob_day", "")
-                              }
                               ref={dayRef}
                               value={patientData.patient_dob_day}
-                              onChange={(e) => {
-                                let value = e.target.value.replace(/\s+/g, "");
-                                if (!isNaN(value) && value <= 31) {
-                                  handlePatientDobChange(
-                                    "patient_dob_day",
-                                    value
-                                  );
-                                }
-                              }}
+                              onKeyDown={(e) =>
+                                handlePatientDobChange(
+                                  "patient_dob_day",
+                                  e.target.value,
+                                  e
+                                )
+                              }
+                              onChange={(e) =>
+                                handlePatientDobChange(
+                                  "patient_dob_day",
+                                  e.target.value.replace(/\D/g, ""),
+                                  e
+                                )
+                              }
                               placeholder="DD"
                               className="h-11 text-base rounded-lg w-20 text-center border-gray-300 focus:border-blue-500 focus:ring-blue-500"
                               maxLength={2}
@@ -1278,7 +1317,7 @@ function EditCase() {
                         name="note"
                         value={surgeryData.note}
                         onChange={(e) =>
-                          handleSurgeryDataChange("note", e.target.value)
+                          handleSurgeryDataChange("note", e.target.value.trim())
                         }
                         rows={4}
                         className="text-base rounded-lg"

@@ -45,13 +45,29 @@
 .sx__event {
   padding: 10px;
   border-left: 4px solid #1c7df9 !important;
-  background-color: #d2e7ff !important;
+  /* background-color: #d2e7ff !important; */
   color: #00008b !important;
   transition: background-color 0.3s, color 0.3s;
 }
 
 .sx__event:hover {
-  background-color: #b3d4ff !important;
+  /* background-color: #b3d4ff !important; */
   color: #000066 !important;
   cursor: pointer;
 }
+
+.room-1 {
+  background-color: #ff5733 !important;
+  color: white !important;
+}
+
+.room-2 {
+  background-color: #28a745 !important;
+  color: white !important;
+}
+
+.room-3 {
+  background-color: #17a2b8 !important;
+  color: white !important;
+}
+

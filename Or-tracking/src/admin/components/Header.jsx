@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect } from "react";
 import BreadcrumbComponent from "../components/Breadcrumb";
 import { useAuth } from "../context/AuthContext";
 import { useNavigate } from "react-router-dom";
@@ -22,6 +22,13 @@ export default Header;
 const StyledDropdown = () => {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
+
+  useEffect(() => {
+    if (!user || !user.firstname || !user.lastname) {
+      localStorage.removeItem("jwtToken");
+      navigate("/login");
+    }
+  }, [user, navigate]);
 
   const handleLogout = () => {
     Modal.confirm({
@@ -86,9 +93,9 @@ const StyledDropdown = () => {
       >
         <div>
           <span className="font-medium hidden sm:block">
-            {`${user.firstname} ${user.lastname}`}
+            {user ? `${user.firstname} ${user.lastname}` : null}
           </span>
-        </div> 
+        </div>
         <span className="mx-1 text-gray-300">|</span>
         <Icon
           icon="iconoir:user"

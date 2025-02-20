@@ -174,6 +174,7 @@ function CaseTable() {
 
   const handleInputChange = (e) => {
     setSearchTerm(e.target.value);
+    setPagination((prev) => ({ ...prev, current: 1 }));
   };
 
   const fetchData = async () => {

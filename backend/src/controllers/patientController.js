@@ -235,19 +235,6 @@ exports.login = async (req, res) => {
       });
     }
 
-    let { attempt_count, lock_until } = linkCase;
-    const now = dayjs().utc();
-
-    if (lock_until && now.isBefore(dayjs.utc(lock_until))) {
-      return res.status(403).json({
-        valid: false,
-        error: "ACCOUNT_LOCKED",
-        message: "Too many incorrect attempts. Try again later.",
-        lock_until,
-        attempt_count,
-      });
-    }
-
     const patientDetails = await patientModel.getPatientDetailsByCaseId(
       surgery_case_id
     );
@@ -267,48 +254,12 @@ exports.login = async (req, res) => {
     console.log("patientDob", patientDob);
 
     if (patientDob !== formattedDob) {
-      attempt_count += 1;
-      let newLockUntil = null;
-
-      if (attempt_count % 5 === 0) {
-        newLockUntil = dayjs().utc().add(1, "minute").toISOString();
-      }
-
-      console.log("link", link);
-      console.log("attempt_count", attempt_count, newLockUntil);
-      console.log("newLockUntil", newLockUntil);
-
-      if (newLockUntil) {
-        await linkCaseModel.updateLockUntil(link, attempt_count, newLockUntil);
-      } else {
-        await linkCaseModel.updateAttemptCount(
-          surgery_case_id,
-          attempt_count,
-          now.toISOString()
-        );
-      }
-
-      if (attempt_count % 5 === 0) {
-        return res.status(400).json({
-          valid: false,
-          error: "ACCOUNT_LOCKED",
-          message: "Account locked. Please wait and try again.",
-          attempt_count,
-          lock_until: newLockUntil,
-        });
-      } else {
-        return res.status(400).json({
-          valid: false,
-          error: "INVALID_DOB",
-          message: "Incorrect DOB. Please try again.",
-          attempt_count,
-          lock_until: newLockUntil,
-        });
-      }
+      return res.status(400).json({
+        valid: false,
+        error: "INVALID_DOB",
+        message: "Incorrect DOB. Please try again.",
+      });
     }
-
-    // ✅ รีเซ็ตจำนวนครั้งที่พยายามผิดพลาด
-    await linkCaseModel.resetAttemptCount(link);
 
     // ✅ สร้าง JWT Token
     const payload = {

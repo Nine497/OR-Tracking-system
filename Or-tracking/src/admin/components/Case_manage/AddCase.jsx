@@ -182,7 +182,7 @@ function AddCase() {
     }
   };
 
-  const handlePatientDobChange = (field, value) => {
+  const handlePatientDobChange = (field, value, event) => {
     setPatientDobData((prevData) => ({
       ...prevData,
       [field]: value,
@@ -191,6 +191,15 @@ function AddCase() {
     form.setFieldsValue({
       [field]: value,
     });
+
+    // ถ้ากด Backspace และ input ว่าง → ย้ายโฟกัสไปยัง input ก่อนหน้า
+    if (event?.key === "Backspace" && value === "") {
+      if (field === "patient_dob_month") {
+        yearRef.current?.focus();
+      } else if (field === "patient_dob_day") {
+        monthRef.current?.focus();
+      }
+    }
 
     if (field === "patient_dob_year" && value.length === 4) {
       monthRef.current?.focus();
@@ -209,6 +218,8 @@ function AddCase() {
     ) {
       updateDobInPatientData();
     }
+    console.log("value", value);
+    console.log("event?.key", event?.nativeEvent);
   };
 
   const updateDobInPatientData = () => {
@@ -259,7 +270,18 @@ function AddCase() {
       }
 
       if (dayjs(patientData.dob).isAfter(dayjs(), "day")) {
-        message.error("กรุณากรอกข้อมูลในช่องที่จำเป็นให้ครบถ้วน");
+        message.error("กรุณากรอกข้อมูลวันเกิดให้ถูกต้อง");
+        return;
+      }
+
+      const isValidDate = (dateString) => {
+        const formattedDate = dayjs(dateString).format("YYYY-MM-DD");
+
+        return dayjs(formattedDate, "YYYY-MM-DD", true).isValid();
+      };
+
+      if (!isValidDate(patientData.dob)) {
+        message.error("กรุณากรอกข้อมูลวันเกิดให้ถูกต้อง");
         return;
       }
 
@@ -335,13 +357,24 @@ function AddCase() {
       }
     } catch (error) {
       console.error("เกิดข้อผิดพลาดระหว่างการทำงาน:", error);
-      notification.error({
-        message: "เกิดข้อผิดพลาดระหว่างดำเนินการ กรุณาลองใหม่ภายหลัง ",
-        showProgress: true,
-        placement: "topRight",
-        pauseOnHover: true,
-        duration: 2,
-      });
+      if (error.response?.status === 409) {
+        notification.error({
+          message:
+            "ห้องผ่าตัดที่เลือกมีตารางการผ่าตัดทับซ้อนกันในช่วงเวลาการผ่าตัดนี้นี้",
+          showProgress: true,
+          placement: "topRight",
+          pauseOnHover: true,
+          duration: 5,
+        });
+      } else {
+        notification.error({
+          message: "เกิดข้อผิดพลาดระหว่างดำเนินการ กรุณาลองใหม่ภายหลัง ",
+          showProgress: true,
+          placement: "topRight",
+          pauseOnHover: true,
+          duration: 2,
+        });
+      }
     }
   };
 
@@ -402,8 +435,8 @@ function AddCase() {
           });
 
           const dob_year = dobDate.year();
-          const dob_month = dobDate.month() + 1;
-          const dob_day = dobDate.date(); // วัน
+          const dob_month = String(dobDate.month() + 1).padStart(2, "0");
+          const dob_day = String(dobDate.date()).padStart(2, "0");
 
           form.setFieldsValue({
             hn_code,
@@ -643,10 +676,18 @@ function AddCase() {
                       <Input
                         ref={yearRef}
                         value={patientData.patient_dob_year}
+                        onKeyDown={(e) =>
+                          handlePatientDobChange(
+                            "patient_dob_year",
+                            e.target.value,
+                            e
+                          )
+                        }
                         onChange={(e) =>
                           handlePatientDobChange(
                             "patient_dob_year",
-                            e.target.value.replace(/\s+/g, "")
+                            e.target.value.replace(/\D/g, ""),
+                            e
                           )
                         }
                         placeholder="YYYY"
@@ -682,10 +723,18 @@ function AddCase() {
                       <Input
                         ref={monthRef}
                         value={patientData.patient_dob_month}
+                        onKeyDown={(e) =>
+                          handlePatientDobChange(
+                            "patient_dob_month",
+                            e.target.value,
+                            e
+                          )
+                        }
                         onChange={(e) =>
                           handlePatientDobChange(
                             "patient_dob_month",
-                            e.target.value.replace(/\s+/g, "")
+                            e.target.value.replace(/\D/g, ""),
+                            e
                           )
                         }
                         placeholder="MM"
@@ -700,7 +749,11 @@ function AddCase() {
                           if (numValue >= 13) {
                             value = "12";
                           }
-                          handlePatientDobChange("patient_dob_month", value);
+                          handlePatientDobChange(
+                            "patient_dob_month",
+                            value.replace(/\D/g, ""),
+                            e
+                          );
                         }}
                       />
                     </Form.Item>
@@ -717,51 +770,23 @@ function AddCase() {
                           pattern: /^(0[1-9]|[12][0-9]|3[01])$/,
                           message: "กรุณากรอกวันในรูปแบบที่ถูกต้อง (01-31)",
                         },
-                        {
-                          validator: (_, value) => {
-                            const month = parseInt(
-                              patientData.patient_dob_month,
-                              10
-                            );
-                            const day = parseInt(value, 10);
-                            const isLeapYear = (year) => {
-                              return (
-                                (year % 4 === 0 && year % 100 !== 0) ||
-                                year % 400 === 0
-                              );
-                            };
-                            if (month === 2) {
-                              // กุมภาพันธ์ (เดือน 2)
-                              const maxDay = isLeapYear(
-                                patientData.patient_dob_year
-                              )
-                                ? 29
-                                : 28;
-                              if (day > maxDay) {
-                                return Promise.reject(
-                                  `เดือนกุมภาพันธ์มีแค่ ${maxDay} วัน`
-                                );
-                              }
-                            } else if (
-                              [4, 6, 9, 11].includes(month) &&
-                              day > 30
-                            ) {
-                              return Promise.reject("เดือนนี้มีแค่ 30 วัน");
-                            } else if (day > 31) {
-                              return Promise.reject("เดือนนี้มีแค่ 31 วัน");
-                            }
-                            return Promise.resolve();
-                          },
-                        },
                       ]}
                     >
                       <Input
                         ref={dayRef}
                         value={patientData.patient_dob_day}
+                        onKeyDown={(e) =>
+                          handlePatientDobChange(
+                            "patient_dob_day",
+                            e.target.value,
+                            e
+                          )
+                        }
                         onChange={(e) =>
                           handlePatientDobChange(
                             "patient_dob_day",
-                            e.target.value.replace(/\s+/g, "")
+                            e.target.value.replace(/\D/g, ""),
+                            e
                           )
                         }
                         placeholder="DD"
@@ -776,7 +801,7 @@ function AddCase() {
                           if (numValue >= 32) {
                             value = "31";
                           }
-                          handlePatientDobChange("patient_dob_day", value);
+                          handlePatientDobChange("patient_dob_day", value, e);
                         }}
                       />
                     </Form.Item>

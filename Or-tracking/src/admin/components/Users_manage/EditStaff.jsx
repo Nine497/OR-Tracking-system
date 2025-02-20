@@ -88,6 +88,7 @@ function EditStaffModal({ visible, staff, onClose }) {
       footer={null}
       className="rounded-lg"
       centered
+      width="35%"
     >
       <Form layout="vertical" className="space-y-4">
         <div className="grid grid-cols-2 gap-4">
