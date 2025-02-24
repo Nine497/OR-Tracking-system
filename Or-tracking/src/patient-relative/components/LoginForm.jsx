@@ -182,25 +182,25 @@ const LoginForm = ({ t, link }) => {
   //   fetchLockUntilData();
   // }, [link]);
 
-  const calRemainingSeconds = (lock_until) => {
-    setLoading(true);
+  // const calRemainingSeconds = (lock_until) => {
+  //   setLoading(true);
 
-    const lockTime = dayjs.utc(lock_until).tz("Asia/Bangkok");
-    const currentTime = dayjs().tz("Asia/Bangkok");
+  //   const lockTime = dayjs.utc(lock_until).tz("Asia/Bangkok");
+  //   const currentTime = dayjs().tz("Asia/Bangkok");
 
-    console.log("lockTime", lockTime.format("DD/MM/YYYY HH:mm:ss"));
-    console.log("currentTime", currentTime.format("DD/MM/YYYY HH:mm:ss"));
+  //   console.log("lockTime", lockTime.format("DD/MM/YYYY HH:mm:ss"));
+  //   console.log("currentTime", currentTime.format("DD/MM/YYYY HH:mm:ss"));
 
-    const remainingSeconds = lockTime.diff(currentTime, "second");
-    setRemainingSecond(remainingSeconds);
-    console.log("remainingSeconds", remainingSeconds);
+  //   const remainingSeconds = lockTime.diff(currentTime, "second");
+  //   setRemainingSecond(remainingSeconds);
+  //   console.log("remainingSeconds", remainingSeconds);
 
-    if (remainingSeconds > 0) {
-      startCountdown(remainingSeconds);
-    }
+  //   if (remainingSeconds > 0) {
+  //     startCountdown(remainingSeconds);
+  //   }
 
-    setLoading(false);
-  };
+  //   setLoading(false);
+  // };
 
   // Start countdown timer
   const startCountdown = (remainingSeconds) => {
@@ -209,7 +209,7 @@ const LoginForm = ({ t, link }) => {
       setDobDisable(false);
 
       setTimeout(() => {
-        console.log("Focusing day input after countdown:", dayRef.current);
+        // console.log("Focusing day input after countdown:", dayRef.current);
         dayRef.current?.focus();
       }, 100);
       return;
@@ -367,13 +367,13 @@ const LoginForm = ({ t, link }) => {
         surgery_case_id: surgeryCaseResponse.data.surgery_case_id,
         link,
       });
-      console.log("response", response);
+      // console.log("response", response);
 
       if (response.data.valid) {
         localStorage.setItem("token", response.data.token);
         navigate(`/ptr/view?link=${link}`);
       } else {
-        console.log("login failed");
+        // console.log("login failed");
 
         setErrorMessage(t("login.FAILED"));
       }
@@ -448,9 +448,9 @@ const LoginForm = ({ t, link }) => {
     }
   };
 
-  useEffect(() => {
-    console.log("Updated patientDobData:", patientDobData);
-  }, [patientDobData]);
+  // useEffect(() => {
+  //   console.log("Updated patientDobData:", patientDobData);
+  // }, [patientDobData]);
   //   if (pin.length === 6) {
   //     try {
   //       setLoading(true);
@@ -535,7 +535,7 @@ const LoginForm = ({ t, link }) => {
   return (
     <div className="min-h-screen flex flex-col bg-gradient-to-b from-gray-50 to-white w-full">
       {/* Header */}
-      <header className="w-full bg-white shadow-lg">
+      <header className="w-full bg-white">
         <div className="w-full px-4 sm:px-6 lg:px-8 py-4 sm:py-5 flex justify-between items-center">
           <img
             src={Logo}
@@ -736,7 +736,7 @@ const LoginForm = ({ t, link }) => {
               </div>
             )}
 
-            {dobDisable && countdown !== null && !isNaN(countdown) && (
+            {/* {dobDisable && countdown !== null && !isNaN(countdown) && (
               <div className="mt-4 text-center text-gray-700">
                 <p>
                   {t("login.waitForPin", {
@@ -752,7 +752,7 @@ const LoginForm = ({ t, link }) => {
                     ))}
                 </p>
               </div>
-            )}
+            )} */}
           </div>
         </div>
       </main>
@@ -761,9 +761,9 @@ const LoginForm = ({ t, link }) => {
       <footer className="w-full bg-white shadow-md">
         <div className="w-full px-4 sm:px-6 lg:px-8 py-4 sm:py-5 text-center text-gray-600">
           <p className="text-sm sm:text-base">
-            &copy; 2025 Lorem Ipsum.{" "}
-            <span className="text-blue-600">All rights reserved.</span>
+            &copy; {dayjs().format("YYYY")} Bangkok Hospital Hat Yai.
           </p>
+          <p className="text-blue-600">All rights reserved.</p>
         </div>
       </footer>
     </div>

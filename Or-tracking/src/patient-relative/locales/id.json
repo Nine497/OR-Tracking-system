@@ -7,7 +7,9 @@
     "TOKEN_EXPIRED": "Token kedaluwarsa",
     "INVALID_TOKEN": "Token tidak valid",
     "TOKEN_NOT_ACTIVE": "Token tidak aktif",
-    "VALIDATION_FAILED": "Validasi token gagal"
+    "VALIDATION_FAILED": "Validasi token gagal",
+    "FAILED_TO_VALIDATE_LINK": "Gagal memvalidasi tautan",
+    "message": "Coba segarkan halaman. Jika masalah masih berlanjut, silakan hubungi staf."
   },
   "patient_info": {
     "HN": "HN",
@@ -31,7 +33,7 @@
     "HN_INVALID": "Nomor Rumah Sakit tidak valid",
     "DOB": "Tanggal Lahir",
     "DOB_REQUIRED": "Harap masukkan Tanggal Lahir",
-    "DOB_PLACEHOLDER": "Tanggal Lahir Pasien (DD/MM/YYYY)",
+    "DOB_PLACEHOLDER": "Tanggal Lahir Pasien (DD/MM/YYYY A.D.)",
     "VERIFY": "Verifikasi",
     "TERMS_TITLE": "Syarat dan Ketentuan Layanan",
     "POLICY_TEXT": "Dengan menggunakan aplikasi ini, Anda setuju dengan syarat dan ketentuan yang tercantum dalam Kebijakan Privasi kami. Kebijakan ini menjelaskan bagaimana kami mengumpulkan, menggunakan, dan membagikan data pribadi Anda. Ini juga menggambarkan hak Anda terkait data pribadi yang Anda berikan kepada kami dan bagaimana Anda dapat mengelolanya. Kami berkomitmen untuk melindungi privasi Anda dan memastikan keamanan informasi Anda. Harap baca kebijakan ini dengan hati-hati sebelum menggunakan aplikasi kami. Jika Anda tidak setuju dengan syarat tersebut, harap hentikan penggunaan aplikasi. Untuk informasi lebih lanjut, kunjungi situs web resmi kami atau hubungi tim dukungan kami.",

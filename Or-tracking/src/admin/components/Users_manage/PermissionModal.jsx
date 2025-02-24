@@ -12,6 +12,9 @@ function PermissionModal({ visible, staff, onClose }) {
   const [form] = Form.useForm();
   const [isFullAccessChecked, setIsFullAccessChecked] = useState(false);
 
+  // เพิ่ม state สำหรับ PermissionSelected
+  const [permissionSelected, setPermissionSelected] = useState([]);
+
   useEffect(() => {
     const fetchPermissions = async () => {
       if (!visible) return;
@@ -103,6 +106,22 @@ function PermissionModal({ visible, staff, onClose }) {
     } else {
       setIsFullAccessChecked(false);
     }
+
+    // อัพเดท permissionSelected state
+    setPermissionSelected(updatedPermissions.map((p) => p.permission_id));
+
+    // การจัดการหัวข้อหลักและหัวข้อย่อย
+    if (value === "20" && !checked) {
+      // หากหัวข้อหลัก 20 ถูกยกเลิกการเลือก, ยกเลิกการเลือกของ 21
+      setStaffPermissions((prevPermissions) =>
+        prevPermissions.filter((item) => item.permission_id !== "21")
+      );
+    } else if (value === "10" && !checked) {
+      // หากหัวข้อหลัก 10 ถูกยกเลิกการเลือก, ยกเลิกการเลือกของ 11
+      setStaffPermissions((prevPermissions) =>
+        prevPermissions.filter((item) => item.permission_id !== "11")
+      );
+    }
   };
 
   const handleFullAccessChange = (e) => {
@@ -120,6 +139,8 @@ function PermissionModal({ visible, staff, onClose }) {
       setStaffPermissions([]);
     }
   };
+
+  const isSubmitDisabled = permissionSelected.length === 0;
 
   return (
     <Modal
@@ -188,6 +209,7 @@ function PermissionModal({ visible, staff, onClose }) {
               type="primary"
               htmlType="submit"
               loading={loading}
+              // disabled={isSubmitDisabled}
               className="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white text-lg"
             >
               ยืนยัน
@@ -199,43 +221,61 @@ function PermissionModal({ visible, staff, onClose }) {
   );
 }
 
-const CustomCheckbox = memo(
-  ({ value, label, staff, onChange, des, disabled }) => {
-    const isChecked = staff.some((item) => item.permission_id === value);
+const CustomCheckbox = memo(({ value, label, staff, onChange, des }) => {
+  const isChecked = staff.some((item) => item.permission_id === value);
 
-    const formattedValue =
-      value % 10 === 0
-        ? Math.floor(value / 10)
-        : Math.floor(value / 10) + "." + (value % 10);
+  const hasPermission20 =
+    staff && staff.length > 0
+      ? staff.some((item) => item.permission_id === "20")
+      : false;
 
-    const handleClick = () => {
-      if (disabled) return;
-      onChange(value, !isChecked);
-    };
+  const hasPermission10 =
+    staff && staff.length > 0
+      ? staff.some((item) => item.permission_id === "10")
+      : false;
 
-    return (
-      <div
-        className={`flex flex-col cursor-pointer p-3 hover:bg-blue-50 border rounded-lg ${
-          isChecked ? "bg-blue-100" : ""
-        } ${
-          disabled ? "bg-gray-200 cursor-not-allowed hover:bg-gray-200" : ""
-        }`}
-        onClick={handleClick}
-      >
-        <div className="flex items-center space-x-2 ">
-          <Checkbox
-            checked={isChecked}
-            className="w-4 h-4"
-            disabled={disabled}
-          />
-          <span className="text-base font-medium text-gray-700 ml-2">
-            {formattedValue}. {label}
-          </span>
-        </div>
-        <p className="text-sm text-gray-500 mt-1.5 ml-6">{des}</p>
+  const isDisabled =
+    (value === "21" && !hasPermission20) || // ปิด 21 ถ้า 20 ยังไม่ได้เลือก
+    (value === "11" && !hasPermission10); // ปิด 11 ถ้า 10 ยังไม่ได้เลือก
+
+  const formattedValue =
+    value % 10 === 0
+      ? Math.floor(value / 10)
+      : Math.floor(value / 10) + "." + (value % 10);
+
+  const handleClick = () => {
+    if (value === "20" && isChecked) {
+      onChange("21", false);
+    } else if (value === "10" && isChecked) {
+      onChange("11", false);
+    }
+    onChange(value, !isChecked);
+  };
+
+  return (
+    <div
+      className={`flex flex-col p-3 hover:bg-blue-50 border rounded-lg ${
+        isChecked ? "bg-blue-100" : ""
+      } ${
+        isDisabled
+          ? "bg-gray-200 cursor-not-allowed hover:bg-gray-200"
+          : "cursor-pointer"
+      }`}
+      onClick={handleClick}
+    >
+      <div className="flex items-center space-x-2">
+        <Checkbox
+          checked={isChecked}
+          className="w-4 h-4"
+          disabled={isDisabled}
+        />
+        <span className="text-base font-medium text-gray-700 ml-2">
+          {formattedValue}. {label}
+        </span>
       </div>
-    );
-  }
-);
+      <p className="text-sm text-gray-500 mt-1.5 ml-6">{des}</p>
+    </div>
+  );
+});
 
 export default PermissionModal;

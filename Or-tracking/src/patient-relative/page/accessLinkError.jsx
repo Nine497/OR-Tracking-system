@@ -2,7 +2,7 @@ import React from "react";
 import { Result, Button } from "antd";
 import { ReloadOutlined } from "@ant-design/icons";
 
-const AccessLinkError = ({ errorMessage }) => {
+const AccessLinkError = ({ errorMessage, t }) => {
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white flex items-center justify-center px-4 sm:px-6 lg:px-8">
       <Result
@@ -14,8 +14,7 @@ const AccessLinkError = ({ errorMessage }) => {
             </h1>
             <div className="space-y-3">
               <p className="font-normal text-sm sm:text-base lg:text-lg text-gray-600 text-center">
-                Try refreshing the page. If the issue still persists, please
-                contact staff.
+                {t("errors.message")}
               </p>
             </div>
           </div>

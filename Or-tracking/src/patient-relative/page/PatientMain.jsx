@@ -73,7 +73,7 @@ const PatientMain = () => {
   }
 
   if (errorMessage) {
-    return <AccessLinkError errorMessage={errorMessage} />;
+    return <AccessLinkError errorMessage={errorMessage} t={t} />;
   }
 
   return (

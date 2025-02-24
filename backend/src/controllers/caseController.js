@@ -52,7 +52,6 @@ exports.newSurgerycaseFromAPI = async (req, res) => {
           const existingSurgeryCase = await SurgeryCase.getSurgeryCaseById(
             data.op_set_id
           );
-          let surgeryCaseId;
           const surgeryStartTimeUTC = dayjs(data.op_datetime)
             .tz("Asia/Bangkok", true)
             .utc()
@@ -63,25 +62,26 @@ exports.newSurgerycaseFromAPI = async (req, res) => {
             .utc()
             .format("YYYY-MM-DD HH:mm:ss");
 
-          if (existingSurgeryCase) {
-            await SurgeryCase.updateSurgeryCase(
-              existingSurgeryCase.surgery_case_id,
-              {
-                doctor_id: doctorId,
-                surgery_type_id: surgeryTypeId,
-                operating_room_id: operatingRoomId,
-                patient_id: patientId,
-                status_id: data?.status_id || 0,
-                created_by: data?.created_by || 1,
-                created_at: data.set_datetime,
-                note: data.note,
-                surgery_start_time: surgeryStartTimeUTC,
-                surgery_end_time: surgeryEndTimeUTC,
-              }
-            );
+          // if (existingSurgeryCase) {
+          //   await SurgeryCase.updateSurgeryCase(
+          //     existingSurgeryCase.surgery_case_id,
+          //     {
+          //       doctor_id: doctorId,
+          //       surgery_type_id: surgeryTypeId,
+          //       operating_room_id: operatingRoomId,
+          //       patient_id: patientId,
+          //       status_id: data?.status_id || 0,
+          //       created_by: data?.created_by || 1,
+          //       created_at: data.set_datetime,
+          //       note: data.note,
+          //       surgery_start_time: surgeryStartTimeUTC,
+          //       surgery_end_time: surgeryEndTimeUTC,
+          //     }
+          //   );
 
-            surgeryCaseId = existingSurgeryCase.surgery_case_id;
-          } else {
+          // } else {
+          let surgeryCaseId;
+          if (!existingSurgeryCase) {
             surgeryCaseId = await SurgeryCase.createSurgeryCase({
               surgery_case_id: data.op_set_id,
               doctor_id: doctorId,
@@ -102,6 +102,8 @@ exports.newSurgerycaseFromAPI = async (req, res) => {
               updated_at: new Date().toISOString(),
               updated_by: data?.created_by || 1,
             });
+          } else {
+            surgeryCaseId = existingSurgeryCase.surgery_case_id;
           }
 
           const existingOperation = await SurgeryCase.getOperationByCaseId(
@@ -170,46 +172,81 @@ exports.createSurgeryCase = async (req, res) => {
       });
     }
 
-    const surgeryStartTime = dayjs(surgeryCaseData.surgery_start_time)
-      .tz("Asia/Bangkok", true)
-      .utc()
-      .format("YYYY-MM-DD HH:mm:ss");
+    // const surgeryStartTime = dayjs(surgeryCaseData.surgery_start_time)
+    //   .tz("Asia/Bangkok", true)
+    //   .utc()
+    //   .format("YYYY-MM-DD HH:mm:ss");
 
-    const surgeryEndTime = dayjs(surgeryCaseData.surgery_end_time)
-      .tz("Asia/Bangkok", true)
-      .utc()
-      .format("YYYY-MM-DD HH:mm:ss");
+    // const surgeryEndTime = dayjs(surgeryCaseData.surgery_end_time)
+    //   .tz("Asia/Bangkok", true)
+    //   .utc()
+    //   .format("YYYY-MM-DD HH:mm:ss");
 
-    if (dayjs(surgeryEndTime).isBefore(surgeryStartTime)) {
-      return res.status(400).json({
-        message: "End time cannot be earlier than start time",
-      });
-    }
+    // if (dayjs(surgeryEndTime).isBefore(surgeryStartTime)) {
+    //   return res.status(400).json({
+    //     message: "End time cannot be earlier than start time",
+    //   });
+    // }
+    // const overlappingCases = await db("surgery_case")
+    //   .where("operating_room_id", surgeryCaseData.operating_room_id)
+    //   .andWhere(function () {
+    //     this.whereBetween("surgery_start_time", [
+    //       surgeryStartTime,
+    //       surgeryEndTime,
+    //     ])
+    //       .orWhereBetween("surgery_end_time", [
+    //         surgeryStartTime,
+    //         surgeryEndTime,
+    //       ])
+    //       .orWhere(function () {
+    //         this.where("surgery_start_time", "<=", surgeryStartTime).andWhere(
+    //           "surgery_end_time",
+    //           ">=",
+    //           surgeryEndTime
+    //         );
+    //       });
+    //   });
+
+    // if (overlappingCases.length > 0) {
+    //   return res.status(409).json({
+    //     message:
+    //       "The selected operating room has overlapping cases at this time.",
+    //   });
+    // }
 
     const overlappingCases = await db("surgery_case")
       .where("operating_room_id", surgeryCaseData.operating_room_id)
-      .andWhere(function () {
+      .whereNot("surgery_case_id", surgeryCaseData.surgery_case_id)
+      .whereNot("operating_room_id", 8)
+      .where(function () {
         this.whereBetween("surgery_start_time", [
-          surgeryStartTime,
-          surgeryEndTime,
+          surgeryCaseData.surgery_start_time,
+          surgeryCaseData.surgery_end_time,
         ])
           .orWhereBetween("surgery_end_time", [
-            surgeryStartTime,
-            surgeryEndTime,
+            surgeryCaseData.surgery_start_time,
+            surgeryCaseData.surgery_end_time,
           ])
           .orWhere(function () {
-            this.where("surgery_start_time", "<=", surgeryStartTime).andWhere(
-              "surgery_end_time",
-              ">=",
-              surgeryEndTime
-            );
+            this.where(
+              "surgery_start_time",
+              "<",
+              surgeryCaseData.surgery_start_time
+            ).where("surgery_end_time", ">", surgeryCaseData.surgery_end_time);
+          })
+          .orWhere(function () {
+            this.where(
+              "surgery_start_time",
+              ">",
+              surgeryCaseData.surgery_start_time
+            ).where("surgery_end_time", "<", surgeryCaseData.surgery_end_time);
           });
       });
 
     if (overlappingCases.length > 0) {
       return res.status(409).json({
         message:
-          "The selected operating room has overlapping cases at this time.",
+          "The selected operating room is not available during this time",
       });
     }
 
@@ -428,7 +465,9 @@ exports.updateSurgeryCase = async (req, res) => {
 
     const overlappingCases = await db("surgery_case")
       .where("operating_room_id", surgeryCaseData.operating_room_id)
-      .andWhere(function () {
+      .whereNot("surgery_case_id", surgery_case_id)
+      .whereNot("operating_room_id", 8)
+      .where(function () {
         this.whereBetween("surgery_start_time", [
           surgeryCaseData.surgery_start_time,
           surgeryCaseData.surgery_end_time,
@@ -440,21 +479,23 @@ exports.updateSurgeryCase = async (req, res) => {
           .orWhere(function () {
             this.where(
               "surgery_start_time",
-              "<=",
+              "<",
               surgeryCaseData.surgery_start_time
-            ).andWhere(
-              "surgery_end_time",
-              ">=",
-              surgeryCaseData.surgery_end_time
-            );
+            ).where("surgery_end_time", ">", surgeryCaseData.surgery_end_time);
+          })
+          .orWhere(function () {
+            this.where(
+              "surgery_start_time",
+              ">",
+              surgeryCaseData.surgery_start_time
+            ).where("surgery_end_time", "<", surgeryCaseData.surgery_end_time);
           });
-      })
-      .andWhere("surgery_case_id", "<>", surgery_case_id);
+      });
 
     if (overlappingCases.length > 0) {
-      return res.status(400).json({
+      return res.status(409).json({
         message:
-          "The selected operating room has overlapping cases at this time.",
+          "The selected operating room is not available during this time",
       });
     }
 
@@ -503,14 +544,20 @@ exports.getCaseWithPatientById = async (req, res) => {
   }
 };
 
-// ฟังก์ชันสำหรับดึงข้อมูลกรณีการผ่าตัดทั้งหมด
 exports.getAllCase = async (req, res) => {
   try {
-    let { search, doctor_id, limit = 6, page = 1, isActive } = req.query;
-    limit = parseInt(limit, 10);
-    page = parseInt(page, 10);
-    if (isNaN(limit) || limit <= 0) limit = 6;
-    if (isNaN(page) || page <= 0) page = 1;
+    let {
+      search,
+      doctor_id,
+      status_id,
+      limit = 6,
+      page = 1,
+      isActive,
+    } = req.query;
+
+    // ตรวจสอบค่า limit และ page ให้ถูกต้อง
+    limit = Math.max(1, parseInt(limit, 10) || 6);
+    page = Math.max(1, parseInt(page, 10) || 1);
     const offset = (page - 1) * limit;
     const lowerSearch = search ? `%${search.trim().toLowerCase()}%` : null;
 
@@ -566,12 +613,9 @@ exports.getAllCase = async (req, res) => {
         ).andOn("surgery_case_links.isactive", "=", db.raw("true"));
       });
 
-    // กรอง doctor_id
-    if (doctor_id) {
-      query.andWhere("surgery_case.doctor_id", doctor_id);
-    }
-
-    // กรอง search
+    // กรองข้อมูลตามเงื่อนไขที่กำหนด
+    if (doctor_id) query.andWhere("surgery_case.doctor_id", doctor_id);
+    if (status_id) query.andWhere("surgery_case.status_id", status_id);
     if (lowerSearch) {
       query.andWhere((qb) => {
         qb.whereRaw(
@@ -583,35 +627,236 @@ exports.getAllCase = async (req, res) => {
           .orWhereRaw("LOWER(operating_room.room_name) LIKE ?", [lowerSearch]);
       });
     }
+    if (isActive != null)
+      query.andWhere("surgery_case.isactive", isActive === "true");
 
-    // กรอง isActive
-    if (isActive != null) {
-      if (isActive === "true") {
-        query.andWhere("surgery_case.isactive", true);
-      } else if (isActive === "false") {
-        query.andWhere("surgery_case.isactive", false);
-      }
-    }
+    const [totalRecordsResult, surgeryCases] = await Promise.all([
+      query
+        .clone()
+        .clearSelect()
+        .count("surgery_case.surgery_case_id as total")
+        .first(),
+      query
+        .orderByRaw(
+          `
+          CASE 
+            WHEN DATE(surgery_start_time) >= CURRENT_DATE THEN 1 
+            ELSE 2 
+          END, 
+          DATE(surgery_start_time) ASC NULLS LAST, 
+          surgery_start_time::TIME ASC NULLS LAST
+        `
+        )
+        .limit(limit)
+        .offset(offset),
+    ]);
 
-    // นับจำนวนที่ผ่านการกรอง
-    const totalQuery = query
-      .clone()
-      .clearSelect()
-      .count("surgery_case.surgery_case_id as total")
-      .first();
-    const totalRecords = (await totalQuery)?.total || 0;
+    const totalRecords = totalRecordsResult?.total || 0;
 
-    // เรียงลำดับให้ใกล้ปัจจุบันที่สุดก่อน
-    query.orderByRaw(
-      "ABS(EXTRACT(EPOCH FROM (surgery_start_time - NOW()))) NULLS LAST"
-    );
+    res.status(200).json({ data: surgeryCases, totalRecords });
+  } catch (err) {
+    console.error("Server Error:", err);
+    res
+      .status(500)
+      .json({ message: "Server error", error: err.message, stack: err.stack });
+  }
+};
 
-    // ดึงข้อมูลตาม pagination
-    const surgeryCases = await query.limit(limit).offset(offset);
+// ฟังก์ชันสำหรับดึงข้อมูลกรณีการผ่าตัดทั้งหมด
+// exports.getAllCase = async (req, res) => {
+//   try {
+//     let {
+//       search,
+//       doctor_id,
+//       status_id,
+//       limit = 6,
+//       page = 1,
+//       isActive,
+//     } = req.query;
+//     limit = parseInt(limit, 10);
+//     page = parseInt(page, 10);
+//     if (isNaN(limit) || limit <= 0) limit = 6;
+//     if (isNaN(page) || page <= 0) page = 1;
+//     const offset = (page - 1) * limit;
+//     const lowerSearch = search ? `%${search.trim().toLowerCase()}%` : null;
+
+//     let query = db("surgery_case")
+//       .select(
+//         "surgery_case.*",
+//         "patients.firstname as patient_firstname",
+//         "patients.lastname as patient_lastname",
+//         "patients.hn_code as hn_code",
+//         "doctors.prefix as doctor_prefix",
+//         "doctors.firstname as doctor_firstname",
+//         "doctors.lastname as doctor_lastname",
+//         "operating_room.room_name as room_name",
+//         "status.status_name as status_name",
+//         "surgery_case_links.surgery_case_links_id as link_id",
+//         "surgery_case_links.isactive as link_active",
+//         "surgery_case_links.expiration_time as expiration_time",
+//         "surgery_case_links.pin_encrypted as pin_encrypted",
+//         "surgery_type.surgery_type_name as surgery_type_name",
+//         "translations.translated_name as status_th",
+//         "operation.operation_name as operation_name"
+//       )
+//       .leftJoin(
+//         "operation",
+//         "surgery_case.surgery_case_id",
+//         "operation.surgery_case_id"
+//       )
+//       .leftJoin(
+//         "surgery_type",
+//         "surgery_case.surgery_type_id",
+//         "surgery_type.surgery_type_id"
+//       )
+//       .leftJoin("patients", "surgery_case.patient_id", "patients.patient_id")
+//       .leftJoin("doctors", "surgery_case.doctor_id", "doctors.doctor_id")
+//       .leftJoin(
+//         "operating_room",
+//         "surgery_case.operating_room_id",
+//         "operating_room.operating_room_id"
+//       )
+//       .leftJoin("status", "surgery_case.status_id", "status.status_id")
+//       .leftJoin("translations", function () {
+//         this.on("status.status_id", "=", "translations.ref_id").andOn(
+//           "translations.language_code",
+//           "=",
+//           db.raw("'th'")
+//         );
+//       })
+//       .leftJoin("surgery_case_links", function () {
+//         this.on(
+//           "surgery_case.surgery_case_id",
+//           "=",
+//           "surgery_case_links.surgery_case_id"
+//         ).andOn("surgery_case_links.isactive", "=", db.raw("true"));
+//       });
+
+//     // กรอง doctor_id
+//     if (doctor_id) {
+//       query.andWhere("surgery_case.doctor_id", doctor_id);
+//     }
+//     // กรอง status_id
+//     if (status_id) {
+//       query.andWhere("surgery_case.status_id", status_id);
+//     }
+
+//     // กรอง search
+//     if (lowerSearch) {
+//       query.andWhere((qb) => {
+//         qb.whereRaw(
+//           "LOWER(CAST(surgery_case.surgery_case_id AS text)) LIKE ?",
+//           [lowerSearch]
+//         )
+//           .orWhereRaw("LOWER(patients.firstname) LIKE ?", [lowerSearch])
+//           .orWhereRaw("LOWER(patients.hn_code) LIKE ?", [lowerSearch])
+//           .orWhereRaw("LOWER(operating_room.room_name) LIKE ?", [lowerSearch]);
+//       });
+//     }
+
+//     // กรอง isActive
+//     if (isActive != null) {
+//       if (isActive === "true") {
+//         query.andWhere("surgery_case.isactive", true);
+//       } else if (isActive === "false") {
+//         query.andWhere("surgery_case.isactive", false);
+//       }
+//     }
+
+//     // นับจำนวนที่ผ่านการกรอง
+//     const totalQuery = query
+//       .clone()
+//       .clearSelect()
+//       .count("surgery_case.surgery_case_id as total")
+//       .first();
+//     const totalRecords = (await totalQuery)?.total || 0;
+
+//     // เรียงลำดับให้ใกล้ปัจจุบันที่สุดก่อน
+//     query.orderByRaw(
+//       "CASE WHEN DATE(surgery_start_time) >= CURRENT_DATE THEN 1 ELSE 2 END, DATE(surgery_start_time) ASC NULLS LAST"
+//     );
+
+//     // ดึงข้อมูลตาม pagination
+//     const surgeryCases = await query.limit(limit).offset(offset);
+
+//     res.status(200).json({
+//       data: surgeryCases,
+//       totalRecords,
+//     });
+//   } catch (err) {
+//     console.error("Server Error:", err);
+//     res.status(500).json({ message: "Server error", error: err.message });
+//   }
+// };
+
+exports.getAllCaseIsActive = async (req, res) => {
+  try {
+    const currentDate = dayjs().startOf("day").toDate();
+    const futureDate = dayjs().add(90, "days").endOf("day").toDate();
+
+    let query = db("surgery_case")
+      .select(
+        "surgery_case.*",
+        "patients.firstname as patient_firstname",
+        "patients.lastname as patient_lastname",
+        "patients.hn_code as hn_code",
+        "doctors.prefix as doctor_prefix",
+        "doctors.firstname as doctor_firstname",
+        "doctors.lastname as doctor_lastname",
+        "operating_room.room_name as room_name",
+        "status.status_name as status_name",
+        "surgery_case_links.surgery_case_links_id as link_id",
+        "surgery_case_links.isactive as link_active",
+        "surgery_case_links.expiration_time as expiration_time",
+        "surgery_case_links.pin_encrypted as pin_encrypted",
+        "surgery_type.surgery_type_name as surgery_type_name",
+        "translations.translated_name as status_th",
+        "operation.operation_name as operation_name"
+      )
+      .leftJoin(
+        "operation",
+        "surgery_case.surgery_case_id",
+        "operation.surgery_case_id"
+      )
+      .leftJoin(
+        "surgery_type",
+        "surgery_case.surgery_type_id",
+        "surgery_type.surgery_type_id"
+      )
+      .leftJoin("patients", "surgery_case.patient_id", "patients.patient_id")
+      .leftJoin("doctors", "surgery_case.doctor_id", "doctors.doctor_id")
+      .leftJoin(
+        "operating_room",
+        "surgery_case.operating_room_id",
+        "operating_room.operating_room_id"
+      )
+      .leftJoin("status", "surgery_case.status_id", "status.status_id")
+      .leftJoin("translations", function () {
+        this.on("status.status_id", "=", "translations.ref_id").andOn(
+          "translations.language_code",
+          "=",
+          db.raw("'th'")
+        );
+      })
+      .leftJoin("surgery_case_links", function () {
+        this.on(
+          "surgery_case.surgery_case_id",
+          "=",
+          "surgery_case_links.surgery_case_id"
+        ).andOn("surgery_case_links.isactive", "=", db.raw("true"));
+      })
+      .where("surgery_case.isactive", true)
+      // เงื่อนไขเพิ่มเวลา surgery_start_time ที่ระบุว่าเป็นวันนี้ + 90 วัน
+      .andWhere("surgery_case.surgery_start_time", ">=", currentDate)
+      .andWhere("surgery_case.surgery_start_time", "<=", futureDate)
+      .orderByRaw(
+        "ABS(EXTRACT(EPOCH FROM (surgery_start_time - NOW()))) NULLS LAST"
+      );
+
+    const surgeryCases = await query;
 
     res.status(200).json({
       data: surgeryCases,
-      totalRecords,
     });
   } catch (err) {
     console.error("Server Error:", err);
@@ -655,20 +900,68 @@ exports.updateOR_roomBycaseId = async (req, res) => {
   }
 
   try {
+    // ดึงข้อมูลเคสผ่าตัดเพื่อตรวจสอบช่วงเวลา
+    const surgeryCase = await db("surgery_case")
+      .where("surgery_case_id", id)
+      .first();
+
+    if (!surgeryCase) {
+      return res.status(404).json({ message: "Surgery case not found" });
+    }
+    console.log("surgeryCase", surgeryCase);
+
+    const { surgery_start_time, surgery_end_time } = surgeryCase;
+
+    // ตรวจสอบว่าห้องที่ต้องการอัปเดตว่างในช่วงเวลานั้นหรือไม่
+    const overlappingCases = await db("surgery_case")
+      .where("operating_room_id", operating_room_id)
+      .whereNot("surgery_case_id", id)
+      .whereNot("operating_room_id", 8)
+      .where(function () {
+        this.whereBetween("surgery_start_time", [
+          surgery_start_time,
+          surgery_end_time,
+        ])
+          .orWhereBetween("surgery_end_time", [
+            surgery_start_time,
+            surgery_end_time,
+          ])
+          .orWhere(function () {
+            this.where("surgery_start_time", "<", surgery_start_time).where(
+              "surgery_end_time",
+              ">",
+              surgery_end_time
+            );
+          })
+          .orWhere(function () {
+            this.where("surgery_start_time", ">", surgery_start_time).where(
+              "surgery_end_time",
+              "<",
+              surgery_end_time
+            );
+          });
+      });
+
+    if (overlappingCases.length > 0) {
+      return res.status(400).json({
+        message:
+          "The selected operating room is not available during this time",
+      });
+    }
+
+    // อัปเดตห้องผ่าตัด
     const updatedRows = await db("surgery_case")
       .where("surgery_case_id", id)
       .update({ operating_room_id })
       .returning("*");
 
     if (!updatedRows || updatedRows.length === 0) {
-      return res.status(404).json({
-        message: "Surgery case not found",
-      });
+      return res.status(404).json({ message: "Surgery case not found" });
     }
 
     res.status(200).json({
       message: "Operating room updated successfully",
-      updatedRecord: updatedRows[0], // ส่งค่าที่อัปเดตกลับไป
+      updatedRecord: updatedRows[0],
     });
   } catch (err) {
     console.error(err);

@@ -1,5 +1,5 @@
 import React from "react";
-import { Modal, Form, Input, Button, Row, Col, notification } from "antd";
+import { Modal, Form, Input, Button, Row, Col, notification, Card } from "antd";
 import { Icon } from "@iconify/react";
 import { axiosInstanceStaff } from "../../api/axiosInstance";
 import { useAuth } from "../../context/AuthContext";
@@ -49,23 +49,26 @@ function AddUserModal({ visible, onClose }) {
               duration: 2,
             });
 
-            form.resetFields();
-            onClose();
-          } else {
-            notification.error({
-              message:
-                response?.status === 409
-                  ? "ชื่อผู้ใช้นี้มีอยู่แล้ว โปรดใช้ชื่อผู้ใช้อื่น"
-                  : "เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง",
-              placement: "topRight",
-              duration: 2,
-            });
+            handleClose();
           }
         } catch (error) {
           console.error("Error in handleFinish:", error);
+          notification.warning({
+            message:
+              error?.status === 409
+                ? "ชื่อผู้ใช้นี้มีอยู่แล้ว โปรดใช้ชื่อผู้ใช้อื่น"
+                : "เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง",
+            placement: "topRight",
+            duration: 2,
+          });
         }
       },
     });
+  };
+
+  const handleClose = () => {
+    form.resetFields();
+    onClose();
   };
 
   return (
@@ -86,19 +89,18 @@ function AddUserModal({ visible, onClose }) {
         body: {
           padding: "32px",
           fontSize: "16px",
-          backgroundColor: "#f9fafb",
-          borderRadius: "8px",
         },
       }}
       width={800}
     >
-      <Form onFinish={handleFinish} layout="vertical" className="space-y-6">
-        <Row gutter={[16, 24]}>
-          {/* ฟิลด์ First Name */}
+      <Form onFinish={handleFinish} layout="vertical" className="space-y-4">
+        <Row gutter={[24, 16]}>
           <Col xs={24} sm={12}>
             <Form.Item
               label={
-                <span className="text-lg font-medium text-gray-700">ชื่อ</span>
+                <span className="text-base font-semibold text-gray-700">
+                  ชื่อ
+                </span>
               }
               name="firstname"
               rules={[
@@ -107,17 +109,16 @@ function AddUserModal({ visible, onClose }) {
               ]}
             >
               <Input
-                className="p-3 text-base border rounded-lg border-gray-300 focus:border-blue-400 focus:ring focus:ring-blue-200 focus:ring-opacity-50"
+                className="h-11 text-base rounded-lg border-gray-300 hover:border-blue-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-colors"
                 placeholder="กรุณากรอกชื่อจริง"
               />
             </Form.Item>
           </Col>
 
-          {/* ฟิลด์ Last Name */}
           <Col xs={24} sm={12}>
             <Form.Item
               label={
-                <span className="text-lg font-medium text-gray-700">
+                <span className="text-base font-semibold text-gray-700">
                   นามสกุล
                 </span>
               }
@@ -128,68 +129,101 @@ function AddUserModal({ visible, onClose }) {
               ]}
             >
               <Input
-                className="p-3 text-base border rounded-lg border-gray-300 focus:border-blue-400 focus:ring focus:ring-blue-200 focus:ring-opacity-50"
+                className="h-11 text-base rounded-lg border-gray-300 hover:border-blue-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-colors"
                 placeholder="กรุณากรอกนามสกุล"
               />
             </Form.Item>
           </Col>
 
-          {/* ฟิลด์ Username */}
           <Col xs={24} sm={12}>
             <Form.Item
               label={
-                <div className="flex flex-row items-baseline">
-                  <span className="text-lg font-medium text-gray-700">
+                <div className="flex items-center gap-2">
+                  <span className="text-base font-semibold text-gray-700">
                     ชื่อผู้ใช้
                   </span>
-                  <span className="text-sm font-medium text-gray-400 ml-1">
-                    (ห้ามซ้ำ)
-                  </span>
+                  <span className="text-sm text-gray-500">(ห้ามซ้ำ)</span>
                 </div>
               }
               name="username"
               rules={[
                 { required: true, message: "กรุณากรอกชื่อผู้ใช้!" },
-                { pattern: /^\S+$/, message: "ห้ามมีช่องว่างในชื่อผู้ใช้!" },
+                {
+                  pattern: /^\S+$/,
+                  message: "ห้ามมีช่องว่างในชื่อผู้ใช้!",
+                },
               ]}
             >
               <Input
-                className="p-3 text-base border rounded-lg border-gray-300 focus:border-blue-400 focus:ring focus:ring-blue-200 focus:ring-opacity-50"
+                className="h-11 text-base rounded-lg border-gray-300 hover:border-blue-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-colors"
                 placeholder="กรุณากรอกชื่อผู้ใช้"
               />
             </Form.Item>
           </Col>
 
-          {/* ฟิลด์ Password */}
           <Col xs={24} sm={12}>
             <Form.Item
               label={
-                <span className="text-lg font-medium text-gray-700">
+                <span className="text-base font-semibold text-gray-700">
                   รหัสผ่าน
                 </span>
               }
               name="password"
-              rules={[{ required: true, message: "กรุณากรอกรหัสผ่าน!" }]}
+              rules={[
+                { required: true, message: "กรุณากรอกรหัสผ่าน!" },
+                { min: 8, message: "รหัสผ่านต้องมีอย่างน้อย 8 ตัวอักษร!" },
+              ]}
             >
               <Input.Password
-                className="p-3 text-base border rounded-lg border-gray-300 focus:border-blue-400 focus:ring focus:ring-blue-200 focus:ring-opacity-50"
+                className="h-11 text-base rounded-lg border-gray-300 hover:border-blue-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-colors"
                 placeholder="กรุณากรอกรหัสผ่าน"
+              />
+            </Form.Item>
+          </Col>
+
+          <Col xs={24} sm={12}>
+            <Form.Item
+              label={
+                <span className="text-base font-semibold text-gray-700">
+                  ยืนยันรหัสผ่าน
+                </span>
+              }
+              name="confirmPassword"
+              dependencies={["password"]}
+              rules={[
+                { required: true, message: "กรุณากรอกยืนยันรหัสผ่าน!" },
+                { min: 8, message: "รหัสผ่านต้องมีอย่างน้อย 8 ตัวอักษร!" },
+                ({ getFieldValue }) => ({
+                  validator(_, value) {
+                    if (!value || getFieldValue("password") === value) {
+                      return Promise.resolve();
+                    }
+                    return Promise.reject(new Error("รหัสผ่านไม่ตรงกัน!"));
+                  },
+                }),
+              ]}
+            >
+              <Input.Password
+                className="h-11 text-base rounded-lg border-gray-300 hover:border-blue-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-colors"
+                placeholder="กรุณากรอกรหัสผ่านอีกครั้ง"
               />
             </Form.Item>
           </Col>
         </Row>
 
-        {/* ปุ่ม */}
-        <div className="flex justify-center space-x-4 border-t pt-6 mt-6">
-          <Button onClick={onClose} className="px-6 py-2 text-lg">
-            ยกเลิก
+        <div className="flex justify-center gap-4 pt-6 mt-6 border-t border-gray-300">
+          <Button
+            onClick={handleClose}
+            className="min-w-[120px] h-11 text-base rounded-lg bg-gray-200 hover:bg-gray-300 shadow-sm transition-all flex items-center gap-2"
+          >
+            <Icon icon="mdi:cancel" width="20" /> ยกเลิก
           </Button>
           <Button
             type="primary"
             htmlType="submit"
-            className="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white text-lg"
+            className="min-w-[120px] h-11 text-base bg-blue-600 hover:bg-blue-700 shadow-md text-white rounded-lg transition-all flex items-center gap-2"
           >
-            ยืนยัน
+            <Icon icon="mdi:check-circle" width="20" /> ยืนยัน
           </Button>
         </div>
       </Form>

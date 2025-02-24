@@ -152,8 +152,8 @@ const TimelineStatus = ({ record }) => {
   }
 
   return (
-    <div className="min-h-[400px] bg-white rounded-lg flex flex-row max-w-full mx-auto items-center p-6">
-      <div className="w-max">
+    <div className="min-h-[400px] bg-white rounded-lg flex flex-row max-w-full mx-auto p-6 gap-5">
+      <div className="w-max pt-3">
         <Timeline items={timelineItems} className="px-4" />
       </div>
       <div className="w-max">

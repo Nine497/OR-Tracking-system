@@ -7,7 +7,9 @@
         "TOKEN_EXPIRED": "Token expired",
         "INVALID_TOKEN": "Invalid token",
         "TOKEN_NOT_ACTIVE": "Token not active",
-        "VALIDATION_FAILED": "Token validation failed"
+        "VALIDATION_FAILED": "Token validation failed",
+        "FAILED_TO_VALIDATE_LINK": "Failed to validate link",
+        "message": "Try refreshing the page. If the issue still persists, please contact staff."
     },
     "patient_info": {
         "HN": "HN",
@@ -31,7 +33,7 @@
         "HN_INVALID": "Invalid HN",
         "DOB": "Date of Birth",
         "DOB_REQUIRED": "Please enter your Date of Birth",
-        "DOB_PLACEHOLDER": "Patient Date of Birth (DD/MM/YYYY)",
+        "DOB_PLACEHOLDER": "Patient Date of Birth (DD/MM/YYYY A.D.)",
         "VERIFY": "Verify",
         "TERMS_TITLE": "Terms of Service",
         "POLICY_TEXT": "By using this application, you agree to the terms and conditions outlined in our Privacy Policy. This policy explains how we collect, use, and share your personal data. It also describes your rights regarding the personal data you provide to us and how you can manage it. We are committed to protecting your privacy and ensuring the security of your information. Please read this policy carefully before using our application. If you do not agree with the terms, please discontinue use of the application. For more details, visit our official website or contact our support team.",

@@ -237,8 +237,11 @@ const SurgeryCase = {
       .then(([newOperatingRoom]) => newOperatingRoom.operating_room_id);
   },
 
-  getDoctorByEmpId: (empId) => {
-    return db("doctors").where("emp_id", empId).select("doctor_id").first();
+  getDoctorByEmpId: async (empId) => {
+    return db("doctors")
+      .whereRaw("CAST(emp_id AS TEXT) = ?", [String(empId)])
+      .select("doctor_id")
+      .first();
   },
 
   createDoctor: async (data) => {

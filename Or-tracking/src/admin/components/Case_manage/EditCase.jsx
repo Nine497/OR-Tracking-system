@@ -134,7 +134,7 @@ function EditCase() {
           patient_dob_day: dob_day,
         });
         form.setFieldsValue(combinedData);
-        console.log("transformedSurgeryData", transformedSurgeryData);
+        // console.log("transformedSurgeryData", transformedSurgeryData);
 
         setSurgeryData(transformedSurgeryData);
         setPatientData(transformedPatientData);
@@ -153,7 +153,7 @@ function EditCase() {
         const response = await axiosInstanceStaff.get("/doctor/");
 
         if (response.status === 200) {
-          console.log("response.data.data", response.data.data);
+          // console.log("response.data.data", response.data.data);
           setDoctors(response.data.data);
         } else {
           throw new Error(`Failed to fetch doctors: ${response.statusText}`);
@@ -241,10 +241,6 @@ function EditCase() {
     }
   }, [surgery_case_id, user.id]);
 
-  useEffect(() => {
-    console.log("patientData", patientData);
-  }, [patientData]);
-
   const updateEndtime = (startTime) => {
     if (!startTime) return;
 
@@ -303,10 +299,14 @@ function EditCase() {
     }
   };
 
+  // useEffect(() => {
+  //   console.log("patientData", patientData);
+  // }, [patientData]);
+
   const onFinish = async () => {
-    console.log("patientData", patientData);
-    console.log("patientData DOB", dayjs(patientData.dob));
-    console.log("dayjs", dayjs());
+    // console.log("patientData", patientData);
+    // console.log("patientData DOB", dayjs(patientData.dob));
+    // console.log("dayjs", dayjs());
 
     try {
       const patientDataToSend = {
@@ -322,9 +322,9 @@ function EditCase() {
       }
 
       const isValidDate = (dateString) => {
-        console.log("dateString ก่อนแปลง", dateString);
+        // console.log("dateString ก่อนแปลง", dateString);
         const formattedDate = dayjs(dateString).format("YYYY-MM-DD");
-        console.log("formattedDate", formattedDate);
+        // console.log("formattedDate", formattedDate);
 
         return dayjs(formattedDate, "YYYY-MM-DD", true).isValid();
       };
@@ -422,14 +422,24 @@ function EditCase() {
         });
       }
     } catch (error) {
-      console.error("Error in onFinish:", error);
-      notification.error({
-        message: "เกิดปัญหาในการดำเนินการคำขอของคุณ กรุณาลองใหม่อีกครั้ง",
-        showProgress: true,
-        placement: "topRight",
-        pauseOnHover: true,
-        duration: 2,
-      });
+      console.error("เกิดข้อผิดพลาดระหว่างการทำงาน:", error);
+      if (error.response?.status === 409) {
+        notification.warning({
+          message: "ช่วงเวลานี้มีการจองห้องผ่าตัดนี้แล้ว",
+          showProgress: true,
+          placement: "topRight",
+          pauseOnHover: true,
+          duration: 5,
+        });
+      } else {
+        notification.error({
+          message: "เกิดข้อผิดพลาดระหว่างดำเนินการ กรุณาลองใหม่ภายหลัง ",
+          showProgress: true,
+          placement: "topRight",
+          pauseOnHover: true,
+          duration: 2,
+        });
+      }
     }
   };
 
@@ -442,15 +452,6 @@ function EditCase() {
     form.setFieldsValue({
       [field]: value,
     });
-
-    // ถ้ากด Backspace และ input ว่าง → ย้ายโฟกัสไปยัง input ก่อนหน้า
-    if (event?.key === "Backspace" && value === "") {
-      if (field === "patient_dob_month") {
-        yearRef.current?.focus();
-      } else if (field === "patient_dob_day") {
-        monthRef.current?.focus();
-      }
-    }
 
     if (field === "patient_dob_year" && value.length === 4) {
       monthRef.current?.focus();
@@ -469,9 +470,13 @@ function EditCase() {
     ) {
       updateDobInPatientData();
     }
-    console.log("value", value);
-    console.log("event?.key", event?.nativeEvent);
+    // console.log("value", value);
+    // console.log("event?.key", event?.nativeEvent);
   };
+
+  useEffect(() => {
+    updateDobInPatientData();
+  }, [patientDobData]);
 
   const updateDobInPatientData = () => {
     const formattedDob = getFormattedDob();
@@ -481,13 +486,18 @@ function EditCase() {
         ...prevData,
         dob: formattedDob,
       }));
-      console.log("formattedDob:", formattedDob);
+      // console.log("formattedDob:", formattedDob);
     }
   };
+
+  useEffect(() => {
+    console.log("Updated patientData:", patientData);
+  }, [patientData]);
 
   const getFormattedDob = () => {
     const { patient_dob_year, patient_dob_month, patient_dob_day } =
       patientDobData;
+
     if (
       patient_dob_year &&
       patient_dob_month &&
@@ -497,10 +507,9 @@ function EditCase() {
       patient_dob_day >= 1 &&
       patient_dob_day <= 31
     ) {
-      return `${patient_dob_year.padStart(4, "0")}-${patient_dob_month.padStart(
-        2,
-        "0"
-      )}-${patient_dob_day.padStart(2, "0")}`;
+      return `${String(patient_dob_year).padStart(4, "0")}-${String(
+        patient_dob_month
+      ).padStart(2, "0")}-${String(patient_dob_day).padStart(2, "0")}`;
     }
     return "";
   };
@@ -875,13 +884,6 @@ function EditCase() {
                             <Input
                               ref={yearRef}
                               value={patientData.patient_dob_year}
-                              onKeyDown={(e) =>
-                                handlePatientDobChange(
-                                  "patient_dob_year",
-                                  e.target.value,
-                                  e
-                                )
-                              }
                               onChange={(e) =>
                                 handlePatientDobChange(
                                   "patient_dob_year",
@@ -923,13 +925,6 @@ function EditCase() {
                             <Input
                               ref={monthRef}
                               value={patientData.patient_dob_month}
-                              onKeyDown={(e) =>
-                                handlePatientDobChange(
-                                  "patient_dob_month",
-                                  e.target.value,
-                                  e
-                                )
-                              }
                               onChange={(e) =>
                                 handlePatientDobChange(
                                   "patient_dob_month",
@@ -975,13 +970,6 @@ function EditCase() {
                             <Input
                               ref={dayRef}
                               value={patientData.patient_dob_day}
-                              onKeyDown={(e) =>
-                                handlePatientDobChange(
-                                  "patient_dob_day",
-                                  e.target.value,
-                                  e
-                                )
-                              }
                               onChange={(e) =>
                                 handlePatientDobChange(
                                   "patient_dob_day",

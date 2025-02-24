@@ -8,6 +8,7 @@ import {
   Popconfirm,
   Radio,
   Flex,
+  DatePicker,
 } from "antd";
 import { Icon } from "@iconify/react";
 import { axiosInstanceStaff } from "../../api/axiosInstance";
@@ -31,16 +32,18 @@ function CaseTable() {
   const [loading, setLoading] = useState(false);
   const [copyLoading, setCopyLoading] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
-  const [pagination, setPagination] = useState({ pageSize: 7, current: 1 });
+  const [pagination, setPagination] = useState({ pageSize: 6, current: 1 });
   const [doctorSelectedOption, setDoctorSelectedOption] = useState(null);
   const [doctorsData, setDoctorsData] = useState([]);
   const [allStatus, setAllStatus] = useState([]);
   const [allORrooms, setAllORrooms] = useState([]);
+  const [statusSelectedOption, setStatusSelectedOption] = useState(null);
   const [dataLastUpdated, setDataLastUpdated] = useState(null);
   const BASE_URL = import.meta.env.VITE_BASE_URL;
   const navigate = useNavigate();
   const { permissions } = useAuth();
   const [activeSelected, setActiveSelected] = useState(true);
+  const { RangePicker } = DatePicker;
 
   // const handleSearch = async (
   //   isActive = activeSelected,
@@ -94,6 +97,14 @@ function CaseTable() {
 
   const handleEditRecord = (record) => {
     navigate(`/admin/case_manage/edit_case?id=${record.surgery_case_id}`);
+  };
+
+  const disabledDate = (current) => {
+    const today = dayjs();
+    return (
+      current.isBefore(today.subtract(90, "day")) ||
+      current.isAfter(today.add(90, "day"))
+    );
   };
 
   const copyLink = (linkUrl) => {
@@ -172,6 +183,10 @@ function CaseTable() {
     setDoctorSelectedOption(value);
   };
 
+  const handleSelectStatusChange = (value) => {
+    setStatusSelectedOption(value);
+  };
+
   const handleInputChange = (e) => {
     setSearchTerm(e.target.value);
     setPagination((prev) => ({ ...prev, current: 1 }));
@@ -184,6 +199,7 @@ function CaseTable() {
       const response = await axiosInstanceStaff.get("/surgery_case/", {
         params: {
           doctor_id: doctorSelectedOption,
+          status_id: statusSelectedOption,
           isActive: activeSelected,
           search: searchTerm,
           limit: pagination.pageSize,
@@ -198,7 +214,7 @@ function CaseTable() {
           }))
         : [];
 
-      // console.log("dataWithKeys", dataWithKeys);
+      console.log("dataWithKeys", dataWithKeys);
       setFilteredData(dataWithKeys);
       setPagination({
         ...pagination,
@@ -287,7 +303,13 @@ function CaseTable() {
 
   useEffect(() => {
     fetchData();
-  }, [pagination.current, searchTerm, activeSelected, doctorSelectedOption]);
+  }, [
+    pagination.current,
+    searchTerm,
+    activeSelected,
+    doctorSelectedOption,
+    statusSelectedOption,
+  ]);
 
   useEffect(() => {
     fetchORroomData();
@@ -345,7 +367,7 @@ function CaseTable() {
       dataIndex: "patient_fullname",
       key: "patient_fullname",
       align: "left",
-      width: 160,
+      width: 100,
       ellipsis: true,
       render: (_, record) => (
         <span className="text-base font-normal">
@@ -354,11 +376,20 @@ function CaseTable() {
       ),
     },
     {
+      title: <span className="text-base font-semibold">การผ่าตัด</span>,
+      dataIndex: "operation_name",
+      key: "operation_name",
+      align: "left",
+      width: 130,
+      ellipsis: true,
+      render: (text) => <span className="text-base font-normal">{text}</span>,
+    },
+    {
       title: <span className="text-base font-semibold">ห้องผ่าตัด</span>,
       dataIndex: "room_name",
       key: "room_name",
       align: "left",
-      width: 70,
+      width: 80,
       render: (_, record) => (
         <OR_roomUpdateForm
           record={record}
@@ -401,7 +432,7 @@ function CaseTable() {
       dataIndex: "status_id",
       key: "status_id",
       align: "left",
-      width: 150,
+      width: 130,
       render: (_, record) => (
         <StatusUpdateForm
           record={record}
@@ -539,65 +570,110 @@ function CaseTable() {
   ].filter(Boolean);
 
   return (
-    <div className="flex flex-col p-2 sm:p-7 w-full h-full gap-4">
-      <div className="bg-gray-100 w-full rounded-lg flex flex-col sm:flex-row sm:justify-between items-start sm:items-center gap-4 sm:gap-0 px-2 sm:px-10 py-4">
-        <Input
-          placeholder="ค้นหาด้วย HN, ชื่อผู้ป่วย..."
-          className="w-full sm:w-1/4 h-10 text-base"
-          prefix={<Icon icon="mingcute:search-line" />}
-          onChange={handleInputChange}
-          value={searchTerm}
-          allowClear
-        />
-        <Select
-          className="w-full sm:w-1/4 h-10"
-          placeholder="กรองตามแพทย์"
-          value={doctorSelectedOption}
-          onChange={handleSelectChange}
-        >
-          <Select.Option key="none" value="">
-            ไม่เลือก
-          </Select.Option>
-          {doctorsData.map((doctor) => (
-            <Select.Option key={doctor.doctor_id} value={doctor.doctor_id}>
-              {`${doctor.prefix}${doctor.firstname} ${doctor.lastname}`}
+    <div className="flex flex-col p-2 sm:p-5 w-full h-full gap-4">
+      <div className="bg-gray-100">
+        <div className="flex flex-row w-full sm:flex-row sm:justify-between items-start sm:items-center gap-4 sm:gap-4 px-2 sm:px-10 pt-4">
+          <Input
+            placeholder="ค้นหาด้วย HN, ชื่อผู้ป่วย..."
+            className="w-full p-1 text-base"
+            prefix={<Icon icon="mingcute:search-line" />}
+            onChange={handleInputChange}
+            value={searchTerm}
+            allowClear
+          />
+
+          <Button
+            type="default"
+            icon={<Icon icon="mdi:reload" className="w-4 h-4" />}
+            onClick={() => {
+              fetchData();
+            }}
+            className="w-full sm:w-auto"
+            size="large"
+          >
+            <span className="font-medium text-lg">อัปเดต</span>
+          </Button>
+        </div>
+            
+        <div className="flex flex-row w-full  sm:flex-row sm:justify-between items-start sm:items-center gap-4 sm:gap-0 px-2 sm:px-10 pt-2 pb-3">
+          <RangePicker
+            className="w-1/5"
+            defaultValue={[dayjs(), dayjs().add(7, "day")]}
+            disabledDate={disabledDate}
+          />
+
+          <Select
+            className="w-full sm:w-1/5 h-10"
+            placeholder="กรองตามแพทย์"
+            value={doctorSelectedOption}
+            onChange={handleSelectChange}
+          >
+            <Select.Option key="none" value="">
+              ไม่เลือก
             </Select.Option>
-          ))}
-        </Select>
+            {doctorsData.map((doctor) => (
+              <Select.Option key={doctor.doctor_id} value={doctor.doctor_id}>
+                {`${doctor.prefix}${doctor.firstname} ${doctor.lastname}`}
+              </Select.Option>
+            ))}
+          </Select>
 
-        <Radio.Group
-          size="middle sm:small"
-          block
-          buttonStyle="solid"
-          className="w-full sm:w-1/4"
-          value={activeSelected}
-          onChange={(e) => {
-            handleActiveChange(e.target.value);
-            setPagination({
-              ...pagination,
-              current: 1,
-            });
-          }}
-        >
-          {/* <Radio.Button value={null}>ทั้งหมด</Radio.Button>โ */}
-          <Radio.Button value={true}>Current Case</Radio.Button>
-          <Radio.Button value={false} className="flex flex-col">
-            {/* <Icon icon="solar:trash-bin-trash-bold" /> */}
-            Trash
-          </Radio.Button>
-        </Radio.Group>
+          <Select
+            className="w-full sm:w-1/5 h-10"
+            placeholder="กรองตามสถานะ"
+            value={statusSelectedOption}
+            onChange={handleSelectStatusChange}
+          >
+            <Select.Option key="none" value="">
+              ไม่เลือก
+            </Select.Option>
+            {allStatus.map((status) => (
+              <Select.Option key={status.status_id} value={status.status_id}>
+                {`${status.translated_name}`}
+              </Select.Option>
+            ))}
+          </Select>
 
-        <Button
-          type="default"
-          icon={<Icon icon="mdi:reload" className="w-4 h-4" />}
-          onClick={() => {
-            fetchData();
-          }}
-          className="w-full sm:w-auto"
-          size="large"
-        >
-          <span className="font-medium text-lg">อัปเดต</span>
-        </Button>
+          <Radio.Group
+            size="middle sm:small"
+            block
+            buttonStyle="solid"
+            className="w-full sm:w-1/5"
+            value={activeSelected}
+            onChange={(e) => {
+              handleActiveChange(e.target.value);
+              setPagination({
+                ...pagination,
+                current: 1,
+              });
+            }}
+          >
+            {/* <Radio.Button value={null}>ทั้งหมด</Radio.Button> */}
+
+            <Radio.Button
+              value={true}
+              className="flex justify-center items-center"
+            >
+              <span className="flex w-full text-center items-center text-base gap-2 justify-center">
+                <Icon
+                  icon="material-symbols:check-box-rounded"
+                  className="w-4 h-4"
+                />
+                เคสปัจจุบัน
+              </span>
+            </Radio.Button>
+
+            <Radio.Button
+              value={false}
+              className="flex justify-center items-center"
+            >
+              <span className="flex w-full text-center items-center text-base gap-2 justify-center">
+                <Icon icon="entypo:trash" className="w-4 h-4" />
+                ถังขยะ
+              </span>
+            </Radio.Button>
+          </Radio.Group>
+        </div>
       </div>
 
       <div className="ml-auto text-right">
@@ -617,6 +693,7 @@ function CaseTable() {
             total: pagination.total,
             onChange: handlePaginationChange,
             showTotal: (total) => `ทั้งหมด ${total} เคส`,
+            showSizeChanger: false,
           }}
         />
       </div>
@@ -646,28 +723,49 @@ const OR_roomUpdateForm = ({
   fetchTable,
   activeSelected,
 }) => {
+  const [selectedRoom, setSelectedRoom] = useState(record?.operating_room_id);
+
+  useEffect(() => {
+    setSelectedRoom(record?.operating_room_id);
+  }, [record]);
+
   const handleChange = async (value) => {
+    setSelectedRoom(value);
+
     try {
       const response = await axiosInstanceStaff.put(
         `surgery_case/or_room/${record.surgery_case_id}`,
-        {
-          operating_room_id: value,
-        }
+        { operating_room_id: value }
       );
 
-      notification.success({
-        message: "อัปเดตห้องสำเร็จ",
-      });
+      notification.success({ message: "อัปเดตห้องสำเร็จ" });
 
-      fetchTable();
+      await fetchTable();
     } catch (error) {
       console.error("Update error:", error);
 
-      notification.error({
-        message: "เกิดข้อผิดพลาด",
-        description:
-          error.response?.data?.message || "เกิดข้อผิดพลาดในการอัปเดตห้อง",
-      });
+      const errorMessage =
+        error.response?.data?.message || "เกิดข้อผิดพลาดในการอัปเดตห้อง";
+
+      if (
+        errorMessage ===
+        "The selected operating room is not available during this time"
+      ) {
+        notification.warning({
+          message: "ช่วงเวลานี้มีการจองห้องผ่าตัดนี้แล้ว",
+          showProgress: true,
+          placement: "topRight",
+          pauseOnHover: true,
+          duration: 5,
+        });
+      } else {
+        notification.error({
+          message: "เกิดข้อผิดพลาด",
+          description: errorMessage,
+        });
+      }
+
+      await fetchTable();
     }
   };
 
@@ -675,11 +773,9 @@ const OR_roomUpdateForm = ({
     <Select
       placeholder="เลือกห้อง"
       className="w-full"
-      onBlur={(e) => e.target.blur()}
-      defaultValue={record?.operating_room_id}
-      w
+      value={selectedRoom}
       onChange={handleChange}
-      disabled={activeSelected ? false : true}
+      disabled={!activeSelected}
     >
       {allORrooms.map((room) => (
         <Select.Option
@@ -692,4 +788,5 @@ const OR_roomUpdateForm = ({
     </Select>
   );
 };
+
 export default CaseTable;

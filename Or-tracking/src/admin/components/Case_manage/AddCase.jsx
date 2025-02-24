@@ -192,15 +192,6 @@ function AddCase() {
       [field]: value,
     });
 
-    // ถ้ากด Backspace และ input ว่าง → ย้ายโฟกัสไปยัง input ก่อนหน้า
-    if (event?.key === "Backspace" && value === "") {
-      if (field === "patient_dob_month") {
-        yearRef.current?.focus();
-      } else if (field === "patient_dob_day") {
-        monthRef.current?.focus();
-      }
-    }
-
     if (field === "patient_dob_year" && value.length === 4) {
       monthRef.current?.focus();
     }
@@ -218,8 +209,8 @@ function AddCase() {
     ) {
       updateDobInPatientData();
     }
-    console.log("value", value);
-    console.log("event?.key", event?.nativeEvent);
+    // console.log("value", value);
+    // console.log("event?.key", event?.nativeEvent);
   };
 
   const updateDobInPatientData = () => {
@@ -230,7 +221,7 @@ function AddCase() {
         ...prevData,
         dob: formattedDob,
       }));
-      console.log("formattedDob:", formattedDob);
+      // console.log("formattedDob:", formattedDob);
     }
   };
 
@@ -255,7 +246,7 @@ function AddCase() {
   };
 
   const onFinish = async () => {
-    console.log("patientData", patientData);
+    // console.log("patientData", patientData);
     try {
       if (
         !patientData.hn_code ||
@@ -358,9 +349,8 @@ function AddCase() {
     } catch (error) {
       console.error("เกิดข้อผิดพลาดระหว่างการทำงาน:", error);
       if (error.response?.status === 409) {
-        notification.error({
-          message:
-            "ห้องผ่าตัดที่เลือกมีตารางการผ่าตัดทับซ้อนกันในช่วงเวลาการผ่าตัดนี้นี้",
+        notification.warning({
+          message: "ช่วงเวลานี้มีการจองห้องผ่าตัดนี้แล้ว",
           showProgress: true,
           placement: "topRight",
           pauseOnHover: true,
@@ -388,6 +378,12 @@ function AddCase() {
       onOk: onFinish,
     });
   };
+
+  useEffect(() => {
+    if (patientData.dob) {
+      updateDobInPatientData();
+    }
+  }, [patientDobData]);
 
   useEffect(() => {
     if (hnInputRef.current) {
@@ -676,13 +672,6 @@ function AddCase() {
                       <Input
                         ref={yearRef}
                         value={patientData.patient_dob_year}
-                        onKeyDown={(e) =>
-                          handlePatientDobChange(
-                            "patient_dob_year",
-                            e.target.value,
-                            e
-                          )
-                        }
                         onChange={(e) =>
                           handlePatientDobChange(
                             "patient_dob_year",
@@ -723,13 +712,6 @@ function AddCase() {
                       <Input
                         ref={monthRef}
                         value={patientData.patient_dob_month}
-                        onKeyDown={(e) =>
-                          handlePatientDobChange(
-                            "patient_dob_month",
-                            e.target.value,
-                            e
-                          )
-                        }
                         onChange={(e) =>
                           handlePatientDobChange(
                             "patient_dob_month",
@@ -775,13 +757,6 @@ function AddCase() {
                       <Input
                         ref={dayRef}
                         value={patientData.patient_dob_day}
-                        onKeyDown={(e) =>
-                          handlePatientDobChange(
-                            "patient_dob_day",
-                            e.target.value,
-                            e
-                          )
-                        }
                         onChange={(e) =>
                           handlePatientDobChange(
                             "patient_dob_day",

@@ -92,14 +92,21 @@ const Sidebar = ({ collapsed, setCollapsed, isMobile }) => {
     >
       <div className="flex flex-col h-full">
         {/* Header */}
-        <div className="h-16 flex items-center justify-between border-b border-gray-100 px-4">
+        <div
+          className={`h-16 w-full flex items-center justify-between ${
+            collapsed ? "pl-1 pr-1" : "pl-7 pr-2"
+          }  border-b border-gray-100`}
+        >
+          {/* โลโก้ */}
           <img
             src={Logo}
             alt="Logo"
-            className={`transition-all duration-300 ease-in-out ${
+            className={`transition-all duration-300 ease-in-out flex-1 min-w-10 max-w-32 ${
               collapsed ? "w-10" : "w-32"
             } h-auto object-contain`}
           />
+
+          {/* ปุ่ม */}
           <Button
             type="text"
             icon={
@@ -116,7 +123,7 @@ const Sidebar = ({ collapsed, setCollapsed, isMobile }) => {
               )
             }
             onClick={() => setCollapsed(!collapsed)}
-            className="hover:bg-gray-50"
+            className="hover:bg-gray-50  text-right"
           />
         </div>
 
@@ -132,7 +139,7 @@ const Sidebar = ({ collapsed, setCollapsed, isMobile }) => {
           <p className="text-sm font-semibold text-gray-700 mb-0.5">
             OR-Tracking System
           </p>
-          <p className="text-xs text-gray-500">Version 0.0.1</p>
+          <p className="text-xs text-gray-500">Version 1.0.1</p>
         </div>
       </div>
     </Sider>

@@ -1,12 +1,13 @@
 import React, { useEffect, useState } from "react";
 import { Icon } from "@iconify/react";
-import { Spin, Drawer } from "antd";
+import { Spin, Drawer, Descriptions } from "antd";
 import { axiosInstanceStaff } from "../../api/axiosInstance";
 import { useCalendarApp, ScheduleXCalendar } from "@schedule-x/react";
 import {
   createViewDay,
   createViewMonthGrid,
   createViewMonthAgenda,
+  createViewWeek,
 } from "@schedule-x/calendar";
 import { createEventsServicePlugin } from "@schedule-x/events-service";
 import { createCurrentTimePlugin } from "@schedule-x/current-time";
@@ -14,6 +15,8 @@ import { createCalendarControlsPlugin } from "@schedule-x/calendar-controls";
 import "@schedule-x/theme-default/dist/index.css";
 import moment from "moment-timezone";
 import "./BigCalendar.css";
+import { createScrollControllerPlugin } from "@schedule-x/scroll-controller";
+
 const calendarControls = createCalendarControlsPlugin();
 
 const RoomSchedule = () => {
@@ -286,15 +289,30 @@ const RoomSchedule = () => {
     // },
   };
 
+  const scrollController = createScrollControllerPlugin({
+    initialScroll: "08:00",
+  });
   const calendar = useCalendarApp({
-    views: [createViewDay(), createViewMonthGrid(), createViewMonthAgenda()],
-    defaultView: "month-grid",
+    views: [
+      createViewDay(),
+      createViewMonthGrid(),
+      createViewMonthAgenda(),
+      createViewWeek(),
+    ],
+    weekOptions: {
+      timeAxisFormatOptions: {
+        hour: "2-digit",
+        minute: "2-digit",
+      },
+      eventOverlap: true,
+    },
+    defaultView: "week",
     locale: "th-TH",
     firstDayOfWeek: 1,
     isDark: false,
     calendars: calendars,
     isResponsive: true,
-    plugins: [eventsService, calendarControls],
+    plugins: [eventsService, calendarControls, scrollController],
     callbacks: {
       onClickDate: (date) => {
         handleDateClick(date);
@@ -328,7 +346,7 @@ const RoomSchedule = () => {
     try {
       const [roomResponse, caseResponse] = await Promise.all([
         axiosInstanceStaff.get("/or_room/"),
-        axiosInstanceStaff.get("/surgery_case/"),
+        axiosInstanceStaff.get("/surgery_case/activeNow"),
       ]);
 
       if (roomResponse.status === 200) {
@@ -341,6 +359,8 @@ const RoomSchedule = () => {
       }
 
       if (caseResponse.status === 200) {
+        console.log("respond event data", caseResponse.data.data);
+
         const eventList = caseResponse.data.data
           .map((c) => {
             const startTime = moment(c.surgery_start_time);
@@ -360,6 +380,8 @@ const RoomSchedule = () => {
               title: `${c.patient_firstname} ${c.patient_lastname} (${c.room_name})`,
               start: validStartTime,
               end: validEndTime,
+              location: c.note || "-",
+              description: "c.note",
               // location: c.room_name,
               resourceId: c.operating_room_id,
               caseData: c,
@@ -435,7 +457,7 @@ const RoomSchedule = () => {
           <Spin size="large" />
         </div>
       ) : (
-        <ScheduleXCalendar calendarApp={calendar} />
+        <ScheduleXCalendar step={30} calendarApp={calendar} />
       )}
 
       <Drawer

@@ -40,6 +40,9 @@ router.get(
   surgeryController.getAllSurgeryTypes
 );
 
+router.get("/activeNow", verifyToken, surgeryController.getAllCaseIsActive);
+router.get("/", verifyToken, surgeryController.getAllCase);
+
 // 📌 Route ที่เป็น Dynamic (ต้องอยู่ล่างกว่า)
 router.post("/operation", verifyToken, surgeryController.createOperation);
 router.get("/:id", verifyToken, surgeryController.getCaseById);
@@ -49,6 +52,5 @@ router.put(
   verifyToken,
   surgeryController.updateSurgeryCase
 );
-router.get("/", verifyToken, surgeryController.getAllCase);
 
 module.exports = router;

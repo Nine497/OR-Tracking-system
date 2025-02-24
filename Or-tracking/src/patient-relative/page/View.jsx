@@ -108,7 +108,7 @@ const View = () => {
             .get(`patient/getStatus/${surgery_case_id}`)
             .catch((error) => {
               if (error.response && error.response.status === 404) {
-                console.log("Status history not found, setting empty array");
+                // console.log("Status history not found, setting empty array");
                 return { data: [] };
               } else {
                 throw error;
@@ -224,7 +224,7 @@ const View = () => {
       setSortedStatuses(finalStatuses);
       setPatient_currentStatus(currentStatus);
     } else {
-      console.log("statusHistory.statusHistory is not an array or is empty");
+      // console.log("statusHistory.statusHistory is not an array or is empty");
     }
   }, [statusHistory, lastUpdated]);
 
@@ -243,7 +243,7 @@ const View = () => {
   }, [isLoading, isDataReady]);
 
   if (errorMessage) {
-    return <AccessLinkError errorMessage={errorMessage} />;
+    return <AccessLinkError errorMessage={errorMessage} t={t} />;
   }
 
   if (!patientData) {

@@ -14,17 +14,21 @@ import timezone from "dayjs/plugin/timezone";
 dayjs.extend(utc);
 dayjs.extend(timezone);
 
-function UsersTable() {
+function UsersTable(refreshKey) {
   const [filteredData, setFilteredData] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [loading, setLoading] = useState(false);
-  const [pagination, setPagination] = useState({ pageSize: 7, current: 1 });
+  const [pagination, setPagination] = useState({ pageSize: 6, current: 1 });
   const [modalVisible, setModalVisible] = useState(false);
   const [selectedUser, setSelectedUser] = useState(null);
   const [dataLastestUpdated, setDataLastestUpdated] = useState(null);
   const { permissions, user } = useAuth();
   const [activeSelected, setActiveSelected] = useState(null);
   const [editStaffmodalVisible, setEditStaffmodalVisible] = useState(false);
+
+  useEffect(() => {
+    fetchData();
+  }, [refreshKey]);
 
   const handleActiveToggle = async (record, checked) => {
     try {
@@ -261,7 +265,7 @@ function UsersTable() {
         <Radio.Group
           block
           buttonStyle="solid"
-          className="w-full sm:w-1/4"
+          className="w-full sm:w-1/3"
           value={activeSelected}
           onChange={(e) => {
             setActiveSelected(e.target.value);
@@ -272,9 +276,40 @@ function UsersTable() {
           }}
           size="middle sm:small"
         >
-          <Radio.Button value={null}>ทั้งหมด</Radio.Button>
+          {/* <Radio.Button value={null}>ทั้งหมด</Radio.Button>
           <Radio.Button value={true}>เปิดใช้งาน</Radio.Button>
-          <Radio.Button value={false}>ปิดใช้งาน</Radio.Button>
+          <Radio.Button value={false}>ปิดใช้งาน</Radio.Button> */}
+
+          <Radio.Button
+            value={null}
+            className="flex justify-center items-center"
+          >
+            <span className="flex w-full text-center items-center text-base gap-2 justify-center">
+              <Icon icon="mdi:checkbox-multiple-marked" className="w-4 h-4" />
+              ทั้งหมด
+            </span>
+          </Radio.Button>
+          <Radio.Button
+            value={true}
+            className="flex justify-center items-center"
+          >
+            <span className="flex w-full text-center items-center text-base gap-2 justify-center">
+              <Icon
+                icon="mdi:checkbox-marked-circle-outline"
+                className="w-4 h-4 "
+              />
+              เปิดใช้งาน
+            </span>
+          </Radio.Button>
+          <Radio.Button
+            value={false}
+            className="flex justify-center items-center"
+          >
+            <span className="flex w-full text-center items-center text-base gap-2 justify-center">
+              <Icon icon="mdi:close-circle-outline" className="w-4 h-4" />
+              ปิดใช้งาน
+            </span>
+          </Radio.Button>
         </Radio.Group>
 
         <Button
@@ -307,6 +342,7 @@ function UsersTable() {
               total: pagination.total,
               onChange: handlePaginationChange,
               showTotal: (total) => `ทั้งหมด ${total} ผู้ใช้`,
+              showSizeChanger: false,
             }}
           />
         </Spin>

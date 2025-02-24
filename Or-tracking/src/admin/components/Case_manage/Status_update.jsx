@@ -103,7 +103,7 @@ const StatusUpdateForm = ({
   );
 
   return (
-    <div className="flex items-center text-left space-x-2">
+    <div className="flex items-center text-left space-x-2 w-44">
       <Select
         disabled={activeSelected === false}
         loading={loading}
