@@ -547,6 +547,8 @@ exports.getCaseWithPatientById = async (req, res) => {
 exports.getAllCase = async (req, res) => {
   try {
     let {
+      endDate,
+      startDate,
       search,
       doctor_id,
       status_id,
@@ -630,28 +632,34 @@ exports.getAllCase = async (req, res) => {
     if (isActive != null)
       query.andWhere("surgery_case.isactive", isActive === "true");
 
-    const [totalRecordsResult, surgeryCases] = await Promise.all([
-      query
-        .clone()
-        .clearSelect()
-        .count("surgery_case.surgery_case_id as total")
-        .first(),
-      query
-        .orderByRaw(
-          `
-          CASE 
-            WHEN DATE(surgery_start_time) >= CURRENT_DATE THEN 1 
-            ELSE 2 
-          END, 
-          DATE(surgery_start_time) ASC NULLS LAST, 
-          surgery_start_time::TIME ASC NULLS LAST
-        `
-        )
-        .limit(limit)
-        .offset(offset),
-    ]);
+    const startDateTime = dayjs(startDate)
+      .tz("Asia/Bangkok")
+      .startOf("day")
+      .format("YYYY-MM-DD HH:mm:ss");
+    const endDateTime = dayjs(endDate)
+      .tz("Asia/Bangkok")
+      .endOf("day")
+      .format("YYYY-MM-DD HH:mm:ss");
 
-    const totalRecords = totalRecordsResult?.total || 0;
+    console.log("startDateTime:", startDateTime);
+    console.log("endDateTime:", endDateTime);
+
+    if (startDate && endDate) {
+      query.andWhereRaw(
+        `DATE(surgery_case.surgery_start_time AT TIME ZONE 'Asia/Bangkok') BETWEEN ? AND ?`,
+        [startDateTime, endDateTime]
+      );
+    }
+
+    const [{ total: totalRecords } = { total: 0 }] = await query
+      .clone()
+      .clearSelect()
+      .count("surgery_case.surgery_case_id as total");
+
+    const surgeryCases = await query
+      .orderByRaw("surgery_case.surgery_start_time ASC NULLS LAST")
+      .limit(limit)
+      .offset(offset);
 
     res.status(200).json({ data: surgeryCases, totalRecords });
   } catch (err) {

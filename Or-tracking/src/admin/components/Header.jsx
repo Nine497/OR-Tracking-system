@@ -2,7 +2,7 @@ import React, { useEffect } from "react";
 import BreadcrumbComponent from "../components/Breadcrumb";
 import { useAuth } from "../context/AuthContext";
 import { useNavigate } from "react-router-dom";
-import { Icon } from "@iconify/react";
+import { disableCache, Icon } from "@iconify/react";
 import { Dropdown, Button, Modal } from "antd";
 function Header() {
   return (
@@ -49,8 +49,9 @@ const StyledDropdown = () => {
   const menuItems = [
     {
       key: "profile_setting",
+      disabled: true,
       label: (
-        <div className="flex items-center px-1 py-1 hover:text-blue-600 transition-colors duration-200">
+        <div className="flex items-center px-1 py-1 transition-colors duration-200">
           <Icon icon="weui:setting-outlined" className="w-4 h-4 mr-2" />
           <span className="font-medium">การตั้งค่าบัญชี</span>
         </div>

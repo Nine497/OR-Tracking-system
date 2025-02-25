@@ -138,7 +138,7 @@ function ScheduleTable() {
         dataSource={filteredEvents}
         columns={columns}
         rowKey="surgery_case_id"
-        pagination={{ pageSize: 9 }}
+        pagination={{ pageSize: 8, showSizeChanger: false }}
         loading={loading}
       />
     </div>

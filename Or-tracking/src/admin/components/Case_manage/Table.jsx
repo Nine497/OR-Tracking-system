@@ -16,7 +16,7 @@ import UpdateModal from "./UpdateModal";
 import StatusUpdateForm from "./Status_update";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
-import dayjs from "dayjs";
+import dayjs, { Dayjs } from "dayjs";
 import utc from "dayjs/plugin/utc";
 import timezone from "dayjs/plugin/timezone";
 
@@ -39,6 +39,8 @@ function CaseTable() {
   const [allORrooms, setAllORrooms] = useState([]);
   const [statusSelectedOption, setStatusSelectedOption] = useState(null);
   const [dataLastUpdated, setDataLastUpdated] = useState(null);
+  const [startDate, setStartDate] = useState(dayjs());
+  const [endDate, setEndDate] = useState(dayjs().add(7, "day"));
   const BASE_URL = import.meta.env.VITE_BASE_URL;
   const navigate = useNavigate();
   const { permissions } = useAuth();
@@ -192,12 +194,25 @@ function CaseTable() {
     setPagination((prev) => ({ ...prev, current: 1 }));
   };
 
+  const handleDaterangeChange = (dates) => {
+    if (dates) {
+      const [start, end] = dates;
+      setStartDate(start);
+      setEndDate(end);
+    } else {
+      setStartDate(dayjs());
+      setEndDate(dayjs().add(7, "day"));
+    }
+  };
+
   const fetchData = async () => {
     try {
       setLoadingCases(true);
 
       const response = await axiosInstanceStaff.get("/surgery_case/", {
         params: {
+          endDate: endDate,
+          startDate: startDate,
           doctor_id: doctorSelectedOption,
           status_id: statusSelectedOption,
           isActive: activeSelected,
@@ -309,6 +324,8 @@ function CaseTable() {
     activeSelected,
     doctorSelectedOption,
     statusSelectedOption,
+    startDate,
+    endDate,
   ]);
 
   useEffect(() => {
@@ -405,9 +422,9 @@ function CaseTable() {
       key: "surgery_start_time",
       align: "left",
       width: 80,
-      sorter: (a, b) =>
-        dayjs(a.surgery_start_time).unix() - dayjs(b.surgery_start_time).unix(),
-      showSorterTooltip: false,
+      // sorter: (a, b) =>
+      //   dayjs(a.surgery_start_time).unix() - dayjs(b.surgery_start_time).unix(),
+      // showSorterTooltip: false,
       render: (text) => (
         <span className="text-base font-normal">
           {dayjs(text).tz("Asia/Bangkok").format("YYYY/MM/DD")}
@@ -503,7 +520,7 @@ function CaseTable() {
       title: <span className="text-base font-bold">จัดการ</span>,
       key: "Action",
       align: "left",
-      width: 80,
+      width: 70,
       render: (_, record) => (
         <div className="flex flex-between items-center space-x-4">
           <div className="w-full sm:w-auto">
@@ -574,8 +591,8 @@ function CaseTable() {
       <div className="bg-gray-100">
         <div className="flex flex-row w-full sm:flex-row sm:justify-between items-start sm:items-center gap-4 sm:gap-4 px-2 sm:px-10 pt-4">
           <Input
-            placeholder="ค้นหาด้วย HN, ชื่อผู้ป่วย..."
-            className="w-full p-1 text-base"
+            placeholder="ค้นหาด้วย HN, ชื่อผู้ป่วย, ชื่อห้องผ่าตัด..."
+            className="w-full text-base"
             prefix={<Icon icon="mingcute:search-line" />}
             onChange={handleInputChange}
             value={searchTerm}
@@ -594,12 +611,16 @@ function CaseTable() {
             <span className="font-medium text-lg">อัปเดต</span>
           </Button>
         </div>
-            
+
         <div className="flex flex-row w-full  sm:flex-row sm:justify-between items-start sm:items-center gap-4 sm:gap-0 px-2 sm:px-10 pt-2 pb-3">
           <RangePicker
-            className="w-1/5"
-            defaultValue={[dayjs(), dayjs().add(7, "day")]}
+            className="w-full sm:w-1/5"
+            value={[startDate, endDate]}
             disabledDate={disabledDate}
+            onChange={handleDaterangeChange}
+            size="middle"
+            showNow={true}
+            allowEmpty={false}
           />
 
           <Select
@@ -607,10 +628,11 @@ function CaseTable() {
             placeholder="กรองตามแพทย์"
             value={doctorSelectedOption}
             onChange={handleSelectChange}
+            allowClear={true}
           >
-            <Select.Option key="none" value="">
+            {/* <Select.Option key="none" value="">
               ไม่เลือก
-            </Select.Option>
+            </Select.Option> */}
             {doctorsData.map((doctor) => (
               <Select.Option key={doctor.doctor_id} value={doctor.doctor_id}>
                 {`${doctor.prefix}${doctor.firstname} ${doctor.lastname}`}
@@ -623,10 +645,11 @@ function CaseTable() {
             placeholder="กรองตามสถานะ"
             value={statusSelectedOption}
             onChange={handleSelectStatusChange}
+            allowClear={true}
           >
-            <Select.Option key="none" value="">
+            {/* <Select.Option key="none" value="">
               ไม่เลือก
-            </Select.Option>
+            </Select.Option> */}
             {allStatus.map((status) => (
               <Select.Option key={status.status_id} value={status.status_id}>
                 {`${status.translated_name}`}
