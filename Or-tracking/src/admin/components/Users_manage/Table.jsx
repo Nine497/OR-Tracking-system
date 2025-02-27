@@ -282,10 +282,13 @@ function UsersTable(refreshKey) {
 
           <Radio.Button
             value={null}
-            className="flex justify-center items-center"
+            className="flex justify-center items-center px-0"
           >
-            <span className="flex w-full text-center items-center text-base gap-2 justify-center">
-              <Icon icon="mdi:checkbox-multiple-marked" className="w-4 h-4" />
+            <span className="flex w-full text-center items-center text-xs md:text-base md:gap-2 gap-1 justify-center">
+              <Icon
+                icon="mdi:checkbox-multiple-marked"
+                className="md:w-4 md:h-4 w-3 h-3"
+              />
               ทั้งหมด
             </span>
           </Radio.Button>
@@ -293,10 +296,10 @@ function UsersTable(refreshKey) {
             value={true}
             className="flex justify-center items-center"
           >
-            <span className="flex w-full text-center items-center text-base gap-2 justify-center">
+            <span className="flex w-full text-center items-center text-xs md:text-base gap-2 justify-center">
               <Icon
                 icon="mdi:checkbox-marked-circle-outline"
-                className="w-4 h-4 "
+                className="md:w-4 md:h-4 w-3 h-3"
               />
               เปิดใช้งาน
             </span>
@@ -305,8 +308,11 @@ function UsersTable(refreshKey) {
             value={false}
             className="flex justify-center items-center"
           >
-            <span className="flex w-full text-center items-center text-base gap-2 justify-center">
-              <Icon icon="mdi:close-circle-outline" className="w-4 h-4" />
+            <span className="flex w-full text-center items-center text-xs md:text-base gap-2 justify-center">
+              <Icon
+                icon="mdi:close-circle-outline"
+                className="md:w-4 md:h-4 w-3 h-3"
+              />
               ปิดใช้งาน
             </span>
           </Radio.Button>
@@ -319,9 +325,9 @@ function UsersTable(refreshKey) {
             fetchData();
           }}
           className="w-full sm:w-auto"
-          size="large"
+          size="large md:medium"
         >
-          <span className="font-medium text-lg">อัปเดต</span>
+          <span className="font-medium text-sm md:text-base">อัปเดต</span>
         </Button>
       </div>
       <div className="ml-auto text-right">

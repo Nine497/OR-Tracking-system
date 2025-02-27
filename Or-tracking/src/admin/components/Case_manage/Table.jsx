@@ -588,16 +588,19 @@ function CaseTable() {
 
   return (
     <div className="flex flex-col p-2 sm:p-5 w-full h-full gap-4">
-      <div className="bg-gray-100">
-        <div className="flex flex-row w-full sm:flex-row sm:justify-between items-start sm:items-center gap-4 sm:gap-4 px-2 sm:px-10 pt-4">
-          <Input
-            placeholder="ค้นหาด้วย HN, ชื่อผู้ป่วย, ชื่อห้องผ่าตัด..."
-            className="w-full text-base"
-            prefix={<Icon icon="mingcute:search-line" />}
-            onChange={handleInputChange}
-            value={searchTerm}
-            allowClear
-          />
+      <div className="bg-gray-100 w-full p-4 md:p-6 lg:p-8">
+        {/* Search and Update Section */}
+        <div className="flex flex-col md:flex-row md:justify-between items-center gap-4 mb-4">
+          <div className="w-full">
+            <Input
+              placeholder="ค้นหาด้วย HN, ชื่อผู้ป่วย, ชื่อห้องผ่าตัด..."
+              className="w-full text-base"
+              prefix={<Icon icon="mingcute:search-line" />}
+              onChange={handleInputChange}
+              value={searchTerm}
+              allowClear
+            />
+          </div>
 
           <Button
             type="default"
@@ -605,97 +608,100 @@ function CaseTable() {
             onClick={() => {
               fetchData();
             }}
-            className="w-full sm:w-auto"
+            className="w-full md:w-auto"
             size="large"
           >
             <span className="font-medium text-lg">อัปเดต</span>
           </Button>
         </div>
 
-        <div className="flex flex-row w-full  sm:flex-row sm:justify-between items-start sm:items-center gap-4 sm:gap-0 px-2 sm:px-10 pt-2 pb-3">
-          <RangePicker
-            className="w-full sm:w-1/5"
-            value={[startDate, endDate]}
-            disabledDate={disabledDate}
-            onChange={handleDaterangeChange}
-            size="middle"
-            showNow={true}
-            allowEmpty={false}
-          />
+        {/* Filters Section */}
+        <div className="flex flex-col md:flex-row md:items-center gap-4 md:gap-6">
+          {/* Date Range Picker */}
+          <div className="w-full md:w-1/4">
+            <RangePicker
+              className="w-full"
+              value={[startDate, endDate]}
+              disabledDate={disabledDate}
+              onChange={handleDaterangeChange}
+              size="middle"
+              showNow={true}
+              allowEmpty={false}
+            />
+          </div>
 
-          <Select
-            className="w-full sm:w-1/5 h-10"
-            placeholder="กรองตามแพทย์"
-            value={doctorSelectedOption}
-            onChange={handleSelectChange}
-            allowClear={true}
-          >
-            {/* <Select.Option key="none" value="">
-              ไม่เลือก
-            </Select.Option> */}
-            {doctorsData.map((doctor) => (
-              <Select.Option key={doctor.doctor_id} value={doctor.doctor_id}>
-                {`${doctor.prefix}${doctor.firstname} ${doctor.lastname}`}
-              </Select.Option>
-            ))}
-          </Select>
-
-          <Select
-            className="w-full sm:w-1/5 h-10"
-            placeholder="กรองตามสถานะ"
-            value={statusSelectedOption}
-            onChange={handleSelectStatusChange}
-            allowClear={true}
-          >
-            {/* <Select.Option key="none" value="">
-              ไม่เลือก
-            </Select.Option> */}
-            {allStatus.map((status) => (
-              <Select.Option key={status.status_id} value={status.status_id}>
-                {`${status.translated_name}`}
-              </Select.Option>
-            ))}
-          </Select>
-
-          <Radio.Group
-            size="middle sm:small"
-            block
-            buttonStyle="solid"
-            className="w-full sm:w-1/5"
-            value={activeSelected}
-            onChange={(e) => {
-              handleActiveChange(e.target.value);
-              setPagination({
-                ...pagination,
-                current: 1,
-              });
-            }}
-          >
-            {/* <Radio.Button value={null}>ทั้งหมด</Radio.Button> */}
-
-            <Radio.Button
-              value={true}
-              className="flex justify-center items-center"
+          {/* Doctor Filter */}
+          <div className="w-full md:w-1/4">
+            <Select
+              className="w-full h-10"
+              placeholder="กรองตามแพทย์"
+              value={doctorSelectedOption}
+              onChange={handleSelectChange}
+              allowClear={true}
             >
-              <span className="flex w-full text-center items-center text-base gap-2 justify-center">
-                <Icon
-                  icon="material-symbols:check-box-rounded"
-                  className="w-4 h-4"
-                />
-                เคสปัจจุบัน
-              </span>
-            </Radio.Button>
+              {doctorsData.map((doctor) => (
+                <Select.Option key={doctor.doctor_id} value={doctor.doctor_id}>
+                  {`${doctor.prefix}${doctor.firstname} ${doctor.lastname}`}
+                </Select.Option>
+              ))}
+            </Select>
+          </div>
 
-            <Radio.Button
-              value={false}
-              className="flex justify-center items-center"
+          {/* Status Filter */}
+          <div className="w-full md:w-1/4">
+            <Select
+              className="w-full h-10"
+              placeholder="กรองตามสถานะ"
+              value={statusSelectedOption}
+              onChange={handleSelectStatusChange}
+              allowClear={true}
             >
-              <span className="flex w-full text-center items-center text-base gap-2 justify-center">
-                <Icon icon="entypo:trash" className="w-4 h-4" />
-                ถังขยะ
-              </span>
-            </Radio.Button>
-          </Radio.Group>
+              {allStatus.map((status) => (
+                <Select.Option key={status.status_id} value={status.status_id}>
+                  {`${status.translated_name}`}
+                </Select.Option>
+              ))}
+            </Select>
+          </div>
+
+          {/* Radio Group */}
+          <div className="w-full md:w-1/4">
+            <Radio.Group
+              buttonStyle="solid"
+              className="w-full flex"
+              value={activeSelected}
+              onChange={(e) => {
+                handleActiveChange(e.target.value);
+                setPagination({
+                  ...pagination,
+                  current: 1,
+                });
+              }}
+            >
+              <Radio.Button
+                value={true}
+                className="flex-1 flex justify-center items-center"
+              >
+                <span className="flex items-center text-xs md:text-sm gap-1 justify-center">
+                  <Icon
+                    icon="material-symbols:check-box-rounded"
+                    className="w-3 h-3 md:w-4 md:h-4"
+                  />
+                  <span className="hidden sm:inline">เคสปัจจุบัน</span>
+                </span>
+              </Radio.Button>
+
+              <Radio.Button
+                value={false}
+                className="flex-1 flex justify-center items-center"
+              >
+                <span className="flex items-center text-xs md:text-sm gap-1 justify-center">
+                  <Icon icon="entypo:trash" className="w-3 h-3 md:w-4 md:h-4" />
+                  <span className="hidden sm:inline">ถังขยะ</span>
+                </span>
+              </Radio.Button>
+            </Radio.Group>
+          </div>
         </div>
       </div>
 

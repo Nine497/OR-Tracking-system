@@ -435,7 +435,7 @@ const LoginForm = ({ t, link }) => {
 
     if (
       field === "patient_dob_day" &&
-      (value.length === 2 || (value >= 3 && value <= 9))
+      (value.length === 2 || (value >= 4 && value <= 9))
     ) {
       monthRef.current?.focus();
     }
