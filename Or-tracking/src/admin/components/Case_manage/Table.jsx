@@ -209,6 +209,8 @@ function CaseTable() {
     try {
       setLoadingCases(true);
 
+      setFilteredData([]);
+
       const response = await axiosInstanceStaff.get("/surgery_case/", {
         params: {
           endDate: endDate,

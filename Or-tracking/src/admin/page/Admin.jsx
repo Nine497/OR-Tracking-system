@@ -40,9 +40,15 @@ function Admin() {
         }`}
       >
         <Header />
-        <Content className="p-6 bg-gray-200 overflow-y-auto">
+        <Content className="p-4 bg-gray-200 overflow-y-auto">
           <div className="bg-white rounded-lg p-3 sm:p-6">
             <Outlet />
+          </div>
+          <div className="w-full pt-3 h-fit flex justify-center items-center text-center">
+            <p className="text-sm text-gray-500">
+              © {new Date().getFullYear()} Sandbox Lab Center. All rights
+              reserved.
+            </p>
           </div>
         </Content>
       </Layout>
