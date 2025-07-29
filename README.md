@@ -23,7 +23,7 @@
 |------|------------|
 | **Frontend** | React.js, Tailwind CSS, Ant Design |
 | **Backend** | Node.js, Express.js |
-| ****Database** | PostgreSQL |
+| **Database** | PostgreSQL |
 | **Authentication** | JSON Web Token (JWT) |
 | **Hosting** | Firebase Hosting (Frontend), Firebase Functions (API) |
 
