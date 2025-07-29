@@ -1,8 +1,8 @@
 ### OR-Tracking System – ระบบติดตามสถานะการผ่าตัด
 
-****ระยะเวลา:**** พฤศจิกายน 2024 – มีนาคม 2025  
-**สถานที่ฝึกงาน:**** โรงพยาบาลกรุงเทพหาดใหญ่  
-**ตำแหน่ง:**** Fullstack Developer
+**ระยะเวลา:** พฤศจิกายน 2024 – มีนาคม 2025  
+**สถานที่ฝึกงาน:** โรงพยาบาลกรุงเทพหาดใหญ่  
+**ตำแหน่ง:** Fullstack Developer
 
 ##### 🔍 รายละเอียดโปรเจกต์
 
@@ -21,11 +21,11 @@
 
 | ฝั่ง | เทคโนโลยี |
 |------|------------|
-| ****Frontend**** | React.js, Tailwind CSS, Ant Design |
-| ****Backend**** | Node.js, Express.js |
-| ****Database**** | PostgreSQL |
-| ****Authentication** | JSON Web Token (JWT) |
-| ****Hosting**** | Firebase Hosting (Frontend), Firebase Functions (API) |
+| **Frontend** | React.js, Tailwind CSS, Ant Design |
+| **Backend** | Node.js, Express.js |
+| ****Database** | PostgreSQL |
+| **Authentication** | JSON Web Token (JWT) |
+| **Hosting** | Firebase Hosting (Frontend), Firebase Functions (API) |
 
 ---
 
