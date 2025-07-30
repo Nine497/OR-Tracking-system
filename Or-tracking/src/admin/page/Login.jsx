@@ -133,15 +133,21 @@ const Login = () => {
           </div>
 
           {/* Login Form */}
-          <Form onFinish={handleSubmit} layout="vertical" className="space-y-6">
+          <Form
+            onFinish={handleSubmit}
+            layout="vertical"
+            className="space-y-6"
+            initialValues={{
+              username: "nine",
+              password: "123",
+            }}
+          >
             <Form.Item
               name="username"
               rules={[{ required: true, message: "กรุณากรอกชื่อผู้ใช้" }]}
             >
               <Input
-                prefix={
-                  <Icon icon="solar:user-linear" className="text-gray-400" />
-                }
+                prefix={<Icon icon="solar:user-linear" className="text-gray-400" />}
                 size="large"
                 placeholder="ชื่อผู้ใช้"
                 className="rounded-lg h-12"
@@ -154,9 +160,7 @@ const Login = () => {
               rules={[{ required: true, message: "กรุณากรอกรหัสผ่าน" }]}
             >
               <Input.Password
-                prefix={
-                  <Icon icon="mdi:password-outline" className="text-gray-400" />
-                }
+                prefix={<Icon icon="mdi:password-outline" className="text-gray-400" />}
                 size="large"
                 placeholder="รหัสผ่าน"
                 className="rounded-lg h-12"

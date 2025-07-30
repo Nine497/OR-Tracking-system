@@ -116,11 +116,10 @@ const LinkDisplay = ({
         px-3 py-0.5
         text-sm
         rounded-full
-        ${
-          isActive
-            ? "bg-green-50/50 text-green-600 ring-1 ring-green-200/60"
-            : "bg-red-50/50 text-red-600 ring-1 ring-red-200/60"
-        }
+        ${isActive
+              ? "bg-green-50/50 text-green-600 ring-1 ring-green-200/60"
+              : "bg-red-50/50 text-red-600 ring-1 ring-red-200/60"
+            }
       `}
         >
           <span
@@ -211,8 +210,8 @@ const InfoItem = ({ label, value, children, isActive, isCount }) => (
             label === "สร้างโดย"
               ? "heroicons:user"
               : label === "สร้างเมื่อ"
-              ? "heroicons:calendar"
-              : "heroicons:clock"
+                ? "heroicons:calendar"
+                : "heroicons:clock"
           }
           className="text-gray-400 group-hover:text-gray-600 transition-colors text-lg sm:text-xl"
         />
@@ -295,9 +294,9 @@ const ActiveLinkComponent = ({
                 isEditing
                   ? newExpirationTime
                   : dayjs
-                      .utc(linkData.expiration_time)
-                      .tz("Asia/Bangkok")
-                      .format("YYYY-MM-DD, HH:mm")
+                    .utc(linkData.expiration_time)
+                    .tz("Asia/Bangkok").add(7, 'hour')
+                    .format("YYYY-MM-DD, HH:mm")
               }
               isActive={true}
             >
@@ -396,7 +395,7 @@ const ActiveLinkComponent = ({
           <InfoItem
             label="สร้างเมื่อ"
             value={dayjs(linkData.created_at)
-              .tz("Asia/Bangkok")
+              .tz("Asia/Bangkok").add(7, 'hour')
               .format("YYYY-MM-DD, HH:mm")}
           />
           <InfoItem label="สร้างโดย" value={linkData.staff_fullname} />
@@ -424,7 +423,7 @@ const ExpiredLinkComponent = ({
     <div className="bg-gray-50 rounded-lg p-4 space-y-4">
       <div className="flex items-center justify-between">
         <Typography.Title level={5} className="!m-0">
-          Link Details
+          Link Details ${linkData.expiration_time}
         </Typography.Title>
       </div>
 

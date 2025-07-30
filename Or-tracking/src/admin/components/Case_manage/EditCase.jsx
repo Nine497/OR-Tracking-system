@@ -84,12 +84,12 @@ function EditCase() {
           surgery_case_id: surgeryCase.surgery_case_id || null,
           surgery_start_time:
             surgeryCase.surgery_start_time &&
-            dayjs(surgeryCase.surgery_start_time).isValid()
+              dayjs(surgeryCase.surgery_start_time).isValid()
               ? dayjs(surgeryCase.surgery_start_time)
               : null,
           surgery_end_time:
             surgeryCase.surgery_end_time &&
-            dayjs(surgeryCase.surgery_end_time).isValid()
+              dayjs(surgeryCase.surgery_end_time).isValid()
               ? dayjs(surgeryCase.surgery_end_time)
               : null,
 
@@ -359,6 +359,7 @@ function EditCase() {
       if (!patientId) {
         throw new Error("Patient ID is missing. Unable to proceed.");
       }
+
 
       const surgeryCaseDataToSend = {
         surgery_type_id: surgeryData.surgery_type_id,
@@ -1202,8 +1203,7 @@ function EditCase() {
                           value={
                             surgeryData.surgery_start_time
                               ? dayjs(surgeryData.surgery_start_time)
-                                  .tz("Asia/Bangkok")
-                                  .format("YYYY-MM-DD HH:mm")
+                                .format("YYYY-MM-DD HH:mm")
                               : null
                           }
                           onChange={(date) =>
@@ -1234,8 +1234,7 @@ function EditCase() {
                           value={
                             surgeryData.surgery_end_time
                               ? dayjs(surgeryData.surgery_end_time)
-                                  .tz("Asia/Bangkok")
-                                  .format("YYYY-MM-DD HH:mm")
+                                .format("YYYY-MM-DD HH:mm")
                               : null
                           }
                           onChange={(date) =>
@@ -1247,9 +1246,9 @@ function EditCase() {
                           disabledDate={(current) => {
                             const startTime = surgeryData.surgery_start_time
                               ? dayjs(
-                                  surgeryData.surgery_start_time,
-                                  "YYYY/MM/DD HH:mm"
-                                ).tz("Asia/Bangkok")
+                                surgeryData.surgery_start_time,
+                                "YYYY/MM/DD HH:mm"
+                              ).tz("Asia/Bangkok")
                               : null;
                             return (
                               startTime && current < startTime.startOf("day")
@@ -1258,9 +1257,9 @@ function EditCase() {
                           disabledTime={(current) => {
                             const startTime = surgeryData.surgery_start_time
                               ? dayjs(
-                                  surgeryData.surgery_start_time,
-                                  "YYYY/MM/DD HH:mm"
-                                ).tz("Asia/Bangkok")
+                                surgeryData.surgery_start_time,
+                                "YYYY/MM/DD HH:mm"
+                              ).tz("Asia/Bangkok")
                               : null;
 
                             if (!startTime || !current) return {};
@@ -1275,9 +1274,9 @@ function EditCase() {
                                 disabledMinutes: (hour) =>
                                   hour === startTime.hour()
                                     ? Array.from(
-                                        { length: startTime.minute() + 5 },
-                                        (_, i) => i
-                                      )
+                                      { length: startTime.minute() + 5 },
+                                      (_, i) => i
+                                    )
                                     : [],
                               };
                             }

@@ -216,7 +216,6 @@ exports.createSurgeryCase = async (req, res) => {
 
     const overlappingCases = await db("surgery_case")
       .where("operating_room_id", surgeryCaseData.operating_room_id)
-      .whereNot("surgery_case_id", surgeryCaseData.surgery_case_id)
       .whereNot("operating_room_id", 8)
       .where(function () {
         this.whereBetween("surgery_start_time", [
@@ -253,8 +252,10 @@ exports.createSurgeryCase = async (req, res) => {
     const newSurgeryCase = await db("surgery_case")
       .insert({
         doctor_id: surgeryCaseData.doctor_id,
-        surgery_start_time: surgeryStartTime,
-        surgery_end_time: surgeryEndTime,
+        surgery_start_time: surgeryCaseData.surgery_start_time
+        ,
+        surgery_end_time: surgeryCaseData.surgery_end_time
+        ,
         surgery_type_id: surgeryCaseData.surgery_type_id,
         operating_room_id: surgeryCaseData.operating_room_id,
         status_id: 0,
@@ -463,6 +464,16 @@ exports.updateSurgeryCase = async (req, res) => {
         .json({ message: "Please provide all required fields." });
     }
 
+    const surgeryStart = dayjs(surgeryCaseData.surgery_start_time)
+      .add(7, "hour")
+      .toISOString();
+
+    const surgeryEnd = dayjs(surgeryCaseData.surgery_end_time)
+      .add(7, "hour")
+      .toISOString();
+
+    surgeryCaseData.surgery_start_time = surgeryStart;
+    surgeryCaseData.surgery_end_time = surgeryEnd;
     const overlappingCases = await db("surgery_case")
       .where("operating_room_id", surgeryCaseData.operating_room_id)
       .whereNot("surgery_case_id", surgery_case_id)
@@ -577,7 +588,6 @@ exports.getAllCase = async (req, res) => {
         "surgery_case_links.surgery_case_links_id as link_id",
         "surgery_case_links.isactive as link_active",
         "surgery_case_links.expiration_time as expiration_time",
-        "surgery_case_links.pin_encrypted as pin_encrypted",
         "surgery_type.surgery_type_name as surgery_type_name",
         "translations.translated_name as status_th",
         "operation.operation_name as operation_name"
@@ -816,7 +826,6 @@ exports.getAllCaseIsActive = async (req, res) => {
         "surgery_case_links.surgery_case_links_id as link_id",
         "surgery_case_links.isactive as link_active",
         "surgery_case_links.expiration_time as expiration_time",
-        "surgery_case_links.pin_encrypted as pin_encrypted",
         "surgery_type.surgery_type_name as surgery_type_name",
         "translations.translated_name as status_th",
         "operation.operation_name as operation_name"

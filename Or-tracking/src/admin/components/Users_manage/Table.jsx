@@ -179,7 +179,7 @@ function UsersTable(refreshKey) {
       title: <span className="text-base font-bold">จัดการ</span>,
       key: "action",
       render: (_, record) => {
-        const hasPermission11 = permissions.includes("11");
+        const hasPermission11 = permissions.includes("10");
 
         return (
           <div className="flex flex-between items-center space-x-4">
