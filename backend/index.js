@@ -31,7 +31,6 @@ app.use("/api/doctor", doctorRoutes);
 app.use("/api/link_cases", linkCaseRoutes);
 app.use("/api/patient", patientRoutes);
 app.use("/api/or_room", or_roomRoutes);
-app.use;
 app.use("/api/getTest", (req, res) => {
   res.send("Respond From API Successfully");
 });

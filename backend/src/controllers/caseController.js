@@ -464,16 +464,6 @@ exports.updateSurgeryCase = async (req, res) => {
         .json({ message: "Please provide all required fields." });
     }
 
-    const surgeryStart = dayjs(surgeryCaseData.surgery_start_time)
-      .add(7, "hour")
-      .toISOString();
-
-    const surgeryEnd = dayjs(surgeryCaseData.surgery_end_time)
-      .add(7, "hour")
-      .toISOString();
-
-    surgeryCaseData.surgery_start_time = surgeryStart;
-    surgeryCaseData.surgery_end_time = surgeryEnd;
     const overlappingCases = await db("surgery_case")
       .where("operating_room_id", surgeryCaseData.operating_room_id)
       .whereNot("surgery_case_id", surgery_case_id)
