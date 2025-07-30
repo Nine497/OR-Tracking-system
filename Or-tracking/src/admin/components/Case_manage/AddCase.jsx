@@ -315,8 +315,8 @@ function AddCase() {
         status_id: surgeryData.status_id,
         patient_history: surgeryData.patient_history,
         created_at: dayjs().format("YYYY/MM/DD HH:mm:ss"),
-        surgery_start_time: surgeryStartTime.format("YYYY/MM/DD HH:mm:ss"),
-        surgery_end_time: surgeryEndTime.format("YYYY/MM/DD HH:mm:ss"),
+        surgery_start_time: surgeryStartTime.subtract(7, 'hours').format("YYYY/MM/DD HH:mm:ss"),
+        surgery_end_time: surgeryEndTime.subtract(7, 'hours').format("YYYY/MM/DD HH:mm:ss"),
         Operation: surgeryData.Operation,
         note: surgeryData.note,
       };
@@ -965,9 +965,9 @@ function AddCase() {
                     value={
                       surgeryData.surgery_start_time
                         ? dayjs(
-                            surgeryData.surgery_start_time,
-                            "YYYY/MM/DD HH:mm"
-                          )
+                          surgeryData.surgery_start_time,
+                          "YYYY/MM/DD HH:mm"
+                        )
                         : null
                     }
                     onChange={(date) =>
@@ -1017,9 +1017,9 @@ function AddCase() {
                     value={
                       surgeryData.surgery_end_time
                         ? dayjs(
-                            surgeryData.surgery_end_time,
-                            "YYYY/MM/DD HH:mm"
-                          )
+                          surgeryData.surgery_end_time,
+                          "YYYY/MM/DD HH:mm"
+                        )
                         : null
                     }
                     onChange={(date) =>
@@ -1031,18 +1031,18 @@ function AddCase() {
                     disabledDate={(current) => {
                       const startTime = surgeryData.surgery_start_time
                         ? dayjs(
-                            surgeryData.surgery_start_time,
-                            "YYYY/MM/DD HH:mm"
-                          ).tz("Asia/Bangkok")
+                          surgeryData.surgery_start_time,
+                          "YYYY/MM/DD HH:mm"
+                        ).tz("Asia/Bangkok")
                         : null;
                       return startTime && current < startTime.startOf("day");
                     }}
                     disabledTime={(current) => {
                       const startTime = surgeryData.surgery_start_time
                         ? dayjs(
-                            surgeryData.surgery_start_time,
-                            "YYYY/MM/DD HH:mm"
-                          ).tz("Asia/Bangkok")
+                          surgeryData.surgery_start_time,
+                          "YYYY/MM/DD HH:mm"
+                        ).tz("Asia/Bangkok")
                         : null;
 
                       if (!startTime || !current) return {};
@@ -1057,9 +1057,9 @@ function AddCase() {
                           disabledMinutes: (hour) =>
                             hour === startTime.hour()
                               ? Array.from(
-                                  { length: startTime.minute() + 5 },
-                                  (_, i) => i
-                                )
+                                { length: startTime.minute() + 5 },
+                                (_, i) => i
+                              )
                               : [],
                         };
                       }
