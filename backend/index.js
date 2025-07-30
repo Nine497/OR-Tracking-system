@@ -37,31 +37,20 @@ app.use("/api/getTest", (req, res) => {
 });
 app.post("/api/newSurgeryCase", (req, res) => { });
 
-// Start server locally
-if (process.env.NODE_ENV === "development") {
-  const startServer = async () => {
-    try {
-      await db.raw("SELECT 1+1 AS result");
-      console.log("Database connected successfully");
+// Start server
+const port = process.env.PORT_NUMBER || 3001;
 
-      const port = process.env.PORT_NUMBER || 3001;
-
-      app.listen(port, () => {
-        console.log(
-          "Server is running on host:",
-          db.client.config.connection.host
-        );
-        console.log("Database:", db.client.config.connection.database);
-        console.log("Server is running on Port:", port);
-      });
-    } catch (error) {
-      console.error("Unable to connect to the database:", error);
-      process.exit(1);
-    }
-  };
-
-  startServer();
-}
+db.raw("SELECT 1+1 AS result")
+  .then(() => {
+    console.log("Database connected successfully");
+    app.listen(port, () => {
+      console.log(`Server is running on port ${port}`);
+    });
+  })
+  .catch((err) => {
+    console.error("Unable to connect to the database:", err);
+    process.exit(1);
+  });
 
 // Firebase Functions
 // exports.api = functions.https.onRequest({ region: "asia-southeast1" }, app);
