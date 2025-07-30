@@ -35,15 +35,16 @@ app.use;
 app.use("/api/getTest", (req, res) => {
   res.send("Respond From API Successfully");
 });
-app.post("/api/newSurgeryCase", (req, res) => {});
+app.post("/api/newSurgeryCase", (req, res) => { });
 
 // Start server locally
 if (process.env.NODE_ENV === "development") {
   const startServer = async () => {
     try {
-      const port = 3001 || process.env.PORT_NUMBER;
       await db.raw("SELECT 1+1 AS result");
       console.log("Database connected successfully");
+
+      const port = process.env.PORT || 3001; // ใช้ PORT จาก env หรือ default 3001
 
       app.listen(port, () => {
         console.log(
@@ -63,4 +64,4 @@ if (process.env.NODE_ENV === "development") {
 }
 
 // Firebase Functions
-exports.api = functions.https.onRequest({ region: "asia-southeast1" }, app);
+// exports.api = functions.https.onRequest({ region: "asia-southeast1" }, app);
