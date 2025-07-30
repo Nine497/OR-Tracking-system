@@ -44,7 +44,7 @@ if (process.env.NODE_ENV === "development") {
       await db.raw("SELECT 1+1 AS result");
       console.log("Database connected successfully");
 
-      const port = process.env.PORT || 3001; // ใช้ PORT จาก env หรือ default 3001
+      const port = process.env.PORT || 3001;
 
       app.listen(port, () => {
         console.log(
